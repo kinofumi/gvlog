@@ -46,11 +46,15 @@ export async function importImage(
   const scale = maxLongSide / longSide
   const width = Math.round(originalWidth * scale)
   const height = Math.round(originalHeight * scale)
-  const resized = await createImageBitmap(full, {
-    resizeWidth: width,
-    resizeHeight: height,
-    resizeQuality: 'high',
-  })
-  full.close()
-  return { bitmap: resized, width, height, originalWidth, originalHeight }
+  try {
+    const resized = await createImageBitmap(full, {
+      resizeWidth: width,
+      resizeHeight: height,
+      resizeQuality: 'high',
+    })
+    return { bitmap: resized, width, height, originalWidth, originalHeight }
+  } finally {
+    // 縮小に成功しても失敗しても、フルサイズのビットマップは必ず閉じる
+    full.close()
+  }
 }

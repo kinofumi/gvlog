@@ -339,7 +339,7 @@ CapCut に入るところまでを最初に通す。ここで通らなければ�
 | zustand | 状態 | ~1KB |
 | idb-keyval | IndexedDB | ~0.6KB |
 | tailwindcss v4、shadcn/ui | UI 部品 | 使った分だけ |
-| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, eslint, prettier, vitest, @napi-rs/canvas | dev | — |
+| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, oxlint（ADR 011）, prettier, vitest, @napi-rs/canvas | dev | — |
 | playwright | ブラウザ結合テスト（desktop Chrome） | dev |
 
 ## 11. テスト方針（TDD）

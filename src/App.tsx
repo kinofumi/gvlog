@@ -23,31 +23,52 @@ export default function App() {
   const [photo, setPhoto] = useState<ImportedImage | null>(null)
   const [video, setVideo] = useState<ImportedVideo | null>(null)
   const [mediaMessage, setMediaMessage] = useState('')
+  const [importing, setImporting] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const [shareMessage, setShareMessage] = useState('')
   const abortRef = useRef<AbortController | null>(null)
 
+  // 前の素材は、新しい素材が読み込めてから（または失敗が確定してから）解放する。
+  // await の前に閉じると、読み込みが重なったときに違う素材を閉じてしまう。
+  function replacePhoto(next: ImportedImage | null) {
+    setPhoto((previous) => {
+      previous?.bitmap.close()
+      return next
+    })
+  }
+
+  function replaceVideo(next: ImportedVideo | null) {
+    setVideo((previous) => {
+      previous?.input.dispose()
+      return next
+    })
+  }
+
   async function onPickPhoto(file: File | undefined) {
     if (!file) return
     setMediaMessage('')
+    setImporting(true)
     try {
-      photo?.bitmap.close()
-      setPhoto(await importImage(file, preset.width, preset.height))
+      replacePhoto(await importImage(file, preset.width, preset.height))
     } catch (error) {
-      setPhoto(null)
+      replacePhoto(null)
       setMediaMessage(error instanceof MediaError ? error.message : '写真の読み込みに失敗しました。')
+    } finally {
+      setImporting(false)
     }
   }
 
   async function onPickVideo(file: File | undefined) {
     if (!file) return
     setMediaMessage('')
+    setImporting(true)
     try {
-      video?.input.dispose()
-      setVideo(await importVideo(file))
+      replaceVideo(await importVideo(file))
     } catch (error) {
-      setVideo(null)
+      replaceVideo(null)
       setMediaMessage(error instanceof MediaError ? error.message : '動画の読み込みに失敗しました。')
+    } finally {
+      setImporting(false)
     }
   }
 
@@ -92,7 +113,9 @@ export default function App() {
     if (outcome === 'failed') setShareMessage('共有できませんでした。「ダウンロード」をお試しください。')
   }
 
-  const canExport = (photo !== null || video !== null) && phase.kind !== 'exporting'
+  // 書き出し中や取り込み中は、素材を差し替えられないようにする（使用中の資源を閉じてしまうため）
+  const busy = importing || phase.kind === 'exporting'
+  const canExport = (photo !== null || video !== null) && !busy
 
   return (
     <main className="mx-auto max-w-md px-4 py-6 space-y-6">
@@ -131,6 +154,7 @@ export default function App() {
             className="mt-1 block w-full text-sm"
             type="file"
             accept="image/*"
+            disabled={busy}
             onChange={(e) => onPickPhoto(e.target.files?.[0])}
           />
         </label>
@@ -146,6 +170,7 @@ export default function App() {
             className="mt-1 block w-full text-sm"
             type="file"
             accept="video/*"
+            disabled={busy}
             onChange={(e) => onPickVideo(e.target.files?.[0])}
           />
         </label>

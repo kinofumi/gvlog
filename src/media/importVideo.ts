@@ -29,7 +29,18 @@ export async function importVideo(file: File): Promise<ImportedVideo> {
   }
 
   // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
+  // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
   const input = new Input({ formats: [MP4, QTFF], source: new BlobSource(file) })
+  try {
+    return await probe(file, input)
+  } catch (error) {
+    // 途中で失敗したら Input を解放してから投げ直す（連続で失敗したときに溜め込まない）
+    input.dispose()
+    throw error
+  }
+}
+
+async function probe(file: File, input: Input): Promise<ImportedVideo> {
   let track: InputVideoTrack | null
   try {
     track = await input.getPrimaryVideoTrack()
@@ -61,7 +72,6 @@ export async function importVideo(file: File): Promise<ImportedVideo> {
     )
   }
 
-  // TypeScript の DOM 型には 'hlg' / 'pq' が無いが、実際のブラウザはこの値を返すので文字列として扱う
   const transfer: string | null = colorSpace.transfer ?? null
   return {
     file,
