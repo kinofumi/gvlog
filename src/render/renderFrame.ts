@@ -4,7 +4,7 @@ type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
 
 /**
  * 画像を出力キャンバスいっぱいに cover フィットで描く。
- * 画像とキャンバスの縦横比が同じなら、そのまま全面に描く。
+ * 先に全体を黒で塗る。透過 PNG を毎フレーム重ね塗りすると、だんだん不透明になってしまうため。
  */
 export function drawCover(
   ctx: Ctx,
@@ -14,6 +14,8 @@ export function drawCover(
 ): void {
   const dstWidth = ctx.canvas.width
   const dstHeight = ctx.canvas.height
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, dstWidth, dstHeight)
   const { sx, sy, sw, sh } = coverRect(srcWidth, srcHeight, dstWidth, dstHeight)
   ctx.drawImage(image, sx, sy, sw, sh, 0, 0, dstWidth, dstHeight)
 }

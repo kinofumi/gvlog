@@ -109,6 +109,8 @@ export async function exportVideo(
       if (frame % 10 === 0) onProgress({ frame, totalFrames: preset.totalFrames })
     }
 
+    // 最後のフレームを待っている間にキャンセルされた場合も、成功として返さない
+    if (signal.aborted) throw new ExportCancelled()
     await output.finalize()
     const buffer = output.target.buffer
     if (!buffer) throw new Error('書き出し結果が空でした。')
@@ -124,8 +126,8 @@ export async function exportVideo(
     await output.cancel().catch(() => {})
     throw error
   } finally {
-    // 失敗でも成功でも、デコーダとビットマップは必ず解放する
-    for (const source of sources.values()) source.dispose()
+    // 失敗でも成功でも、デコーダは必ず解放し、解放が終わるまで待つ
+    for (const source of sources.values()) await source.dispose()
   }
 }
 

@@ -7,13 +7,14 @@ import type { Segment } from '../timeline/compile'
  * デコードは非同期なので prepare() で待ち、get() は同期で必ず画像を返す。
  * prepare() は区間の先頭から 1 フレームずつ順に呼ぶこと（飛ばし読みはしない）。
  * 自分で作った資源（デコーダ）は dispose() で解放する。呼び出し側から受け取った資源は解放しない。
+ * dispose() は解放が終わるまで待てるよう Promise を返す。
  */
 export interface FrameSource {
   prepare(frame: number): Promise<void>
   get(): CanvasImageSource
   width(): number
   height(): number
-  dispose(): void
+  dispose(): Promise<void>
 }
 
 /**
@@ -42,7 +43,7 @@ export class PhotoFrameSource implements FrameSource {
     return this.bitmap.height
   }
 
-  dispose(): void {}
+  async dispose(): Promise<void> {}
 }
 
 /**
@@ -75,10 +76,11 @@ export class VideoFrameSource implements FrameSource {
       poolSize: 2,
     })
 
-    // 素材内の時刻: 見え始めた瞬間を trimStartSec とし、1 フレームずつ進める
+    // 素材内の時刻: 動画の先頭フレームの時刻（0 とは限らない）を基準に、
+    // 見え始めた瞬間を trimStartSec とし、1 フレームずつ進める
     const timestamps: number[] = []
     for (let frame = segment.start; frame < segment.end; frame++) {
-      timestamps.push(trimStartSec + (frame - segment.start) / fps)
+      timestamps.push(video.firstTimestampSec + trimStartSec + (frame - segment.start) / fps)
     }
     this.frames = this.sink.canvasesAtTimestamps(timestamps)
   }
@@ -104,8 +106,9 @@ export class VideoFrameSource implements FrameSource {
     return this.outputHeight
   }
 
-  dispose(): void {
-    void this.frames.return()
+  async dispose(): Promise<void> {
     this.current = null
+    // デコーダの終了を待ってから戻る（待たないと次の書き出しと重なる）
+    await this.frames.return()
   }
 }

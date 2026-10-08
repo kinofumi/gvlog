@@ -9,6 +9,8 @@ export type ImportedVideo = {
   track: InputVideoTrack
   codec: string
   durationSec: number
+  /** 先頭フレームの時刻（秒）。MOV などでは 0 でないことがある */
+  firstTimestampSec: number
   /** 回転適用後の表示サイズ */
   width: number
   height: number
@@ -51,15 +53,17 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
     throw new MediaError('この動画には映像トラックがありません。')
   }
 
-  const [codec, durationSec, width, height, rotation, colorSpace, canDecode] = await Promise.all([
-    track.getCodec(),
-    track.computeDuration(),
-    track.getDisplayWidth(),
-    track.getDisplayHeight(),
-    track.getRotation(),
-    track.getColorSpace(),
-    track.canDecode(),
-  ])
+  const [codec, durationSec, firstTimestampSec, width, height, rotation, colorSpace, canDecode] =
+    await Promise.all([
+      track.getCodec(),
+      track.computeDuration(),
+      track.getFirstTimestamp(),
+      track.getDisplayWidth(),
+      track.getDisplayHeight(),
+      track.getRotation(),
+      track.getColorSpace(),
+      track.canDecode(),
+    ])
 
   const longSide = Math.max(width, height)
   const shortSide = Math.min(width, height)
@@ -79,6 +83,7 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
     track,
     codec: codec ?? 'unknown',
     durationSec,
+    firstTimestampSec,
     width,
     height,
     rotation,
