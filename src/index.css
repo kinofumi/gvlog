@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+/* スマホで全画面に使う。横スクロールを出さない。 */
+html,
+body {
+  margin: 0;
+  background: #f5f5f4;
+  color: #1c1917;
+  font-family: system-ui, sans-serif;
+  overflow-x: hidden;
+}

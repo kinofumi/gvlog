@@ -68,3 +68,6 @@ tmp/
 
 # gstack / codex session state
 .context/
+
+# gstack のレポート（スクリーンショットや検証用の動画）
+.gstack/
