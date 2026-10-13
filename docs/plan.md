@@ -68,8 +68,8 @@ gvlog/
     components/                     # Slider, Chips, BottomSheet, Stepper, PreviewCanvas, ProgressBar
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
-    **timeline/**                   # compile.ts, durations.ts, easing.ts  ← 純粋関数・Vitest 対象
-    **render/**                     # renderFrame.ts, kenBurns.ts, crossfade.ts, captions.ts, wrapText.ts
+    **timeline/**                   # compile.ts, durations.ts, clamp.ts  ← 純粋関数・Vitest 対象
+    **render/**                     # renderFrame.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）, coverRect.ts, clamp01.ts
                                     # ← DOM 非依存（Canvas の型のみ）
     **media/**                      # importImage.ts, importVideo.ts, limits.ts, errors.ts
     **preview/**                    # PreviewPlayer.ts（rAF クロック + <video> プール）
@@ -211,7 +211,9 @@ renderFrame(tl: CompiledTimeline, t: number,
   両方を減衰させない。同じ画像同士を合成しても輝度が変わらないことをテストで確認する（Codex 指摘 8）。
 - **キャプションは合成後に別描画**する。素材のフェードに巻き込まれない。
 - Ken Burns は `from/to` を easeInOut で補間してソース矩形を算出 → `drawImage(src, sx, sy, sw, sh, 0, 0, W, H)`。
-- テロップは `measureText` による文字単位折り返し（`wrapText.ts`、日本語対応）、幅 90%、上下セーフマージン 8%、
+  パンのプリセットの振れ幅は zoom で空く余白（`(1 − 1/zoom) / 2`）ちょうどにする。それより大きいと、出力と同じ縦横比の写真で端に当たって止まる。
+- テロップは `measureText` による書記素単位の折り返し（`caption.ts` の `wrapText`、日本語と絵文字対応）、幅 90%、上下セーフマージン 8%、
+  収まらない行は切り捨てて `overflow` で知らせる（文字サイズは変えない）。
   サイズ L/M/S = 高さの 7.5 / 6 / 4.5%。
 - **回転は mediabunny に任せ、アプリ側では回転しない**。写真は `createImageBitmap` の EXIF 適用、動画は `CanvasSink`
   （回転メタデータを自動適用）を使う。二重適用を防ぐため、`VideoItem.width/height` は回転後の値で保存する。
