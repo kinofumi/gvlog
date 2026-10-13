@@ -2,33 +2,33 @@ import { createCanvas } from '@napi-rs/canvas'
 import { describe, expect, it } from 'vitest'
 import type { Caption } from '../model/types'
 import { compileTimeline } from '../timeline/compile'
-import { renderFrame, type RenderItem } from './renderFrame'
+import { renderFrame, type ProvidedImage, type RenderItem } from './renderFrame'
 
 // Node で Canvas を動かすために @napi-rs/canvas を使う。描画 API はブラウザと同じ。
 // 型はブラウザのものに合わせてキャストする（ブラウザの Safari で同じ色になる証明にはならない）。
 const W = 90
 const H = 160
 
-function solid(color: string, w = 200, h = 100) {
+function solid(color: string, w = 200, h = 100): ProvidedImage {
   const c = createCanvas(w, h)
   const x = c.getContext('2d')
   x.fillStyle = color
   x.fillRect(0, 0, w, h)
-  return c as unknown as CanvasImageSource
+  return { image: c as unknown as CanvasImageSource, width: w, height: h }
 }
 
 /** 左半分が赤、右半分が青の写真 */
-function leftRedRightBlue(w = 200, h = 100) {
+function leftRedRightBlue(w = 200, h = 100): ProvidedImage {
   const c = createCanvas(w, h)
   const x = c.getContext('2d')
   x.fillStyle = '#f00'
   x.fillRect(0, 0, w / 2, h)
   x.fillStyle = '#00f'
   x.fillRect(w / 2, 0, w / 2, h)
-  return c as unknown as CanvasImageSource
+  return { image: c as unknown as CanvasImageSource, width: w, height: h }
 }
 
-function render(items: RenderItem[], images: Record<string, CanvasImageSource>, frame: number) {
+function render(items: RenderItem[], images: Record<string, ProvidedImage>, frame: number) {
   const canvas = createCanvas(W, H)
   const ctx = canvas.getContext('2d') as unknown as CanvasRenderingContext2D
   const compiled = compileTimeline(items)
@@ -44,8 +44,6 @@ const photo = (
   itemId,
   kind: 'photo',
   durationFrames,
-  width: 200,
-  height: 100,
   ...extra,
 })
 
@@ -53,6 +51,20 @@ describe('renderFrame（1 フレームの合成）', () => {
   it('素材が無いフレームは黒', () => {
     const px = render([], {}, 0)
     expect(px(10, 10)).toEqual([0, 0, 0, 255])
+  })
+
+  it('呼び出し前の描画状態（半透明など）に影響されず、終わったら元の状態に戻す', () => {
+    const canvas = createCanvas(W, H)
+    const ctx = canvas.getContext('2d') as unknown as CanvasRenderingContext2D
+    // 前のフレームの残りを模す: 赤で塗ってから半透明にしておく
+    ctx.fillStyle = '#f00'
+    ctx.fillRect(0, 0, W, H)
+    ctx.globalAlpha = 0.5
+    ctx.globalCompositeOperation = 'lighter'
+    renderFrame(compileTimeline([]), [], 0, ctx, { get: () => solid('#0f0') })
+    expect([...canvas.getContext('2d').getImageData(10, 10, 1, 1).data]).toEqual([0, 0, 0, 255])
+    expect(ctx.globalAlpha).toBeCloseTo(0.5, 2) // Node の Canvas は 8bit に丸めて戻す
+    expect(ctx.globalCompositeOperation).toBe('lighter')
   })
 
   it('写真 1 枚は画面いっぱいに描かれる', () => {
@@ -104,13 +116,19 @@ describe('renderFrame（1 フレームの合成）', () => {
     expect(at(1)).toEqual([0, 0, 255, 255])
   })
 
+  it('画像の寸法は ImageProvider が返す値を使う（書き出しの動画は出力サイズに cover 済みのキャンバスを返す）', () => {
+    const video: RenderItem = { itemId: 'v', kind: 'video', durationFrames: 300 }
+    // 出力サイズと同じ寸法の画像なら、そのまま（二重クロップなし）
+    const px = render([video], { v: leftRedRightBlue(W, H) }, 0)
+    expect(px(2, 80)).toEqual([255, 0, 0, 255])
+    expect(px(W - 3, 80)).toEqual([0, 0, 255, 255])
+  })
+
   it('動画は中央を cover で描く（Ken Burns なし）', () => {
     const video: RenderItem = {
       itemId: 'v',
       kind: 'video',
       durationFrames: 300,
-      width: 200,
-      height: 100,
     }
     const px = render([video], { v: leftRedRightBlue() }, 0)
     // 幅 200 のうち中央の 56.25 を使うので、左寄りは赤、右寄りは青
@@ -146,6 +164,22 @@ describe('renderFrame（1 フレームの合成）', () => {
     const px = render(items, { a: solid('#f00') }, 50)
     const bandY = Math.round(H - H * 0.08 - (H * 0.075) / 2)
     expect(px(2, bandY)).toEqual([255, 0, 0, 255])
+  })
+
+  it('改行や空白だけのテキストは、帯もボックスも描かない', () => {
+    const items = [photo('a', 300, { caption: { ...caption, text: '\n  ' } })]
+    const px = render(items, { a: solid('#f00') }, 50)
+    const bandY = Math.round(H - H * 0.08 - (H * 0.075) / 2)
+    expect(px(2, bandY)).toEqual([255, 0, 0, 255])
+  })
+
+  it('box は画面の幅からはみ出さない（長い行でも左右の端は背景のまま）', () => {
+    const long = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほ'
+    const items = [photo('a', 300, { caption: { ...caption, presetId: 'box', text: long } })]
+    const px = render(items, { a: solid('#f00') }, 50)
+    const bandY = Math.round(H - H * 0.08 - (H * 0.075) / 2)
+    expect(px(0, bandY)).toEqual([255, 0, 0, 255])
+    expect(px(W - 1, bandY)).toEqual([255, 0, 0, 255])
   })
 
   it('フェードの途中では帯が半透明で重なる', () => {

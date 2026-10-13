@@ -15,21 +15,21 @@ URL を共有するだけで全員が使える。仕上げ担当者は各自の 
 
 ## 確定済みの要件・決定事項
 
-| 項目 | 決定 |
-| --- | --- |
-| 対応端末 | iPhone (Safari 16.4+、推奨 iOS 17+) / Android (Chrome) / PC (Chrome, Edge, Safari 26+)。対応表には M0 で実機確認できた条件だけを載せる |
-| 技術基盤 | Vite + React + TypeScript、静的サイト。状態管理 zustand、永続化 idb-keyval |
-| ホスティング | GitHub Pages（GitHub Actions で自動デプロイ） |
-| 素材 | 1 プロジェクトに複数の写真・動画（上限は §2）。写真はケン・バーンズ効果、動画は開始位置トリム |
-| 時間配分 | 固定尺を素材数で自動均等割り（端数はフレーム単位で先頭から配る）。素材ごとにスライダーで手動調整可 |
-| 固定モード | グループプリセットで「縦横比」「合計尺」「解像度」をロック。fps は v1 では 30 固定。既定値 9:16 / 1080x1920 / 10 秒 |
-| テロップ | プリセット 3 種（帯 / 縁取り / 半透明ボックス）＋ 文字色・背景色・フォント個別調整。位置 上中下、サイズ 大中小 |
-| フォント | OFL の日本語 Web フォントを同梱。v1 は 1 書体（Noto Sans JP Bold）、M5 で 2〜3 書体に増やす |
-| トランジション | v1 は cut と crossfade。fadeBlack / fadeWhite / slide は後の章（M6） |
-| 音声 | 出力に音声を含めない（無音 MP4）。入力動画の音声は破棄 |
-| 保存 | IndexedDB に自動保存。保証するのは「保存済みと表示された状態からの復元」 |
-| 出力 | MP4 (H.264) のみ。端末が H.264 をエンコードできない場合は非対応として止める（WebM への切替はしない） |
-| ドキュメント | 本プラン、ADR、devlog、レビュー記録を `docs/` に残す |
+| 項目           | 決定                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 対応端末       | iPhone (Safari 16.4+、推奨 iOS 17+) / Android (Chrome) / PC (Chrome, Edge, Safari 26+)。対応表には M0 で実機確認できた条件だけを載せる |
+| 技術基盤       | Vite + React + TypeScript、静的サイト。状態管理 zustand、永続化 idb-keyval                                                             |
+| ホスティング   | GitHub Pages（GitHub Actions で自動デプロイ）                                                                                          |
+| 素材           | 1 プロジェクトに複数の写真・動画（上限は §2）。写真はケン・バーンズ効果、動画は開始位置トリム                                          |
+| 時間配分       | 固定尺を素材数で自動均等割り（端数はフレーム単位で先頭から配る）。素材ごとにスライダーで手動調整可                                     |
+| 固定モード     | グループプリセットで「縦横比」「合計尺」「解像度」をロック。fps は v1 では 30 固定。既定値 9:16 / 1080x1920 / 10 秒                    |
+| テロップ       | プリセット 3 種（帯 / 縁取り / 半透明ボックス）＋ 文字色・背景色・フォント個別調整。位置 上中下、サイズ 大中小                         |
+| フォント       | OFL の日本語 Web フォントを同梱。v1 は 1 書体（Noto Sans JP Bold）、M5 で 2〜3 書体に増やす                                            |
+| トランジション | v1 は cut と crossfade。fadeBlack / fadeWhite / slide は後の章（M6）                                                                   |
+| 音声           | 出力に音声を含めない（無音 MP4）。入力動画の音声は破棄                                                                                 |
+| 保存           | IndexedDB に自動保存。保証するのは「保存済みと表示された状態からの復元」                                                               |
+| 出力           | MP4 (H.264) のみ。端末が H.264 をエンコードできない場合は非対応として止める（WebM への切替はしない）                                   |
+| ドキュメント   | 本プラン、ADR、devlog、レビュー記録を `docs/` に残す                                                                                   |
 
 ## 技術調査の結論（2026-10 時点）
 
@@ -69,7 +69,8 @@ gvlog/
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts  ← 純粋関数・Vitest 対象
-    **render/**                     # renderFrame.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）, coverRect.ts, clamp01.ts
+    **render/**                     # renderFrame.ts, drawCaption.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）,
+                                    # coverRect.ts, drawCover.ts（M0 の書き出し用、M3 で廃止）, clamp01.ts, ctx.ts
                                     # ← DOM 非依存（Canvas の型のみ）
     **media/**                      # importImage.ts, importVideo.ts, limits.ts, errors.ts
     **preview/**                    # PreviewPlayer.ts（rAF クロック + <video> プール）
@@ -90,52 +91,69 @@ gvlog/
 
 ```ts
 interface GroupPreset {
-  id: string; name: string;
-  aspect: '16:9' | '9:16';
-  width: number; height: number;     // 1080x1920 または 1920x1080（v1 はこの 2 つ）
-  fps: 30;                           // v1 は 30 固定
-  totalFrames: number;               // 既定 300（10 秒）。許容 150〜900（5〜30 秒）
+  id: string
+  name: string
+  aspect: '16:9' | '9:16'
+  width: number
+  height: number // 1080x1920 または 1920x1080（v1 はこの 2 つ）
+  fps: 30 // v1 は 30 固定
+  totalFrames: number // 既定 300（10 秒）。許容 150〜900（5〜30 秒）
 }
 
 interface Project {
-  id: string; schemaVersion: 1;
-  preset: GroupPreset;               // スナップショット
-  locked: boolean;
-  meta: { memberName: string; spot: string };
-  items: MediaItem[];
-  createdAt: string; updatedAt: string;
+  id: string
+  schemaVersion: 1
+  preset: GroupPreset // スナップショット
+  locked: boolean
+  meta: { memberName: string; spot: string }
+  items: MediaItem[]
+  createdAt: string
+  updatedAt: string
 }
 
-type MediaItem = PhotoItem | VideoItem;
+type MediaItem = PhotoItem | VideoItem
 interface ItemBase {
-  itemId: string; kind: 'photo' | 'video';   // タイムラインの区間（Segment）と同じ名前で参照する
-  blobKey: string; thumbKey: string; fileName: string;
-  width: number; height: number;     // 回転適用後の表示サイズ
-  durationFrames: number;            // タイムライン上の尺。合計 = totalFrames が不変条件
-  caption?: Caption;
-  transitionOut?: Transition;        // 次の素材へのつなぎ。最後の素材では無視する
+  itemId: string
+  kind: 'photo' | 'video' // タイムラインの区間（Segment）と同じ名前で参照する
+  blobKey: string
+  thumbKey: string
+  fileName: string
+  width: number
+  height: number // 回転適用後の表示サイズ
+  durationFrames: number // タイムライン上の尺。合計 = totalFrames が不変条件
+  caption?: Caption
+  transitionOut?: Transition // 次の素材へのつなぎ。最後の素材では無視する
 }
-interface PhotoItem extends ItemBase { kind: 'photo'; kenBurns: KenBurns; }
+interface PhotoItem extends ItemBase {
+  kind: 'photo'
+  kenBurns: KenBurns
+}
 interface VideoItem extends ItemBase {
-  kind: 'video';
-  sourceDurationFrames: number;      // 元動画の尺（出力 fps 換算）
-  trimStartFrames: number;           // 元動画のどこから使うか
+  kind: 'video'
+  sourceDurationFrames: number // 元動画の尺（出力 fps 換算）
+  trimStartFrames: number // 元動画のどこから使うか
 }
 
 interface KenBurns {
-  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL';
-  from: { cx: number; cy: number; zoom: number };   // cx, cy は 0..1、zoom は cover 比（1 = 画面いっぱい）
-  to:   { cx: number; cy: number; zoom: number };
+  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL'
+  from: { cx: number; cy: number; zoom: number } // cx, cy は 0..1、zoom は cover 比（1 = 画面いっぱい）
+  to: { cx: number; cy: number; zoom: number }
 }
 
 interface Caption {
-  text: string; presetId: 'band' | 'outline' | 'box';
-  position: 'top' | 'middle' | 'bottom'; size: 'L' | 'M' | 'S';
-  overrides?: { textColor?: string; bgColor?: string; fontId?: string };
-  inOffsetFrames: number; outOffsetFrames: number;  // コア区間基準の開始遅れ / 終了早め
+  text: string
+  presetId: 'band' | 'outline' | 'box'
+  position: 'top' | 'middle' | 'bottom'
+  size: 'L' | 'M' | 'S'
+  overrides?: { textColor?: string; bgColor?: string; fontId?: string }
+  inOffsetFrames: number
+  outOffsetFrames: number // コア区間基準の開始遅れ / 終了早め
 }
 
-interface Transition { type: 'cut' | 'crossfade'; durationFrames: number; }   // v1
+interface Transition {
+  type: 'cut' | 'crossfade'
+  durationFrames: number
+} // v1
 ```
 
 ### 2.2 尺の配分（`timeline/durations.ts`）
@@ -183,10 +201,10 @@ interface Transition { type: 'cut' | 'crossfade'; durationFrames: number; }   //
 
 ```ts
 // 1 出力フレームの処理
-await frameSource.prepare(t);          // t で必要な素材のフレームを用意する（デコードを待つ）
-renderFrame(timeline, t, ctx, frameSource);   // 同期。frameSource.get(itemId) は必ず画像を返す
-await encoder.add(t);                  // export のときだけ
-frameSource.release(t);                // t より前にしか使わないフレームを close する
+await frameSource.prepare(t) // t で必要な素材のフレームを用意する（デコードを待つ）
+renderFrame(timeline, t, ctx, frameSource) // 同期。frameSource.get(itemId) は必ず画像を返す
+await encoder.add(t) // export のときだけ
+frameSource.release(t) // t より前にしか使わないフレームを close する
 ```
 
 - `prepare(t)` が用意できないとき（デコード失敗、ファイル破損）は例外を投げ、書き出しは失敗として止める。
@@ -200,10 +218,13 @@ frameSource.release(t);                // t より前にしか使わないフレ
 ### 3.2 `renderFrame` は決定論的
 
 ```ts
-renderFrame(tl: CompiledTimeline, t: number,
+renderFrame(compiled: CompiledItem[], items: RenderItem[], frame: number,
             ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-            src: { get(itemId: string): CanvasImageSource }): void
+            images: { get(itemId: string): { image: CanvasImageSource; width: number; height: number } }): void
 ```
+
+`images.get` は画像と **その画素寸法** を返す。切り出し矩形はこの寸法から計算する（`MediaItem.width/height` ではない）。
+書き出しの動画は `CanvasSink` が出力サイズに cover 済みのキャンバスを返すので、寸法 = 出力サイズとなり、そのまま描かれる。
 
 - `t` で見える素材（0〜2 個）を求め、素材を描く → crossfade 合成 → キャプションの順。
 - 座標は正規化座標 × canvas サイズで解像度非依存。プレビュー（縮小キャンバス）と export（出力解像度）で同じ関数を使う。
@@ -240,12 +261,12 @@ renderFrame(tl: CompiledTimeline, t: number,
 
 ```ts
 for (let t = 0; t < totalFrames; t++) {
-  if (cancelled) break;
-  await frameSource.prepare(t);
-  renderFrame(tl, t, ctx, frameSource);
-  await canvasSource.add(t / fps, 1 / fps);
-  frameSource.release(t);
-  if (t % 10 === 0) report(t, totalFrames);
+  if (cancelled) break
+  await frameSource.prepare(t)
+  renderFrame(tl, t, ctx, frameSource)
+  await canvasSource.add(t / fps, 1 / fps)
+  frameSource.release(t)
+  if (t % 10 === 0) report(t, totalFrames)
 }
 ```
 
@@ -258,12 +279,12 @@ for (let t = 0; t < totalFrames; t++) {
 
 メモリの安全予算は端末ごとに違うので、入力側で上限を設ける（Codex 指摘 5）。
 
-| 項目 | 上限 |
-| --- | --- |
-| 素材数 | `MAX_ITEMS`（10 秒なら 10） |
-| 写真 | import 時に長辺 ≤ 出力の長辺 × 2（1080x1920 なら 3840）へ縮小し、縮小後だけ保存。原本は保持しない。`createImageBitmap(file, { resizeWidth, resizeHeight })` を使い、全面展開を避ける |
-| 動画 | 解像度 ≤ 3840x2160、ファイル ≤ 200 MB。超えたら取り込みを拒否して案内する。取り込み時にまるごとメモリへ読む（ADR 012） |
-| 同時デコーダ | 2 |
+| 項目         | 上限                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 素材数       | `MAX_ITEMS`（10 秒なら 10）                                                                                                                                                          |
+| 写真         | import 時に長辺 ≤ 出力の長辺 × 2（1080x1920 なら 3840）へ縮小し、縮小後だけ保存。原本は保持しない。`createImageBitmap(file, { resizeWidth, resizeHeight })` を使い、全面展開を避ける |
+| 動画         | 解像度 ≤ 3840x2160、ファイル ≤ 200 MB。超えたら取り込みを拒否して案内する。取り込み時にまるごとメモリへ読む（ADR 012）                                                               |
+| 同時デコーダ | 2                                                                                                                                                                                    |
 
 ### 4.4 保存と共有（`export/share.ts`）
 
@@ -310,15 +331,15 @@ PWA オフライン、ドラッグ並べ替え、複数タブ対応、60fps / 24
 **M0 は縦割りの成立検証**にする（Codex 指摘 1）。能力一覧の表示ではなく、実素材で無音 MP4 を完成させて
 CapCut に入るところまでを最初に通す。ここで通らなければ技術選定をやり直す。
 
-| | 成果物 | 検証（完了条件） |
-|---|---|---|
-| **M0 成立検証** | Vite+React+TS 雛形、`plugin-basic-ssl` で LAN HTTPS、Pages デプロイ、最小 UI（ファイル選択→書き出し→共有ボタン）。写真 1 枚 + iPhone の縦 HEVC 動画 1 本を cut でつなぎ、1080x1920 / 30fps / 10 秒 / 無音の MP4 を出す。回転と HDR の素材を含める | iPhone（推奨 OS と最低 OS の 2 台）、Android、PC Chrome で書き出し成功。写真アプリとギャラリーに保存。CapCut に読み込み。`ffprobe` と冒頭・境界・末尾フレームの画像確認。結果を `docs/support-matrix.md` に記録。mediabunny 採用を ADR で確定 |
-| **M1 タイムライン** | `model/`、`timeline/`（整数フレーム、均等割り、再配分、区間計算、切り詰め）、`validate.ts` | Vitest（テストファースト）。端数、上限、全員最小尺、1 素材、0 素材、トランジション切り詰め |
-| **M2 写真と描画** | `render/`（Ken Burns、crossfade 合成式、キャプション 1 書体、折り返し）、プレビュー再生、写真 import の縮小と上限 | Vitest（計算部）＋ `@napi-rs/canvas` で合成式と座標の検証。3 端末で 10 秒再生 |
-| **M3 動画と書き出し** | `FrameSource`（prepare / get / release）、トリム UI、キャンセル、中断処理、共有・ダウンロード | iPhone HEVC 縦 / Android H.264 / 2 分超の動画。出力フレーム内容の検証。シークと尺調整の操作感を確認 |
-| **M4 保存と配布** | 保存順序、saveStatus、復元、プロジェクト一覧、プリセットリンクと検証 | iPhone でタブ強制終了 → 復元。容量不足の模擬。リンクの不正値でエラー表示 |
-| **M5 仕上げ** | フォント 2〜3 書体、キャプションプリセット、エラーメッセージ、UI の見た目調整、README | 3 名でエンドツーエンド。Playwright スモーク（desktop Chrome） |
-| **M6（後の章）** | Worker 書き出し、fade / slide トランジション、複数タブ検知、PWA、ドラッグ並べ替え | — |
+|                       | 成果物                                                                                                                                                                                                                                            | 検証（完了条件）                                                                                                                                                                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **M0 成立検証**       | Vite+React+TS 雛形、`plugin-basic-ssl` で LAN HTTPS、Pages デプロイ、最小 UI（ファイル選択→書き出し→共有ボタン）。写真 1 枚 + iPhone の縦 HEVC 動画 1 本を cut でつなぎ、1080x1920 / 30fps / 10 秒 / 無音の MP4 を出す。回転と HDR の素材を含める | iPhone（推奨 OS と最低 OS の 2 台）、Android、PC Chrome で書き出し成功。写真アプリとギャラリーに保存。CapCut に読み込み。`ffprobe` と冒頭・境界・末尾フレームの画像確認。結果を `docs/support-matrix.md` に記録。mediabunny 採用を ADR で確定 |
+| **M1 タイムライン**   | `model/`、`timeline/`（整数フレーム、均等割り、再配分、区間計算、切り詰め）、`validate.ts`                                                                                                                                                        | Vitest（テストファースト）。端数、上限、全員最小尺、1 素材、0 素材、トランジション切り詰め                                                                                                                                                    |
+| **M2 写真と描画**     | `render/`（Ken Burns、crossfade 合成式、キャプション 1 書体、折り返し）、プレビュー再生、写真 import の縮小と上限                                                                                                                                 | Vitest（計算部）＋ `@napi-rs/canvas` で合成式と座標の検証。3 端末で 10 秒再生                                                                                                                                                                 |
+| **M3 動画と書き出し** | `FrameSource`（prepare / get / release）、トリム UI、キャンセル、中断処理、共有・ダウンロード                                                                                                                                                     | iPhone HEVC 縦 / Android H.264 / 2 分超の動画。出力フレーム内容の検証。シークと尺調整の操作感を確認                                                                                                                                           |
+| **M4 保存と配布**     | 保存順序、saveStatus、復元、プロジェクト一覧、プリセットリンクと検証                                                                                                                                                                              | iPhone でタブ強制終了 → 復元。容量不足の模擬。リンクの不正値でエラー表示                                                                                                                                                                      |
+| **M5 仕上げ**         | フォント 2〜3 書体、キャプションプリセット、エラーメッセージ、UI の見た目調整、README                                                                                                                                                             | 3 名でエンドツーエンド。Playwright スモーク（desktop Chrome）                                                                                                                                                                                 |
+| **M6（後の章）**      | Worker 書き出し、fade / slide トランジション、複数タブ検知、PWA、ドラッグ並べ替え                                                                                                                                                                 | —                                                                                                                                                                                                                                             |
 
 各マイルストーンの完了時に git タグ（`m0` ...）を打つ。
 
@@ -339,32 +360,33 @@ CapCut に入るところまでを最初に通す。ここで通らなければ�
 
 ## 10. 主要依存
 
-| パッケージ | 役割 | gzip 目安 |
-|---|---|---|
-| react / react-dom | UI | ~45KB |
-| mediabunny | mux / demux / デコード / エンコード（M0 で確定） | ~60〜100KB（tree-shake 後） |
-| zustand | 状態 | ~1KB |
-| idb-keyval | IndexedDB | ~0.6KB |
-| tailwindcss v4、shadcn/ui | UI 部品 | 使った分だけ |
-| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, oxlint（ADR 011）, prettier, vitest, @napi-rs/canvas | dev | — |
-| playwright | ブラウザ結合テスト（desktop Chrome） | dev |
+| パッケージ                                                                                                             | 役割                                             | gzip 目安                   |
+| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | --------------------------- |
+| react / react-dom                                                                                                      | UI                                               | ~45KB                       |
+| mediabunny                                                                                                             | mux / demux / デコード / エンコード（M0 で確定） | ~60〜100KB（tree-shake 後） |
+| zustand                                                                                                                | 状態                                             | ~1KB                        |
+| idb-keyval                                                                                                             | IndexedDB                                        | ~0.6KB                      |
+| tailwindcss v4、shadcn/ui                                                                                              | UI 部品                                          | 使った分だけ                |
+| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, oxlint（ADR 011）, prettier, vitest, @napi-rs/canvas | dev                                              | —                           |
+| playwright                                                                                                             | ブラウザ結合テスト（desktop Chrome）             | dev                         |
 
 ## 11. テスト方針（TDD）
 
 純粋ロジックはテストファースト、ブラウザ依存部分はブラウザ結合テストと実機で確認する。モックで安心しない（Codex 指摘 10）。
 
-| 層 | 方針 | 手段 |
-| --- | --- | --- |
-| `timeline/`（均等割り、端数、再配分、上限、区間、切り詰め） | **TDD 必須** | Vitest |
-| `render/` の計算部（Ken Burns 矩形、進行度、折り返し、位置・サイズ） | **TDD 必須** | Vitest |
-| `render/` の合成（crossfade 式、キャプションが合成後に描かれること） | テストは書く。同色合成で輝度不変、境界フレームの色をサンプリング | Vitest + `@napi-rs/canvas`（Safari の描画の証明にはならない） |
-| `model/validate.ts`、`export/naming.ts`、`state/` の更新（合計尺の不変条件、saveStatus 遷移） | TDD | Vitest |
-| `export/` のループ・進捗・キャンセル・解放 | `FrameSource` と encoder のフェイクでテスト。release が必ず呼ばれること | Vitest |
-| 保存失敗、キャンセル、短い実動画の書き出し | **ブラウザ結合テスト** | Playwright（desktop Chrome） |
-| 出力 MP4 | 属性（`ffprobe`: h264 / 解像度 / 30fps / 尺 / 音声なし）に加え、**冒頭・境界・末尾のフレームを `ffmpeg` で画像に取り出し、期待色と比べる** | スクリプト `scripts/verify-output.sh` |
-| iPhone / Android 実機 | 対応を約束する端末は手動実機試験を必須にする | `docs/testing-checklist.md` |
+| 層                                                                                            | 方針                                                                                                                                       | 手段                                                          |
+| --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `timeline/`（均等割り、端数、再配分、上限、区間、切り詰め）                                   | **TDD 必須**                                                                                                                               | Vitest                                                        |
+| `render/` の計算部（Ken Burns 矩形、進行度、折り返し、位置・サイズ）                          | **TDD 必須**                                                                                                                               | Vitest                                                        |
+| `render/` の合成（crossfade 式、キャプションが合成後に描かれること）                          | テストは書く。同色合成で輝度不変、境界フレームの色をサンプリング                                                                           | Vitest + `@napi-rs/canvas`（Safari の描画の証明にはならない） |
+| `model/validate.ts`、`export/naming.ts`、`state/` の更新（合計尺の不変条件、saveStatus 遷移） | TDD                                                                                                                                        | Vitest                                                        |
+| `export/` のループ・進捗・キャンセル・解放                                                    | `FrameSource` と encoder のフェイクでテスト。release が必ず呼ばれること                                                                    | Vitest                                                        |
+| 保存失敗、キャンセル、短い実動画の書き出し                                                    | **ブラウザ結合テスト**                                                                                                                     | Playwright（desktop Chrome）                                  |
+| 出力 MP4                                                                                      | 属性（`ffprobe`: h264 / 解像度 / 30fps / 尺 / 音声なし）に加え、**冒頭・境界・末尾のフレームを `ffmpeg` で画像に取り出し、期待色と比べる** | スクリプト `scripts/verify-output.sh`                         |
+| iPhone / Android 実機                                                                         | 対応を約束する端末は手動実機試験を必須にする                                                                                               | `docs/testing-checklist.md`                                   |
 
 運用ルール:
+
 - 新しい純粋関数を書くときは、先に `*.test.ts` で期待値を書いてから実装する。
 - ブラウザ API に触るモジュールは、呼び出し側が依存する最小の interface を先に定義し、テストではフェイクを使う。
 - テスト名は日本語の文にする。
@@ -381,6 +403,7 @@ UI フレームワークは Tailwind CSS v4 ＋ shadcn/ui（ADR 007）。
 **想定読者**: プログラミング経験者で、TypeScript と Tailwind CSS は初心者。AI を使った開発を本格的に習得したい人。
 
 **方針**
+
 - 構成・コーディング・進め方は標準的で平易なものを選ぶ。賢い型技巧、二重経路、暗黙の規約を避ける。
 - 型は「読めば分かる」範囲に留める（ジェネリクスの多用、条件型、型レベル計算は使わない）。
 - **v1 は 1 本道**: main thread、H.264 / MP4、30fps、1 書体、cut と crossfade、基本テロップ、フラットなストア。
@@ -388,6 +411,7 @@ UI フレームワークは Tailwind CSS v4 ＋ shadcn/ui（ADR 007）。
 - 予告した全モジュールを最初から作らない。各マイルストーンで必要なものだけ作る。
 
 **記録の仕組み**
+
 - `docs/devlog/YYYY-MM-DD.md`: セッションごとに 10 行程度。AI が下書きし、人間が一言足す。5 分まで。
 - `docs/adr/NNN-title.md`: 設計判断。決定時のみ。
 - `docs/reviews/YYYY-MM-DD-<topic>.md`: レビュー記録（§14）。
@@ -402,15 +426,16 @@ UI フレームワークは Tailwind CSS v4 ＋ shadcn/ui（ADR 007）。
 **使う仕組み**: gstack の `/codex`（Codex CLI、モデル gpt-6-astra、read-only サンドボックス）。
 sdd-kit の `/sdd-kit:codex` はレビューに使わない。
 
-| モード | コマンド | 用途 |
-| --- | --- | --- |
-| Review | `/codex review` | base ブランチとの差分を独立レビューし、合否を出す |
-| Challenge | `/codex challenge <焦点>` | 差分を「壊す」視点で攻める |
-| Consult | `/codex <質問>` | プランや設計への意見。セッション継続で追加質問できる |
+| モード    | コマンド                  | 用途                                                 |
+| --------- | ------------------------- | ---------------------------------------------------- |
+| Review    | `/codex review`           | base ブランチとの差分を独立レビューし、合否を出す    |
+| Challenge | `/codex challenge <焦点>` | 差分を「壊す」視点で攻める                           |
+| Consult   | `/codex <質問>`           | プランや設計への意見。セッション継続で追加質問できる |
 
 **全 PR に必須**: `npm run lint`、`npm run typecheck`、`npm test`。純粋関数の変更はテストを伴うこと。
 
 **重要な変更に必須**（`timeline/`、`render/`、`export/`、`storage/`、`model/validate.ts` の変更、または 100 行超の差分）:
+
 1. Claude の `/code-review` → 指摘を直す。
 2. Codex の `/codex review` → 指摘を直す。`timeline/` と `export/` は `/codex challenge` も行う。
 3. **修正後の最終差分**で再度 lint / typecheck / test を通す。重要指摘が残っていれば再レビュー。
@@ -427,6 +452,7 @@ sdd-kit の `/sdd-kit:codex` はレビューに使わない。
 （プランレビューなど節目のものは全文を残す）。
 
 **注意点**
+
 - レビューはテストの代わりにならない。
 - 2 つの AI が同じ誤りに同意することはある。実機確認を省かない。
 - Codex Review は差分あたり数分かかる。差分は 300 行程度に保つ。

@@ -1,6 +1,5 @@
 import { coverRect } from './coverRect'
-
-type Ctx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
+import type { Ctx } from './ctx'
 
 /**
  * 画像を出力キャンバスいっぱいに cover フィットで描く（M0 の書き出しで使用。M3 で renderFrame に置き換える）。
