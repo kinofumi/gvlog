@@ -56,8 +56,10 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
       }
     }
     resize()
-    window.addEventListener('resize', resize)
-    return () => window.removeEventListener('resize', resize)
+    // 画面の回転だけでなく、隠れたタブの中から見えるようになったとき（幅 0 → 実寸）にも取り直す
+    const observer = new ResizeObserver(resize)
+    observer.observe(canvas)
+    return () => observer.disconnect()
   }, [canvasRef, preset.width, preset.height])
 
   // 再生位置や素材が変わるたびに 1 フレーム描く

@@ -63,9 +63,10 @@ gvlog/
   public/fonts/*.woff2              # テロップ用サブセットフォント（v1 は 1 書体）
   docs/                             # plan, adr, devlog, reviews, testing-checklist
   src/
-    main.tsx, App.tsx               # 画面切替は store の ui.screen（react-router 不使用）
+    main.tsx, App.tsx               # タブ 2 つ（イベントの栞 / 動画編集）を useState で切替（react-router 不使用）。編集タブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # Slider, Chips, BottomSheet, Stepper, PreviewCanvas, ProgressBar
+    components/                     # TabBar, Section, EventGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, PreviewCanvas, ExportPanel
+    **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, mapsLink.ts（Google マップの検索 URL）
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
