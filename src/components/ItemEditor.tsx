@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { KenBurns } from '../model/types'
+import type { KenBurns, MediaItem } from '../model/types'
 import { useAppStore } from '../state/store'
 import { clampTransition } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
@@ -22,12 +22,17 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
 /** クロスフェードを選んだときの最初の長さ（0.5 秒） */
 const DEFAULT_CROSSFADE_FRAMES = 15
 
-/** 選択中の素材の編集: Ken Burns（写真）/ 開始位置と終了位置（動画）、次へのつなぎ、テロップ */
-export function ItemEditor() {
+type Props = {
+  /** 編集する素材と、一覧での位置（MediaList が選択中の素材の下に置く） */
+  item: MediaItem
+  index: number
+}
+
+/** 1 つの素材の編集: Ken Burns（写真）/ 開始位置と終了位置（動画）、次へのつなぎ、テロップ */
+export function ItemEditor({ item, index }: Props) {
   const items = useAppStore((s) => s.project.items)
   const fps = useAppStore((s) => s.project.preset.fps)
   const totalFrames = useAppStore((s) => s.project.preset.totalFrames)
-  const selectedItemId = useAppStore((s) => s.ui.selectedItemId)
   const setKenBurns = useAppStore((s) => s.setKenBurns)
   const setTrimStart = useAppStore((s) => s.setTrimStart)
   const setTrimEnd = useAppStore((s) => s.setTrimEnd)
@@ -37,13 +42,6 @@ export function ItemEditor() {
   const exporting = useAppStore((s) => s.ui.exporting)
   // 動画の開始位置の上限は「見える長さ」（トランジション込み）で決まる
   const compiled = useMemo(() => compileTimeline(items), [items])
-
-  const index = items.findIndex((i) => i.itemId === selectedItemId)
-  const item = items[index]
-  if (!item)
-    return (
-      <p className="text-sm text-stone-600">素材を選ぶと、ここで動きとテロップを編集できます。</p>
-    )
 
   const following = items[index + 1]
   const maxTransition = following
@@ -55,11 +53,7 @@ export function ItemEditor() {
   const isCrossfade = crossfadeFrames > 0
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-sm font-bold">
-        {index + 1}. {item.fileName}
-      </h2>
-
+    <div className="space-y-4">
       {item.kind === 'photo' && (
         <div className="space-y-1">
           <p className="text-sm">動き</p>
@@ -121,6 +115,6 @@ export function ItemEditor() {
         caption={item.caption}
         onChange={(caption) => setCaption(item.itemId, caption)}
       />
-    </section>
+    </div>
   )
 }

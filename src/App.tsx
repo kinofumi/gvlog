@@ -1,6 +1,5 @@
 import { EncodeProbePanel } from './components/EncodeProbePanel'
 import { ExportPanel } from './components/ExportPanel'
-import { ItemEditor } from './components/ItemEditor'
 import { MediaList } from './components/MediaList'
 import { MediaPicker } from './components/MediaPicker'
 import { PreviewCanvas } from './components/PreviewCanvas'
@@ -46,13 +45,10 @@ export default function App() {
         </label>
       </section>
 
-      {/* 上から順に作業する並び: 選ぶ → 素材 → 設定 → プレビュー → 生成 → 保存 */}
+      {/* 上から順に作業する並び: 選ぶ → 素材（選んだ素材の下に設定） → プレビュー → 生成 → 保存 */}
       <MediaPicker />
       <Section title="素材">
         <MediaList />
-      </Section>
-      <Section title="素材の設定">
-        <ItemEditor />
       </Section>
       <Section title="動画のプレビュー">
         <PreviewCanvas />
