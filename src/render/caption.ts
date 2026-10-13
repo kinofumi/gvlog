@@ -1,4 +1,5 @@
 import type { Caption } from '../model/types'
+import { clamp01 } from './clamp01'
 
 /** 画面の高さに対する文字サイズの比。L / M / S */
 const FONT_SIZE_RATIO = { L: 0.075, M: 0.06, S: 0.045 } as const
@@ -15,6 +16,17 @@ export function captionFontSize(size: Caption['size'], canvasHeight: number): nu
   return canvasHeight * FONT_SIZE_RATIO[size]
 }
 
+/** 折り返しに使う最大幅（画面幅の 90%）。wrapText に渡す */
+export function captionMaxWidth(canvasWidth: number): number {
+  return canvasWidth * MAX_WIDTH_RATIO
+}
+
+/** 見た目の 1 文字（結合文字や ZWJ 絵文字を含む）ごとに分ける。コードポイント単位だと絵文字が分断される */
+const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+function graphemes(text: string): string[] {
+  return [...segmenter.segment(text)].map((s) => s.segment)
+}
+
 /**
  * 文字単位で折り返す。日本語は単語の区切りがないので、幅を超えた文字から次の行にする。
  * measure は文字列の描画幅を返す関数（Canvas の measureText を渡す。テストでは固定幅）。
@@ -25,10 +37,11 @@ export function wrapText(
   maxWidth: number,
   measure: (text: string) => number,
 ): string[] {
+  if (text === '') return []
   const lines: string[] = []
-  for (const paragraph of text.split('\n')) {
+  for (const paragraph of text.replace(/\r\n?/g, '\n').split('\n')) {
     let line = ''
-    for (const ch of paragraph) {
+    for (const ch of graphemes(paragraph)) {
       if (line !== '' && measure(line + ch) > maxWidth) {
         lines.push(line)
         line = ch
@@ -36,20 +49,32 @@ export function wrapText(
         line += ch
       }
     }
-    if (line !== '') lines.push(line)
+    // 空の段落（意図した空行）もそのまま 1 行として残す
+    lines.push(line)
   }
   return lines
 }
 
 export type CaptionLayout = {
-  maxWidth: number
   /** 各行の中心座標（textAlign center、textBaseline middle で描く） */
   lines: { text: string; x: number; y: number }[]
+  /** セーフマージンに収まらず、行を切り捨てた */
+  overflow: boolean
 }
 
-/** 折り返し済みの行を、上 / 中 / 下のどこに置くか決める */
+/** セーフマージンの内側に収まる最大の行数 */
+export function maxCaptionLines(fontSize: number, canvasHeight: number): number {
+  const usable = canvasHeight * (1 - SAFE_MARGIN_RATIO * 2)
+  const lineHeight = fontSize * LINE_HEIGHT_RATIO
+  return Math.max(1, Math.floor((usable - fontSize) / lineHeight) + 1)
+}
+
+/**
+ * 折り返し済みの行を、上 / 中 / 下のどこに置くか決める。
+ * 収まらない行は切り捨てる（文字サイズは変えない。画面に出すテロップの文字サイズをグループで揃えるため）。
+ */
 export function layoutCaption(
-  lines: string[],
+  allLines: string[],
   position: Caption['position'],
   fontSize: number,
   canvasWidth: number,
@@ -57,6 +82,8 @@ export function layoutCaption(
 ): CaptionLayout {
   const margin = canvasHeight * SAFE_MARGIN_RATIO
   const lineHeight = fontSize * LINE_HEIGHT_RATIO
+  const limit = maxCaptionLines(fontSize, canvasHeight)
+  const lines = allLines.slice(0, limit)
   const blockHeight = fontSize + lineHeight * (lines.length - 1)
 
   // 行の塊の上端
@@ -66,19 +93,20 @@ export function layoutCaption(
   else top = (canvasHeight - blockHeight) / 2
 
   return {
-    maxWidth: canvasWidth * MAX_WIDTH_RATIO,
     lines: lines.map((text, i) => ({
       text,
       x: canvasWidth / 2,
       y: top + fontSize / 2 + lineHeight * i,
     })),
+    overflow: allLines.length > lines.length,
   }
 }
 
 /** 表示区間 [showStart, showEnd) の中での不透明度。両端で CAPTION_FADE_FRAMES かけてフェードする */
 export function captionAlpha(frame: number, showStart: number, showEnd: number): number {
   if (frame < showStart || frame >= showEnd) return 0
-  const fadeIn = Math.min(1, (frame - showStart) / CAPTION_FADE_FRAMES)
-  const fadeOut = Math.min(1, (showEnd - frame) / CAPTION_FADE_FRAMES)
-  return Math.max(0, Math.min(fadeIn, fadeOut))
+  // 最初のフレームで 1/8、8 フレーム目で 1。出も同じ形で対称にする
+  const fadeIn = (frame - showStart + 1) / CAPTION_FADE_FRAMES
+  const fadeOut = (showEnd - frame) / CAPTION_FADE_FRAMES
+  return clamp01(Math.min(fadeIn, fadeOut))
 }

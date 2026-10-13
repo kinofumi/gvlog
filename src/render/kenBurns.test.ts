@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { KenBurns } from '../model/types'
 import { kenBurnsPreset, kenBurnsRect } from './kenBurns'
 
 // 4:3 の写真（4000x3000）を縦型 1080x1920 に cover すると、幅 1687.5 x 高さ 3000 の中央を使う
@@ -69,5 +70,25 @@ describe('kenBurnsPreset（チップで選ぶ既定の動き）', () => {
     expect(lr.from.cx).toBeLessThan(lr.to.cx)
     expect(rl.from.cx).toBeGreaterThan(rl.to.cx)
     expect(lr.from.zoom).toBe(rl.from.zoom)
+  })
+
+  it('パンの振れ幅は zoom で空く余白ちょうど（どんな縦横比の写真でも端で止まらず一定の速さで動く）', () => {
+    const lr = kenBurnsPreset('panLR')
+    const margin = (1 - 1 / lr.from.zoom) / 2
+    expect(lr.from.cx).toBeCloseTo(0.5 - margin)
+    expect(lr.to.cx).toBeCloseTo(0.5 + margin)
+    // 出力と同じ縦横比の写真（余白が zoom 分しかない）でも、両端でクランプされない
+    const w = 1080
+    const h = 1920
+    const start = kenBurnsRect(lr, 0, w, h, w, h)
+    const end = kenBurnsRect(lr, 1, w, h, w, h)
+    expect(start.sx).toBeCloseTo(0)
+    expect(end.sx).toBeCloseTo(w - end.sw)
+    // 中間は線形に進む（easeInOut(0.5) = 0.5）
+    expect(kenBurnsRect(lr, 0.5, w, h, w, h).sx).toBeCloseTo((w - end.sw) / 2)
+  })
+
+  it('未知の presetId（古い保存データなど）は none として扱う', () => {
+    expect(kenBurnsPreset('zoom' as KenBurns['presetId'])).toEqual(kenBurnsPreset('none'))
   })
 })

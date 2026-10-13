@@ -33,27 +33,32 @@ function lerp(a: number, b: number, t: number): number {
 }
 
 const CENTER = { cx: 0.5, cy: 0.5 }
+const PAN_ZOOM = 1.15
+/**
+ * パンの振れ幅。zoom で空く余白（(1 − 1/zoom) / 2）ちょうどにする。
+ * 余白より大きく振ると、出力と同じ縦横比の写真では端で止まり、パンが途中で止まって見える。
+ */
+const PAN_MARGIN = (1 - 1 / PAN_ZOOM) / 2
 
 /** チップで選ぶ既定の動き。微調整したいときはこの値を書き換えて保存する */
+const PRESETS: Record<KenBurns['presetId'], KenBurns> = {
+  none: { presetId: 'none', from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1 } },
+  zoomIn: { presetId: 'zoomIn', from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1.2 } },
+  zoomOut: { presetId: 'zoomOut', from: { ...CENTER, zoom: 1.2 }, to: { ...CENTER, zoom: 1 } },
+  panLR: {
+    presetId: 'panLR',
+    from: { cx: 0.5 - PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
+    to: { cx: 0.5 + PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
+  },
+  panRL: {
+    presetId: 'panRL',
+    from: { cx: 0.5 + PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
+    to: { cx: 0.5 - PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
+  },
+}
+
+/** presetId に対応する動きを返す。未知の値（古い保存データなど）は none として扱う */
 export function kenBurnsPreset(presetId: KenBurns['presetId']): KenBurns {
-  switch (presetId) {
-    case 'none':
-      return { presetId, from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1 } }
-    case 'zoomIn':
-      return { presetId, from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1.2 } }
-    case 'zoomOut':
-      return { presetId, from: { ...CENTER, zoom: 1.2 }, to: { ...CENTER, zoom: 1 } }
-    case 'panLR':
-      return {
-        presetId,
-        from: { cx: 0.35, cy: 0.5, zoom: 1.15 },
-        to: { cx: 0.65, cy: 0.5, zoom: 1.15 },
-      }
-    case 'panRL':
-      return {
-        presetId,
-        from: { cx: 0.65, cy: 0.5, zoom: 1.15 },
-        to: { cx: 0.35, cy: 0.5, zoom: 1.15 },
-      }
-  }
+  const preset = PRESETS[presetId] ?? PRESETS.none
+  return { presetId: preset.presetId, from: { ...preset.from }, to: { ...preset.to } }
 }
