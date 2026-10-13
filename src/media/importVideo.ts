@@ -4,7 +4,7 @@ import { MediaError } from './errors'
 
 /** 動画を読み込んで分かったこと。UI の表示と書き出しの両方で使う */
 export type ImportedVideo = {
-  file: File
+  fileName: string
   input: Input
   track: InputVideoTrack
   codec: string
@@ -82,7 +82,7 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
 
   const transfer: string | null = colorSpace.transfer ?? null
   return {
-    file,
+    fileName: file.name,
     input,
     track,
     codec: codec ?? 'unknown',

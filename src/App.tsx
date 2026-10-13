@@ -5,8 +5,9 @@ import { importVideo, type ImportedVideo } from './media/importVideo'
 import { MediaError } from './media/errors'
 import { ExportCancelled, exportVideo, type ExportProgress } from './export/exportVideo'
 import { buildFileName } from './export/naming'
-import { probeAll, type ProbeResult } from './export/codec'
 import { canShareFile, downloadFile, shareFile } from './export/share'
+import { Button } from './components/ui/Button'
+import { EncodeProbePanel } from './components/EncodeProbePanel'
 
 // M0 の最小 UI: 写真 1 枚と動画 1 本を選び、10 秒の無音 MP4 を書き出して保存する。
 // 見た目の調整は M5 で行う。ここでは動くことを確かめるのが目的。
@@ -27,20 +28,8 @@ export default function App() {
   const [importing, setImporting] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const [shareMessage, setShareMessage] = useState('')
-  const [probes, setProbes] = useState<ProbeResult[] | null>(null)
   const [probing, setProbing] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
-
-  // M0 の診断: この端末で H.264 のどの設定が実際にエンコードできるかを一覧にする
-  async function onProbe() {
-    setProbing(true)
-    setProbes(null)
-    try {
-      setProbes(await probeAll(preset.width, preset.height, preset.fps, 8_000_000))
-    } finally {
-      setProbing(false)
-    }
-  }
 
   // 前の素材は、新しい素材が読み込めてから（または失敗が確定してから）解放する。
   // await の前に閉じると、読み込みが重なったときに違う素材を閉じてしまう。
@@ -133,8 +122,9 @@ export default function App() {
       setShareMessage('共有できませんでした。「ダウンロード」をお試しください。')
   }
 
-  // 書き出し中や取り込み中は、素材を差し替えられないようにする（使用中の資源を閉じてしまうため）
-  const busy = importing || phase.kind === 'exporting'
+  // 取り込み中・書き出し中・診断中は、素材の差し替えと書き出し開始を止める
+  // （使用中の資源を閉じてしまう、エンコーダが同時に動く、を避けるため）
+  const busy = importing || phase.kind === 'exporting' || probing
   const canExport = (photo !== null || video !== null) && !busy
 
   return (
@@ -214,13 +204,9 @@ export default function App() {
 
       <section className="space-y-3">
         {phase.kind !== 'exporting' && (
-          <button
-            className="w-full rounded bg-stone-900 px-4 py-3 text-white disabled:bg-stone-400"
-            disabled={!canExport}
-            onClick={onExport}
-          >
+          <Button disabled={!canExport} onClick={onExport}>
             書き出す
-          </button>
+          </Button>
         )}
 
         {phase.kind === 'exporting' && (
@@ -233,12 +219,9 @@ export default function App() {
             <p className="text-sm">
               {phase.progress.frame} / {phase.progress.totalFrames} フレーム
             </p>
-            <button
-              className="w-full rounded border border-stone-400 px-4 py-3"
-              onClick={() => abortRef.current?.abort()}
-            >
+            <Button variant="secondary" onClick={() => abortRef.current?.abort()}>
               キャンセル
-            </button>
+            </Button>
           </div>
         )}
 
@@ -252,62 +235,17 @@ export default function App() {
               {phase.latencyMode}）
             </p>
             {canShareFile(phase.file) && (
-              <button
-                className="w-full rounded bg-stone-900 px-4 py-3 text-white"
-                onClick={() => onShare(phase.file)}
-              >
-                共有（写真に保存）
-              </button>
+              <Button onClick={() => onShare(phase.file)}>共有（写真に保存）</Button>
             )}
-            <button
-              className="w-full rounded border border-stone-400 px-4 py-3"
-              onClick={() => downloadFile(phase.file)}
-            >
+            <Button variant="secondary" onClick={() => downloadFile(phase.file)}>
               ダウンロード
-            </button>
+            </Button>
             {shareMessage && <p className="text-sm">{shareMessage}</p>}
           </div>
         )}
       </section>
 
-      <section className="space-y-2">
-        <button
-          className="w-full rounded border border-stone-400 px-4 py-3 disabled:text-stone-400"
-          disabled={probing || busy}
-          onClick={onProbe}
-        >
-          {probing ? 'エンコードテスト中…' : 'エンコードテスト（診断）'}
-        </button>
-        {probes && (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left text-stone-500">
-                <th>コーデック</th>
-                <th>mode</th>
-                <th>判定</th>
-                <th>実際</th>
-                <th>ms</th>
-              </tr>
-            </thead>
-            <tbody>
-              {probes.map((p) => (
-                <tr
-                  key={`${p.fullCodecString}-${p.latencyMode}`}
-                  className="border-t border-stone-200"
-                >
-                  <td>{p.fullCodecString ?? '(auto)'}</td>
-                  <td>{p.latencyMode}</td>
-                  <td>{p.claimed ? '可' : '不可'}</td>
-                  <td className={p.encodeOk ? 'text-green-700' : 'text-red-700'}>
-                    {p.encodeOk ? '成功' : p.error}
-                  </td>
-                  <td>{p.ms}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+      <EncodeProbePanel preset={preset} disabled={busy} onProbingChange={setProbing} />
 
       <footer className="text-xs text-stone-500">
         <p>{navigator.userAgent}</p>

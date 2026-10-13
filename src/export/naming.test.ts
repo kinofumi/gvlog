@@ -5,7 +5,9 @@ describe('buildFileName（出力ファイル名）', () => {
   const date = new Date(2026, 9, 8) // 2026-10-08
 
   it('プリセット名_メンバー名_スポット_日付.mp4 になる', () => {
-    expect(buildFileName('Trip2026', '木下', '清水寺', date)).toBe('Trip2026_木下_清水寺_20261008.mp4')
+    expect(buildFileName('Trip2026', '木下', '清水寺', date)).toBe(
+      'Trip2026_木下_清水寺_20261008.mp4',
+    )
   })
 
   it('ファイル名に使えない文字は _ に置き換える', () => {

@@ -4,7 +4,8 @@ import type { ImportedVideo } from '../media/importVideo'
 import { compileSegments, segmentAt, type Segment } from '../timeline/compile'
 import { equalSplit } from '../timeline/durations'
 import { drawCover } from '../render/renderFrame'
-import { describe, pickEncoder } from './codec'
+import { EXPORT_BITRATE, pickEncoder } from './codec'
+import { formatError } from './formatError'
 import { PhotoFrameSource, VideoFrameSource, type FrameSource } from './frameSource'
 
 /** M0 の入力: 写真 1 枚と動画 1 本（どちらか片方でもよい） */
@@ -33,9 +34,6 @@ export class ExportCancelled extends Error {
   }
 }
 
-/** 1080p の目安ビットレート（8 Mbps） */
-const BITRATE = 8_000_000
-
 /**
  * 写真と動画を cut でつないで、プリセットどおりの無音 MP4 を書き出す。
  * main thread で動く。1 フレームごとに「非同期で用意 → 同期で描く → エンコードを待つ」を繰り返す。
@@ -48,17 +46,19 @@ export async function exportVideo(
   const { preset } = input
   const startedAt = performance.now()
 
-  // 1. この端末で使える H.264 の設定を、実際に数フレームをエンコードして選ぶ
-  const choice = await pickEncoder(preset.width, preset.height, preset.fps, BITRATE)
-  if (!choice) {
-    throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
-  }
-
-  // 2. タイムライン: 素材を均等割りで並べる（M0 はトランジション無し）
+  // 1. 素材の確認（安い検査を先に）と、タイムライン: 素材を均等割りで並べる（M0 はトランジション無し）
   const itemIds: string[] = []
   if (input.photo) itemIds.push('photo')
   if (input.video) itemIds.push('video')
   if (itemIds.length === 0) throw new Error('素材がありません。')
+
+  // 2. この端末で使える H.264 の設定を、実際に数フレームをエンコードして選ぶ（2 回目以降は覚えた値）
+  const choice = await pickEncoder(preset.width, preset.height, preset.fps, EXPORT_BITRATE, signal)
+  if (signal.aborted) throw new ExportCancelled()
+  if (!choice) {
+    throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
+  }
+
   const durations = equalSplit(itemIds.length, preset.totalFrames)
   const segments = compileSegments(
     itemIds.map((itemId, i) => ({ itemId, durationFrames: durations[i] })),
@@ -76,7 +76,7 @@ export async function exportVideo(
   const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
   const canvasSource = new CanvasSource(canvas, {
     codec: 'avc',
-    bitrate: BITRATE,
+    bitrate: EXPORT_BITRATE,
     keyFrameInterval: 1,
     latencyMode: choice.latencyMode,
     fullCodecString: choice.fullCodecString,
@@ -133,7 +133,9 @@ export async function exportVideo(
     await output.cancel().catch(() => {})
     if (error instanceof ExportCancelled) throw error
     // どの設定で失敗したかを含めて投げ直す（iPhone での原因切り分け用）
-    throw new Error(`${describe(error)}（${usedCodecString} / ${choice.latencyMode}）`)
+    throw new Error(`${formatError(error)}（${usedCodecString} / ${choice.latencyMode}）`, {
+      cause: error,
+    })
   } finally {
     // 失敗でも成功でも、デコーダは必ず解放し、解放が終わるまで待つ
     for (const source of sources.values()) await source.dispose()
