@@ -15,6 +15,11 @@ export function equalSplit(n: number, totalFrames: number): number[] {
   return splitProportionally(totalFrames, new Array<number>(n).fill(1))
 }
 
+/** 1 つの素材が取れる尺の上限。他の素材が全員最小尺のときの残り */
+export function maxItemFrames(count: number, totalFrames: number): number {
+  return totalFrames - MIN_ITEM_FRAMES * (count - 1)
+}
+
 /**
  * index 番目の尺を newFrames にし、差分を他の素材へ尺に比例して配る。合計は変わらない。
  * 比例配分で最小尺を下回る素材は最小尺で止め、残りの差分をさらに他へ回す。
@@ -31,7 +36,7 @@ export function adjustDurations(durations: number[], index: number, newFrames: n
 
   const total = durations.reduce((sum, d) => sum + d, 0)
   // 他の素材が全員最小尺のときの、この素材の上限
-  const upper = total - MIN_ITEM_FRAMES * (n - 1)
+  const upper = maxItemFrames(n, total)
   const target = Math.min(Math.max(Math.floor(newFrames), MIN_ITEM_FRAMES), upper)
   if (target === durations[index]) return durations
 

@@ -163,6 +163,18 @@ export function setTrimStart(project: Project, itemId: string, trimStartFrames: 
   return applied === item.trimStartFrames ? project : next
 }
 
+/**
+ * 動画の終了位置（元動画のどこまで使うか）を設定する。開始位置は変えず、尺を「終了位置 − 開始位置」にする。
+ * 尺の変更は setItemDuration と同じ規則（最小尺、他の素材の最小尺、差分の比例配分）に従う。
+ * 素材が 1 つのときは尺が総尺で固定なので変えられない（元のまま）。
+ */
+export function setTrimEnd(project: Project, itemId: string, trimEndFrames: number): Project {
+  const item = project.items[indexOf(project, itemId)]
+  if (!item || item.kind !== 'video') return project
+  if (!Number.isFinite(trimEndFrames)) return project
+  return setItemDuration(project, itemId, trimEndFrames - item.trimStartFrames)
+}
+
 // --- 内部の小さな助け ---
 
 function indexOf(project: Project, itemId: string): number {

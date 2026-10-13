@@ -1,5 +1,5 @@
 import { useAppStore } from '../state/store'
-import { MIN_ITEM_FRAMES } from '../timeline/durations'
+import { MIN_ITEM_FRAMES, maxItemFrames } from '../timeline/durations'
 import { Thumbnail } from './Thumbnail'
 
 /** 素材の一覧: 選択、並べ替え、削除、尺の調整 */
@@ -19,7 +19,7 @@ export function MediaList() {
     return <p className="text-sm text-stone-600">写真や動画を追加すると、ここに並びます。</p>
   }
   // 1 つの素材が取れる最大の尺（他が全員最小尺のとき）
-  const maxFrames = preset.totalFrames - MIN_ITEM_FRAMES * (items.length - 1)
+  const maxFrames = maxItemFrames(items.length, preset.totalFrames)
 
   return (
     <ul className="space-y-2">

@@ -20,7 +20,7 @@ URL を共有するだけで全員が使える。仕上げ担当者は各自の 
 | 対応端末       | iPhone (Safari 16.4+、推奨 iOS 17+) / Android (Chrome) / PC (Chrome, Edge, Safari 26+)。対応表には M0 で実機確認できた条件だけを載せる |
 | 技術基盤       | Vite + React + TypeScript、静的サイト。状態管理 zustand、永続化 idb-keyval                                                             |
 | ホスティング   | GitHub Pages（GitHub Actions で自動デプロイ）                                                                                          |
-| 素材           | 1 プロジェクトに複数の写真・動画（上限は §2）。写真はケン・バーンズ効果、動画は開始位置トリム                                          |
+| 素材           | 1 プロジェクトに複数の写真・動画（上限は §2）。写真はケン・バーンズ効果、動画は開始位置・終了位置のトリム（終了位置で尺が決まる）        |
 | 時間配分       | 固定尺を素材数で自動均等割り（端数はフレーム単位で先頭から配る）。素材ごとにスライダーで手動調整可                                     |
 | 固定モード     | グループプリセットで「縦横比」「合計尺」「解像度」をロック。fps は v1 では 30 固定。既定値 9:16 / 1080x1920 / 10 秒                    |
 | テロップ       | プリセット 3 種（帯 / 縁取り / 半透明ボックス）＋ 文字色・背景色・フォント個別調整。位置 上中下、サイズ 大中小                         |
@@ -185,6 +185,9 @@ interface Transition {
 - **素材内時刻の規則**（Codex 指摘 2）: 素材が画面に見え始めた瞬間を素材内の開始点とする。
   - 動画: `sourceFrame = trimStartFrames + (t − visibleStart)`。必要な元動画の長さは `visibleEnd − visibleStart`。
     足りない分は末尾フレームをホールドする。トリム UI の上限は `sourceDurationFrames − (visibleEnd − visibleStart)`。
+  - 終了位置は保存せず、`trimStartFrames + durationFrames`（元動画の末尾まで）として見せる。終了位置を動かすと
+    尺を「終了位置 − 開始位置」に変え、差分は `setItemDuration` と同じ規則で他の素材へ配る（`timeline/trim.ts` の
+    `trimEndFrames`、`trimEndRange`）。開始位置を動かしても尺は変わらない（使う範囲が前後に滑る）。
   - Ken Burns: 進行度 `p = (t − visibleStart) / (visibleEnd − visibleStart − 1)`。
   - キャプション: 表示区間は `coreStart + inOffsetFrames` から `coreEnd − outOffsetFrames`。フェードは 8 フレーム固定。
 - トランジション区間 `[coreEnd − floor(d/2), coreEnd + ceil(d/2))` では 2 つの素材が同時に見える。
@@ -322,7 +325,7 @@ for (let t = 0; t < totalFrames; t++) {
 
 フロー（下部ステッパーで行き来）: **Home**（続きから / リンクから新規 / 名前・スポット入力）→
 **Media**（`<input multiple accept="image/*,video/*">`、サムネイル一覧、▲▼並べ替え、尺スライダー）→
-**Edit**（Ken Burns チップ、動画は開始位置スライダー、トランジション、キャプション編集）→
+**Edit**（Ken Burns チップ、動画は開始位置・終了位置スライダー、トランジション、キャプション編集）→
 **Preview**（キャンバス、再生 / 一時停止、シーク）→ **Export**（進捗、共有 / ダウンロード）。
 タッチ: 44px 以上のつまみ、チップ選択、ボトムシート。シークと尺調整の操作感は M3 で一度確認し、M5 まで放置しない。
 

@@ -47,6 +47,7 @@ export type AppState = {
   setCaption(itemId: string, caption: Caption | undefined): void
   setTransition(itemId: string, transition: Transition): void
   setTrimStart(itemId: string, trimStartFrames: number): void
+  setTrimEnd(itemId: string, trimEndFrames: number): void
   select(itemId: string | null): void
   seek(frame: number): void
   setPlaying(isPlaying: boolean): void
@@ -135,6 +136,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ project: actions.setTransition(s.project, itemId, transition) })),
   setTrimStart: (itemId, trimStartFrames) =>
     set((s) => ({ project: actions.setTrimStart(s.project, itemId, trimStartFrames) })),
+  setTrimEnd: (itemId, trimEndFrames) =>
+    set((s) => ({ project: actions.setTrimEnd(s.project, itemId, trimEndFrames) })),
 
   select: (selectedItemId) => set((s) => ({ ui: { ...s.ui, selectedItemId } })),
   seek: (frame) => {

@@ -13,6 +13,7 @@ import {
   setKenBurns,
   setMeta,
   setTransition,
+  setTrimEnd,
   setTrimStart,
 } from './projectActions'
 
@@ -43,6 +44,8 @@ function withPhotos(n: number): Project {
 }
 
 const durations = (p: Project) => p.items.map((i) => i.durationFrames)
+
+const empty = () => createProject(DEFAULT_PRESET, { memberName: '', spot: '' })
 
 describe('createProject', () => {
   it('プリセットのスナップショットと空の素材で始まる', () => {
@@ -249,8 +252,6 @@ describe('setKenBurns / setCaption / setTransition', () => {
 })
 
 describe('動画の追加と開始位置（トリム）', () => {
-  const empty = () => createProject(DEFAULT_PRESET, { memberName: '', spot: '' })
-
   it('写真と動画をまとめて追加できる。動画は開始位置 0、元動画の尺を持つ', () => {
     const p = addItems(empty(), [
       { itemId: 'p1', info: photoInfo(1) },
@@ -308,5 +309,42 @@ describe('動画の追加と開始位置（トリム）', () => {
     expect(setTrimStart(p, 'p1', 10)).toBe(p)
     expect(setTrimStart(p, 'nope', 10)).toBe(p)
     expect(setTrimStart(p, 'v1', 0)).toBe(p)
+  })
+})
+
+describe('setTrimEnd（動画の終了位置。尺 = 終了位置 − 開始位置 に変わり、差分は他の素材へ）', () => {
+  it('終了位置を決めると尺が変わり、他の素材が差分を受け取る', () => {
+    let p = addItems(empty(), [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'v1', info: videoInfo(1, 600) },
+    ])
+    p = setTrimStart(p, 'v1', 90)
+    p = setTrimEnd(p, 'v1', 300)
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(90)
+    expect(durations(p)).toEqual([90, 210])
+  })
+
+  it('尺の規則（最小尺、他の素材の最小尺）で収まらない終了位置は、収まる値に止まる', () => {
+    let p = addItems(empty(), [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'v1', info: videoInfo(1, 600) },
+    ])
+    p = setTrimEnd(p, 'v1', 5) // 最小尺 30 まで
+    expect(durations(p)).toEqual([270, 30])
+    p = setTrimEnd(p, 'v1', 1000) // 他の素材が最小尺になるまで
+    expect(durations(p)).toEqual([30, 270])
+  })
+
+  it('素材が 1 つ、写真、無い ID、同じ終了位置、数でない値は元のまま', () => {
+    const single = addItems(empty(), [{ itemId: 'v1', info: videoInfo(1, 600) }])
+    expect(setTrimEnd(single, 'v1', 100)).toBe(single)
+    const p = addItems(empty(), [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'v1', info: videoInfo(1, 600) },
+    ])
+    expect(setTrimEnd(p, 'p1', 100)).toBe(p)
+    expect(setTrimEnd(p, 'nope', 100)).toBe(p)
+    expect(setTrimEnd(p, 'v1', 150)).toBe(p)
+    expect(setTrimEnd(p, 'v1', Number.NaN)).toBe(p)
   })
 })
