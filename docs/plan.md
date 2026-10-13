@@ -255,7 +255,7 @@ for (let t = 0; t < totalFrames; t++) {
 | --- | --- |
 | 素材数 | `MAX_ITEMS`（10 秒なら 10） |
 | 写真 | import 時に長辺 ≤ 出力の長辺 × 2（1080x1920 なら 3840）へ縮小し、縮小後だけ保存。原本は保持しない。`createImageBitmap(file, { resizeWidth, resizeHeight })` を使い、全面展開を避ける |
-| 動画 | 解像度 ≤ 3840x2160、ファイル ≤ 500 MB。超えたら取り込みを拒否して案内する |
+| 動画 | 解像度 ≤ 3840x2160、ファイル ≤ 200 MB。超えたら取り込みを拒否して案内する。取り込み時にまるごとメモリへ読む（ADR 012） |
 | 同時デコーダ | 2 |
 
 ### 4.4 保存と共有（`export/share.ts`）
@@ -339,7 +339,7 @@ CapCut に入るところまでを最初に通す。ここで通らなければ�
 | zustand | 状態 | ~1KB |
 | idb-keyval | IndexedDB | ~0.6KB |
 | tailwindcss v4、shadcn/ui | UI 部品 | 使った分だけ |
-| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, eslint, prettier, vitest, @napi-rs/canvas | dev | — |
+| vite, @vitejs/plugin-react, @vitejs/plugin-basic-ssl, typescript, oxlint（ADR 011）, prettier, vitest, @napi-rs/canvas | dev | — |
 | playwright | ブラウザ結合テスト（desktop Chrome） | dev |
 
 ## 11. テスト方針（TDD）
