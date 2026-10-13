@@ -7,6 +7,7 @@ import type {
   Project,
   Transition,
 } from '../model/types'
+import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
 import { adjustDurations, equalSplit, maxItems } from '../timeline/durations'
@@ -30,7 +31,7 @@ export function createProject(
 ): Project {
   const now = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
+    id: newId(),
     schemaVersion: 1,
     preset: { ...preset },
     locked: false,
@@ -41,9 +42,20 @@ export function createProject(
   }
 }
 
-/** 写真を末尾に追加する。尺は全素材で均等に割り直す（手動調整はリセットされる） */
+export function setMeta(project: Project, meta: { memberName: string; spot: string }): Project {
+  if (project.meta.memberName === meta.memberName && project.meta.spot === meta.spot) return project
+  return { ...project, meta: { ...meta }, updatedAt: new Date().toISOString() }
+}
+
+/**
+ * 写真を末尾に追加する。尺は全素材で均等に割り直す。
+ * v1 の割り切り: 追加・削除のたびに手動調整した尺は失われる（plan §2.2）。
+ * 「写真を全部入れてから尺を調整する」流れを想定している。
+ */
 export function addPhoto(project: Project, itemId: string, info: PhotoInfo): Project {
   if (project.items.length >= maxItems(project.preset.totalFrames)) return project
+  // 同じ ID が既にあれば拒否する（素材が二重になり、画像との対応が壊れるため）
+  if (indexOf(project, itemId) >= 0) return project
   const photo: PhotoItem = {
     itemId,
     kind: 'photo',
@@ -66,6 +78,7 @@ export function removeItem(project: Project, itemId: string): Project {
 export function moveItem(project: Project, itemId: string, toIndex: number): Project {
   const from = indexOf(project, itemId)
   if (from < 0 || toIndex < 0 || toIndex >= project.items.length) return project
+  if (from === toIndex) return project
   const items = [...project.items]
   const [moved] = items.splice(from, 1)
   items.splice(toIndex, 0, moved)
@@ -88,9 +101,10 @@ export function setKenBurns(
   itemId: string,
   presetId: KenBurns['presetId'],
 ): Project {
-  return updateItem(project, itemId, (item) =>
-    item.kind === 'photo' ? { ...item, kenBurns: kenBurnsPreset(presetId) } : item,
-  )
+  return updateItem(project, itemId, (item) => {
+    if (item.kind !== 'photo' || item.kenBurns.presetId === presetId) return item
+    return { ...item, kenBurns: kenBurnsPreset(presetId) }
+  })
 }
 
 /** キャプションを設定する。undefined で外す。オフセットは尺に収まるよう切り詰める */
@@ -100,6 +114,7 @@ export function setCaption(
   caption: Caption | undefined,
 ): Project {
   return updateItem(project, itemId, (item) => {
+    if (!caption && !item.caption) return item
     const next = { ...item }
     if (caption) next.caption = caption
     else delete next.caption
@@ -107,9 +122,21 @@ export function setCaption(
   })
 }
 
-/** 次の素材へのつなぎを設定する。長さは上限に切り詰める */
+/**
+ * 次の素材へのつなぎを設定する。長さは 0 以上の整数に整え、次の素材があれば上限に切り詰める。
+ * 末尾の素材でも値は保存する（あとで素材を足したときに生きる）。
+ */
 export function setTransition(project: Project, itemId: string, transition: Transition): Project {
-  return updateItem(project, itemId, (item) => ({ ...item, transitionOut: { ...transition } }))
+  const durationFrames = Number.isFinite(transition.durationFrames)
+    ? Math.max(0, Math.floor(transition.durationFrames))
+    : 0
+  return updateItem(project, itemId, (item) => {
+    const current = item.transitionOut
+    if (current && current.type === transition.type && current.durationFrames === durationFrames) {
+      return item
+    }
+    return { ...item, transitionOut: { type: transition.type, durationFrames } }
+  })
 }
 
 // --- 内部の小さな助け ---
@@ -131,7 +158,10 @@ function updateItem(
 ): Project {
   const index = indexOf(project, itemId)
   if (index < 0) return project
-  const items = project.items.map((item, i) => (i === index ? change(item) : item))
+  const changed = change(project.items[index])
+  // 変更関数が元の素材をそのまま返したら「変えられない」なので、Project も元のまま
+  if (changed === project.items[index]) return project
+  const items = project.items.map((item, i) => (i === index ? changed : item))
   return withItems(project, clampAfterResize(items))
 }
 

@@ -33,10 +33,25 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
     expect(extra.image.close).toHaveBeenCalledTimes(1)
   })
 
-  it('seek は 0〜totalFrames−1 に収める', () => {
+  it('同じ ID で再追加したときは、素材を増やさず新しい画像だけ閉じる（元の画像は残す）', () => {
+    const first = fakeImage()
+    const second = fakeImage()
+    useAppStore.getState().addPhoto('p1', info, first)
+    useAppStore.getState().addPhoto('p1', info, second)
+    expect(useAppStore.getState().project.items).toHaveLength(1)
+    expect(useAppStore.getState().images.p1).toBe(first)
+    expect(first.image.close).not.toHaveBeenCalled()
+    expect(second.image.close).toHaveBeenCalledTimes(1)
+  })
+
+  it('seek は 0〜totalFrames−1 の整数に収め、数でない値は無視する', () => {
     useAppStore.getState().seek(-5)
     expect(useAppStore.getState().ui.playheadFrame).toBe(0)
     useAppStore.getState().seek(1000)
     expect(useAppStore.getState().ui.playheadFrame).toBe(299)
+    useAppStore.getState().seek(10.7)
+    expect(useAppStore.getState().ui.playheadFrame).toBe(10)
+    useAppStore.getState().seek(Number.NaN)
+    expect(useAppStore.getState().ui.playheadFrame).toBe(10)
   })
 })

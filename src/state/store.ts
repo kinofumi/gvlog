@@ -39,8 +39,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   images: {},
   ui: { selectedItemId: null, playheadFrame: 0, isPlaying: false },
 
-  setMeta: (meta) =>
-    set((s) => ({ project: { ...s.project, meta, updatedAt: new Date().toISOString() } })),
+  setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
   addPhoto: (itemId, info, image) => {
     const project = actions.addPhoto(get().project, itemId, info)
@@ -77,12 +76,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ project: actions.setTransition(s.project, itemId, transition) })),
 
   select: (selectedItemId) => set((s) => ({ ui: { ...s.ui, selectedItemId } })),
-  seek: (frame) =>
+  seek: (frame) => {
+    // 数でない値（空の入力など）は無視し、整数フレームに丸めて範囲に収める
+    if (!Number.isFinite(frame)) return
     set((s) => ({
       ui: {
         ...s.ui,
-        playheadFrame: Math.max(0, Math.min(frame, s.project.preset.totalFrames - 1)),
+        playheadFrame: Math.max(0, Math.min(Math.floor(frame), s.project.preset.totalFrames - 1)),
       },
-    })),
+    }))
+  },
   setPlaying: (isPlaying) => set((s) => ({ ui: { ...s.ui, isPlaying } })),
 }))

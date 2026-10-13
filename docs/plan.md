@@ -167,6 +167,8 @@ interface Transition {
 - `checkDurations(durations, totalFrames)` / `checkTimeline(items, totalFrames)`: 不変条件（合計、最小尺、整数、ID の一意性、
   トランジション上限、キャプションの最低表示長）を確かめて問題を文で返す。状態を変えた側はこれで確認する。
 - 素材が 1 つのときは尺を変更できない（常に `totalFrames`）。素材が 0 のときはタイムラインは空。
+- **素材の追加・削除では均等割りをやり直す**（v1 の割り切り。手動調整した尺は失われる）。「写真を全部入れてから尺を調整する」流れを想定。
+  調整を保つ配分は、必要になったら後の章で足す。
 - 尺を変えたあとは、隣接するトランジション長を `min(d, floor(min(前, 後) / 2))` に切り詰め、キャプションのオフセットも
   コア区間に収まるよう切り詰める（`clampAfterResize`）。キャプションは最低 `MIN_CAPTION_FRAMES = 16`（フェード 8 × 2）を
   表示に残す。末尾素材の `transitionOut` は消さずに残す（compile が無視する）。cut の長さは 0 に揃える。

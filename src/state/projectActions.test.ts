@@ -10,6 +10,7 @@ import {
   setCaption,
   setItemDuration,
   setKenBurns,
+  setMeta,
   setTransition,
 } from './projectActions'
 
@@ -61,6 +62,11 @@ describe('addPhoto（写真を末尾に追加し、尺を均等に割り直す�
     expect(eleven).toBe(ten)
   })
 
+  it('同じ ID の再追加は拒否して元のまま（素材が二重にならない）', () => {
+    const p = withPhotos(1)
+    expect(addPhoto(p, 'p1', photoInfo(1))).toBe(p)
+  })
+
   it('追加後も不変条件を満たす', () => {
     const p = withPhotos(7)
     expect(checkTimeline(p.items, p.preset.totalFrames)).toEqual([])
@@ -89,10 +95,11 @@ describe('moveItem（並べ替え。尺は素材についていく）', () => {
     expect(durations(moved)).toEqual([75, 75, 150])
   })
 
-  it('範囲外の位置や無い ID なら元のまま', () => {
+  it('範囲外の位置や無い ID、同じ位置への移動なら元のまま', () => {
     const p = withPhotos(2)
     expect(moveItem(p, 'p1', 5)).toBe(p)
     expect(moveItem(p, 'nope', 0)).toBe(p)
+    expect(moveItem(p, 'p1', 0)).toBe(p)
   })
 })
 
@@ -131,6 +138,18 @@ describe('setKenBurns / setCaption / setTransition', () => {
     expect((p.items[0] as PhotoItem).kenBurns.to.zoom).toBe(1.2)
   })
 
+  it('変えられない素材（写真でない）への Ken Burns 設定は元のまま', () => {
+    const p = withPhotos(1)
+    const video = {
+      ...p.items[0],
+      kind: 'video' as const,
+      sourceDurationFrames: 300,
+      trimStartFrames: 0,
+    }
+    const withVideo = { ...p, items: [video] }
+    expect(setKenBurns(withVideo, 'p1', 'zoomIn')).toBe(withVideo)
+  })
+
   it('キャプションは undefined で外せる', () => {
     let p = setCaption(withPhotos(1), 'p1', {
       text: 'a',
@@ -148,6 +167,43 @@ describe('setKenBurns / setCaption / setTransition', () => {
   it('トランジションは上限に切り詰めて保存する', () => {
     const p = setTransition(withPhotos(2), 'p1', { type: 'crossfade', durationFrames: 500 })
     expect(p.items[0].transitionOut).toEqual({ type: 'crossfade', durationFrames: 75 })
+  })
+
+  it('末尾の素材でも、長さは 0 以上の整数に整えて保存する（次に素材を足したとき上限で切り詰められる）', () => {
+    const p = withPhotos(2)
+    expect(
+      setTransition(p, 'p2', { type: 'crossfade', durationFrames: 12.7 }).items[1].transitionOut,
+    ).toEqual({
+      type: 'crossfade',
+      durationFrames: 12,
+    })
+    expect(
+      setTransition(p, 'p2', { type: 'crossfade', durationFrames: -3 }).items[1].transitionOut,
+    ).toEqual({
+      type: 'crossfade',
+      durationFrames: 0,
+    })
+    expect(
+      setTransition(p, 'p2', { type: 'crossfade', durationFrames: Number.NaN }).items[1]
+        .transitionOut,
+    ).toEqual({
+      type: 'crossfade',
+      durationFrames: 0,
+    })
+  })
+
+  it('同じ値の設定、無いキャプションを外す、は元のまま', () => {
+    const p = withPhotos(2)
+    expect(setTransition(p, 'p1', { type: 'cut', durationFrames: 0 })).toBe(p)
+    expect(setCaption(p, 'p1', undefined)).toBe(p)
+    expect(setKenBurns(p, 'p1', 'none')).toBe(p)
+  })
+
+  it('setMeta は名前とスポットを置き換え、渡したオブジェクトを参照で持たない', () => {
+    const meta = { memberName: '山田', spot: '金閣寺' }
+    const p = setMeta(withPhotos(1), meta)
+    meta.spot = '書き換え'
+    expect(p.meta).toEqual({ memberName: '山田', spot: '金閣寺' })
   })
 
   it('更新のたびに updatedAt が進み、元のオブジェクトは変わらない', () => {
