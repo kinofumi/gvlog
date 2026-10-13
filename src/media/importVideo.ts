@@ -1,4 +1,4 @@
-import { BlobSource, Input, MP4, QTFF, type InputVideoTrack } from 'mediabunny'
+import { BufferSource, Input, MP4, QTFF, type InputVideoTrack } from 'mediabunny'
 import { VIDEO_MAX_BYTES, VIDEO_MAX_HEIGHT, VIDEO_MAX_WIDTH } from './limits'
 import { MediaError } from './errors'
 
@@ -27,12 +27,16 @@ export type ImportedVideo = {
  */
 export async function importVideo(file: File): Promise<ImportedVideo> {
   if (file.size > VIDEO_MAX_BYTES) {
-    throw new MediaError('動画が大きすぎます（500MB まで）。短く切ってから選んでください。')
+    throw new MediaError('動画が大きすぎます（200MB まで）。短く切ってから選んでください。')
   }
 
+  // ファイルは取り込み時にまるごとメモリへ読む（ADR 012）。
+  // Android では選択した File がアプリ切り替えや時間経過で読めなくなり、書き出しの途中で
+  // 「TypeError: network error」になることがあった。ここで読んでおけば、読めない素材はこの場で分かる。
+  const buffer = await readWholeFile(file)
+
   // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
-  // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
-  const input = new Input({ formats: [MP4, QTFF], source: new BlobSource(file) })
+  const input = new Input({ formats: [MP4, QTFF], source: new BufferSource(buffer) })
   try {
     return await probe(file, input)
   } catch (error) {
@@ -90,5 +94,13 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
     transfer,
     isHdr: transfer === 'hlg' || transfer === 'pq',
     canDecode,
+  }
+}
+
+async function readWholeFile(file: File): Promise<ArrayBuffer> {
+  try {
+    return await file.arrayBuffer()
+  } catch {
+    throw new MediaError('動画を読み込めませんでした。もう一度ファイルを選び直してください。')
   }
 }

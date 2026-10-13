@@ -7,5 +7,9 @@ export const PHOTO_SCALE_FACTOR = 2
 export const VIDEO_MAX_WIDTH = 3840
 export const VIDEO_MAX_HEIGHT = 2160
 
-/** 動画のファイルサイズ上限（500 MB） */
-export const VIDEO_MAX_BYTES = 500 * 1024 * 1024
+/**
+ * 動画のファイルサイズ上限（200 MB）。
+ * 動画は取り込み時にまるごとメモリへ読み込む（ADR 012）ので、この分がそのままメモリに載る。
+ * 10 秒素材に使う動画は長くても数十 MB なので、200 MB あれば足りる。
+ */
+export const VIDEO_MAX_BYTES = 200 * 1024 * 1024
