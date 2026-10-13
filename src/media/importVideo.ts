@@ -36,7 +36,7 @@ export async function importVideo(file: File): Promise<ImportedVideo> {
   // Android では選択した File がアプリ切り替えや時間経過で読めなくなり、書き出しの途中で
   // 「TypeError: network error」になることがあった。ここで読んでおけば、読めない素材はこの場で分かる。
   // メモリ上の Blob にするのは、デコード（BlobSource）とプレビューの <video>（Object URL）で 1 つのデータを共有するため
-  const blob = new Blob([await readWholeFile(file)], { type: file.type })
+  const blob = await readWholeFile(file)
 
   // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
   const input = new Input({ formats: [MP4, QTFF], source: new BlobSource(blob) })
@@ -101,9 +101,14 @@ async function probe(file: File, blob: Blob, input: Input): Promise<ImportedVide
   }
 }
 
-async function readWholeFile(file: File): Promise<ArrayBuffer> {
+/**
+ * File の中身をメモリ上の Blob に読み込む。
+ * `new Blob([await file.arrayBuffer()])` だと途中で ArrayBuffer と Blob の両方が生きて、一時的にファイルの 2 倍のメモリを使う。
+ * Response 経由なら中身を直接 Blob に読めるので、ピークがファイル 1 つ分で済む。
+ */
+async function readWholeFile(file: File): Promise<Blob> {
   try {
-    return await file.arrayBuffer()
+    return await new Response(file).blob()
   } catch {
     throw new MediaError('動画を読み込めませんでした。もう一度ファイルを選び直してください。')
   }

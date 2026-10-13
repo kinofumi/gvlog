@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MediaError } from '../media/errors'
+import { isVideoFile } from '../media/fileTypes'
 import { importImage } from '../media/importImage'
 import { importVideo } from '../media/importVideo'
 import { makeVideoPoster } from '../media/videoPoster'
@@ -115,11 +116,6 @@ export function MediaPicker() {
   )
 }
 
-/** 動画かどうか。type が空のとき（一部の Android）は拡張子で見る */
-function isVideoFile(file: File): boolean {
-  return file.type.startsWith('video/') || /\.(mp4|mov|m4v)$/i.test(file.name)
-}
-
 async function importOnePhoto(file: File, preset: GroupPreset): Promise<NewEntry> {
   const imported = await importImage(file, preset.width, preset.height)
   const itemId = newId()
@@ -164,7 +160,8 @@ async function importOneVideo(file: File, preset: GroupPreset, notes: string[]):
       fileName: file.name,
       width: video.width,
       height: video.height,
-      sourceDurationFrames: Math.floor(video.durationSec * preset.fps),
+      // durationSec は末尾の時刻なので、先頭の時刻（0 でないことがある）を引いて実際の長さにする
+      sourceDurationFrames: Math.floor((video.durationSec - video.firstTimestampSec) * preset.fps),
     },
     image: { image: poster, width, height },
     video,

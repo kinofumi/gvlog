@@ -22,6 +22,8 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
   const videos = useAppStore((s) => s.videos)
   const playheadFrame = useAppStore((s) => s.ui.playheadFrame)
   const isPlaying = useAppStore((s) => s.ui.isPlaying)
+  // 書き出し中は <video> を動かさない（書き出しのデコーダと CPU を取り合わない）。ポスターで代用する
+  const exporting = useAppStore((s) => s.ui.exporting)
   const seek = useAppStore((s) => s.seek)
   const setPlaying = useAppStore((s) => s.setPlaying)
 
@@ -66,7 +68,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
       get: (itemId: string): ProvidedImage => {
         const index = items.findIndex((i) => i.itemId === itemId)
         const item = items[index]
-        if (item?.kind === 'video') {
+        if (item?.kind === 'video' && !exporting) {
           const timeSec =
             sourceFrameAt(item.trimStartFrames, compiled[index].visibleStart, playheadFrame) /
             preset.fps
@@ -79,8 +81,18 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
       },
     }
     renderFrame(compiled, items, playheadFrame, ctx, provider)
-    // 見えていない動画は止めておく
-    player.pauseExcept(new Set(itemsAt(compiled, playheadFrame).map((c) => c.itemId)))
+    if (exporting) {
+      player.pauseExcept(new Set())
+      return
+    }
+    // 見えていない動画は止めておく。次に見える動画は開始位置へ先にシークしておく（切り替わりでポスターが出ないように）
+    const visible = itemsAt(compiled, playheadFrame)
+    player.pauseExcept(new Set(visible.map((c) => c.itemId)))
+    const nextIndex = compiled.findIndex((c) => c.visibleStart > playheadFrame)
+    const next = items[nextIndex]
+    if (next?.kind === 'video') {
+      player.frameAt(next.itemId, next.trimStartFrames / preset.fps, false)
+    }
   }, [
     canvasRef,
     compiled,
@@ -89,6 +101,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
     player,
     playheadFrame,
     isPlaying,
+    exporting,
     preset.fps,
     size,
     videoTick,

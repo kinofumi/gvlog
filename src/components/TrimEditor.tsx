@@ -9,15 +9,19 @@ export function TrimEditor({
   item,
   visibleLength,
   fps,
+  disabled,
   onChange,
 }: {
   item: VideoItem
   /** この素材が画面に見えている長さ（トランジション込み、フレーム数） */
   visibleLength: number
   fps: number
+  disabled?: boolean
   onChange: (trimStartFrames: number) => void
 }) {
   const max = maxTrimStart(item.sourceDurationFrames, visibleLength)
+  // 元動画が短いときは、使える範囲も元動画の末尾まで
+  const endFrames = Math.min(item.trimStartFrames + visibleLength, item.sourceDurationFrames)
   const sec = (frames: number) => (frames / fps).toFixed(1)
   return (
     <div className="space-y-1">
@@ -30,14 +34,14 @@ export function TrimEditor({
           max={max}
           step={1}
           value={item.trimStartFrames}
-          disabled={max === 0}
+          disabled={max === 0 || disabled}
           onChange={(e) => onChange(Number(e.target.value))}
         />
         <span className="w-12 text-right tabular-nums">{sec(item.trimStartFrames)} 秒</span>
       </label>
       <p className="text-xs text-stone-500">
         元の動画 {sec(item.sourceDurationFrames)} 秒のうち、{sec(item.trimStartFrames)} 秒から{' '}
-        {sec(item.trimStartFrames + visibleLength)} 秒までを使います。
+        {sec(endFrames)} 秒までを使います。
         {max === 0 && '（元の動画が短いので、最後のフレームで止まります）'}
       </p>
     </div>

@@ -32,6 +32,7 @@ export function PreviewCanvas() {
         >
           {isPlaying ? '停止' : '再生'}
         </Button>
+        {/* 書き出し中はシークも止める（動画のプレビューがデコードを始めるため） */}
         <input
           className="flex-1"
           type="range"
@@ -39,6 +40,7 @@ export function PreviewCanvas() {
           max={preset.totalFrames - 1}
           step={1}
           value={playheadFrame}
+          disabled={exporting}
           onChange={(e) => {
             setPlaying(false)
             seek(Number(e.target.value))

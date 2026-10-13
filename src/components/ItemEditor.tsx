@@ -27,6 +27,8 @@ export function ItemEditor() {
   const setTrimStart = useAppStore((s) => s.setTrimStart)
   const setTransition = useAppStore((s) => s.setTransition)
   const setCaption = useAppStore((s) => s.setCaption)
+  // 書き出し中は開始位置を動かさない（プレビューの <video> がシークを始めるため）
+  const exporting = useAppStore((s) => s.ui.exporting)
   // 動画の開始位置の上限は「見える長さ」（トランジション込み）で決まる
   const compiled = useMemo(() => compileTimeline(items), [items])
 
@@ -68,6 +70,7 @@ export function ItemEditor() {
           item={item}
           visibleLength={compiled[index].visibleEnd - compiled[index].visibleStart}
           fps={fps}
+          disabled={exporting}
           onChange={(frames) => setTrimStart(item.itemId, frames)}
         />
       )}

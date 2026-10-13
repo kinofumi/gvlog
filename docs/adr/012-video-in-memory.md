@@ -21,6 +21,6 @@ Android ではファイル選択で渡される File が一時的なアクセス
 M4 で IndexedDB に保存するときも、保存した Blob から同じように読み直せる。
 
 ## 補足（2026-10-14、M3(B)）
-読み込んだデータは `ArrayBuffer` のままではなく、メモリ上の `Blob` にして持つ。デコード（`BlobSource`）とプレビューの `<video>`
-（`URL.createObjectURL`）で同じデータを使うため。`BufferSource` + 別の Blob にすると動画サイズの 2 倍のメモリになる。
-メモリ上の Blob は Android の File と違って読めなくならない。
+読み込んだデータは `ArrayBuffer` ではなく、メモリ上の `Blob` にして持つ（`new Response(file).blob()`）。デコード（`BlobSource`）と
+プレビューの `<video>`（`URL.createObjectURL`）で同じデータを使うため。`BufferSource` + 別の Blob にすると動画サイズの 2 倍のメモリになる。
+`file.arrayBuffer()` → `new Blob([...])` も、読み込みの瞬間は 2 倍になる。メモリ上の Blob は Android の File と違って読めなくならない。
