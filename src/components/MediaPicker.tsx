@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { MediaError } from '../media/errors'
 import { isVideoFile } from '../media/fileTypes'
 import { importImage } from '../media/importImage'
@@ -8,6 +8,7 @@ import { newId } from '../model/ids'
 import type { GroupPreset } from '../model/types'
 import { useAppStore, type NewEntry } from '../state/store'
 import { maxItems } from '../timeline/durations'
+import { Button } from './ui/Button'
 
 /** iPhone / iPad かどうか（案内文の出し分けにだけ使う）。iPad の Safari は UA が Macintosh なので、タッチの有無で見分ける */
 const IS_IOS =
@@ -31,6 +32,8 @@ export function MediaPicker() {
   const [messages, setMessages] = useState<string[]>([])
   const [progress, setProgress] = useState('')
   const [timing, setTiming] = useState<string[]>([])
+  // ファイル選択の input は見せず、ボタンから開く（素の input はスマホで小さく、目立たない）
+  const inputRef = useRef<HTMLInputElement>(null)
 
   async function onPick(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -76,23 +79,27 @@ export function MediaPicker() {
 
   return (
     <section className="space-y-2">
-      <label className="block">
-        <span className="text-sm">
-          写真・動画を追加（{count} / {maxItems(preset.totalFrames)} 個）
+      <h2 className="text-base font-bold">
+        写真・動画を追加{' '}
+        <span className="text-sm font-normal text-stone-500">
+          （{count} / {maxItems(preset.totalFrames)} 個）
         </span>
-        {/* iOS は accept に HEIC を書いても JPEG に変換して渡す（2026-10-13 に iOS 18.7 で確認）。image/* で十分 */}
-        <input
-          className="mt-1 block w-full text-sm"
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          disabled={importing || exporting}
-          onChange={(e) => {
-            void onPick(e.target.files)
-            e.target.value = ''
-          }}
-        />
-      </label>
+      </h2>
+      {/* iOS は accept に HEIC を書いても JPEG に変換して渡す（2026-10-13 に iOS 18.7 で確認）。image/* で十分 */}
+      <input
+        ref={inputRef}
+        className="hidden"
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        onChange={(e) => {
+          void onPick(e.target.files)
+          e.target.value = ''
+        }}
+      />
+      <Button disabled={importing || exporting} onClick={() => inputRef.current?.click()}>
+        {importing ? '取り込み中…' : 'ファイルを選ぶ'}
+      </Button>
       {IS_IOS && (
         <p className="text-xs text-stone-500">
           iPhone で「高効率（HEIC）」で撮った写真は、選んだあと JPEG への変換に時間がかかります。
