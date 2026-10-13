@@ -1,5 +1,6 @@
 import { useAppStore } from '../state/store'
 import { MIN_ITEM_FRAMES, maxItemFrames } from '../timeline/durations'
+import { FrameSlider } from './FrameSlider'
 import { Thumbnail } from './Thumbnail'
 
 /** 素材の一覧: 選択、並べ替え、削除、尺の調整 */
@@ -37,23 +38,14 @@ export function MediaList() {
                 {index + 1}. {item.kind === 'video' && '🎬 '}
                 {item.fileName}
               </p>
-              <label className="flex items-center gap-2 text-xs">
-                {/* step は 1 フレーム。3（0.1 秒）にすると均等割りの値が格子に乗らず、つまみと表示がずれる */}
-                <input
-                  className="flex-1"
-                  type="range"
-                  min={MIN_ITEM_FRAMES}
-                  max={maxFrames}
-                  step={1}
-                  value={item.durationFrames}
-                  disabled={items.length === 1 || exporting}
-                  onChange={(e) => setItemDuration(item.itemId, Number(e.target.value))}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className="w-12 text-right tabular-nums">
-                  {(item.durationFrames / preset.fps).toFixed(1)} 秒
-                </span>
-              </label>
+              <FrameSlider
+                min={MIN_ITEM_FRAMES}
+                max={maxFrames}
+                value={item.durationFrames}
+                fps={preset.fps}
+                disabled={items.length === 1 || exporting}
+                onChange={(frames) => setItemDuration(item.itemId, frames)}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <SmallButton

@@ -335,6 +335,29 @@ describe('setTrimEnd（動画の終了位置。尺 = 終了位置 − 開始位�
     expect(durations(p)).toEqual([30, 270])
   })
 
+  it('元動画の末尾を超える終了位置は末尾に止め、開始位置は動かない（レビュー: Codex 3 / Claude 2）', () => {
+    let p = addItems(empty(), [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'v1', info: videoInfo(1, 600) },
+    ])
+    p = setTrimStart(p, 'v1', 400) // 尺 150、見える長さ 150 → 上限 450 の内側
+    p = setTrimEnd(p, 'v1', 700) // 末尾 600 まで → 尺 200
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(400)
+    expect(durations(p)).toEqual([100, 200])
+  })
+
+  it('クロスフェードで見える長さが延びる分は終了位置の上限から引き、開始位置は動かない', () => {
+    let p = addItems(empty(), [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'v1', info: videoInfo(1, 300) },
+    ])
+    p = setTransition(p, 'p1', { type: 'crossfade', durationFrames: 30 }) // 動画は 15 フレーム早く見え始める
+    p = setTrimStart(p, 'v1', 100)
+    p = setTrimEnd(p, 'v1', 300) // 上限は 300 − 15 = 285 → 尺 185
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(100)
+    expect(durations(p)).toEqual([115, 185])
+  })
+
   it('素材が 1 つ、写真、無い ID、同じ終了位置、数でない値は元のまま', () => {
     const single = addItems(empty(), [{ itemId: 'v1', info: videoInfo(1, 600) }])
     expect(setTrimEnd(single, 'v1', 100)).toBe(single)

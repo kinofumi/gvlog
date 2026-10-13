@@ -1,11 +1,12 @@
 import type { VideoItem } from '../model/types'
-import { maxTrimStart, trimEndFrames, trimEndRange } from '../timeline/trim'
+import { maxTrimStart, trimEndRange } from '../timeline/trim'
+import { FrameSlider } from './FrameSlider'
 
 /**
- * 動画のどこを使うか（plan §2.3）。
+ * 動画のどこを使うか（plan §2.3、ADR 014）。
  * - 開始位置: 使う範囲を尺のまま前後に動かす。上限は元動画の尺 − 見える長さ。
  * - 終了位置: 開始位置は変えず、この素材の尺を「終了位置 − 開始位置」にする。差分は他の素材が受け取る。
- * 元動画が見える長さより短いときは動かせず、足りない分は末尾フレームをホールドする。
+ * 元動画が見える長さより短いときはどちらも動かせず、足りない分は末尾フレームをホールドする（尺は一覧のスライダーで変える）。
  */
 export function TrimEditor({
   item,
@@ -30,51 +31,48 @@ export function TrimEditor({
   onChangeEnd: (trimEndFrames: number) => void
 }) {
   const maxStart = maxTrimStart(item.sourceDurationFrames, visibleLength)
-  const end = trimEndFrames(item)
-  const endRange = trimEndRange(item, visibleLength, maxDurationFrames)
-  const endDisabled = disabled || !canChangeDuration || endRange.max < endRange.min
+  // 終了位置 = 開始位置 + 尺。元動画が足りないとき（ホールド中）はスライダーの範囲の外に出るので動かせない。
+  // 範囲内の値だけ渡さないと、つまみの位置と表示がずれたり、触っただけで尺が縮んだりする
+  const end = item.trimStartFrames + item.durationFrames
+  const range = trimEndRange(item, visibleLength, maxDurationFrames)
+  const holding = end > range.max
+  const endDisabled = disabled || !canChangeDuration || holding
+  // 実際に使う範囲の終わり。クロスフェードがあるとその分だけ終了位置より先も使う
+  const usedEnd = Math.min(item.trimStartFrames + visibleLength, item.sourceDurationFrames)
   const sec = (frames: number) => (frames / fps).toFixed(1)
   return (
     <div className="space-y-2">
       <div className="space-y-1">
         <p className="text-sm">開始位置</p>
-        <label className="flex items-center gap-2 text-xs">
-          <input
-            className="flex-1"
-            type="range"
-            min={0}
-            max={maxStart}
-            step={1}
-            value={item.trimStartFrames}
-            disabled={maxStart === 0 || disabled}
-            onChange={(e) => onChangeStart(Number(e.target.value))}
-          />
-          <span className="w-12 text-right tabular-nums">{sec(item.trimStartFrames)} 秒</span>
-        </label>
+        <FrameSlider
+          min={0}
+          max={maxStart}
+          value={item.trimStartFrames}
+          fps={fps}
+          disabled={maxStart === 0 || disabled}
+          onChange={onChangeStart}
+        />
       </div>
       <div className="space-y-1">
         <p className="text-sm">終了位置</p>
-        <label className="flex items-center gap-2 text-xs">
-          <input
-            className="flex-1"
-            type="range"
-            min={endRange.min}
-            max={Math.max(endRange.min, endRange.max)}
-            step={1}
-            value={end}
-            disabled={endDisabled}
-            onChange={(e) => onChangeEnd(Number(e.target.value))}
-          />
-          <span className="w-12 text-right tabular-nums">{sec(end)} 秒</span>
-        </label>
+        <FrameSlider
+          min={range.min}
+          max={Math.max(range.min, range.max)}
+          value={Math.max(range.min, Math.min(end, range.max))}
+          fps={fps}
+          disabled={endDisabled}
+          onChange={onChangeEnd}
+        />
       </div>
       <p className="text-xs text-stone-500">
         元の動画 {sec(item.sourceDurationFrames)} 秒のうち、{sec(item.trimStartFrames)} 秒から{' '}
-        {sec(end)} 秒までを使います。終了位置を動かすと、この素材の尺が変わります。
+        {sec(usedEnd)} 秒までを使います。終了位置を動かすと、この素材の尺が変わります。
+        {visibleLength > item.durationFrames &&
+          '（クロスフェードの分だけ、終了位置より先も使います）'}
         {!canChangeDuration &&
           '（素材が 1 つのときは尺が合計と同じなので、終了位置は変えられません）'}
-        {end - item.trimStartFrames < item.durationFrames &&
-          '（元の動画が短いので、最後のフレームで止まります）'}
+        {holding &&
+          '（元の動画が短いので、最後のフレームで止まります。尺は素材一覧のスライダーで変えられます）'}
       </p>
     </div>
   )

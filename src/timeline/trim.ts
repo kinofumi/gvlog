@@ -60,11 +60,6 @@ export function clampTrims(items: MediaItem[]): MediaItem[] {
   })
 }
 
-/** 元動画のどこまで使うか（終了位置）。元動画が短ければ末尾で、その先は末尾フレームをホールドする */
-export function trimEndFrames(item: TrimInput): number {
-  return Math.min(item.trimStartFrames + item.durationFrames, item.sourceDurationFrames)
-}
-
 /**
  * 終了位置スライダーの範囲。下限は開始位置 + 最小尺。
  * 上限は元動画の末尾と「開始位置 + 尺の上限（maxDurationFrames）」の小さい方。

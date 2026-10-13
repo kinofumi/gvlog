@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MediaItem, VideoItem } from '../model/types'
-import {
-  clampTrimStart,
-  clampTrims,
-  maxTrimStart,
-  sourceFrameAt,
-  trimEndFrames,
-  trimEndRange,
-} from './trim'
+import { clampTrimStart, clampTrims, maxTrimStart, sourceFrameAt, trimEndRange } from './trim'
 
 describe('sourceFrameAt（出力フレーム → 元動画のフレーム）', () => {
   it('見え始めた瞬間が trimStart で、1 フレームごとに 1 進む', () => {
@@ -72,20 +65,6 @@ describe('clampTrims（素材の並び全体で開始位置を上限内に収め
     ]
     // b は 15 フレーム早く見え始める → 見える長さ 165、上限 135
     expect((clampTrims(items)[1] as VideoItem).trimStartFrames).toBe(135)
-  })
-})
-
-describe('trimEndFrames（終了位置 = 開始位置 + 尺。元動画の末尾を超えない）', () => {
-  it('元動画が足りていれば開始位置 + 尺', () => {
-    expect(
-      trimEndFrames({ trimStartFrames: 90, durationFrames: 120, sourceDurationFrames: 600 }),
-    ).toBe(210)
-  })
-
-  it('元動画が短ければ末尾（その先はホールド）', () => {
-    expect(
-      trimEndFrames({ trimStartFrames: 0, durationFrames: 120, sourceDurationFrames: 65 }),
-    ).toBe(65)
   })
 })
 

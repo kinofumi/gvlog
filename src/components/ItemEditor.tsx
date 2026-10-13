@@ -6,6 +6,7 @@ import { compileTimeline } from '../timeline/compile'
 import { maxItemFrames } from '../timeline/durations'
 import { CaptionEditor } from './CaptionEditor'
 import { Chip, ChipGroup } from './Chip'
+import { FrameSlider } from './FrameSlider'
 import { TrimEditor } from './TrimEditor'
 
 const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
@@ -102,25 +103,15 @@ export function ItemEditor() {
           />
         </div>
         {isCrossfade && following && (
-          <label className="flex items-center gap-2 text-xs">
-            <input
-              className="flex-1"
-              type="range"
-              min={0}
-              max={maxTransition}
-              step={1}
-              value={crossfadeFrames}
-              onChange={(e) =>
-                setTransition(item.itemId, {
-                  type: 'crossfade',
-                  durationFrames: Number(e.target.value),
-                })
-              }
-            />
-            <span className="w-12 text-right tabular-nums">
-              {(crossfadeFrames / fps).toFixed(1)} 秒
-            </span>
-          </label>
+          <FrameSlider
+            min={0}
+            max={maxTransition}
+            value={crossfadeFrames}
+            fps={fps}
+            onChange={(frames) =>
+              setTransition(item.itemId, { type: 'crossfade', durationFrames: frames })
+            }
+          />
         )}
       </div>
 

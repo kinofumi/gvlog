@@ -187,7 +187,7 @@ interface Transition {
     足りない分は末尾フレームをホールドする。トリム UI の上限は `sourceDurationFrames − (visibleEnd − visibleStart)`。
   - 終了位置は保存せず、`trimStartFrames + durationFrames`（元動画の末尾まで）として見せる。終了位置を動かすと
     尺を「終了位置 − 開始位置」に変え、差分は `setItemDuration` と同じ規則で他の素材へ配る（`timeline/trim.ts` の
-    `trimEndFrames`、`trimEndRange`）。開始位置を動かしても尺は変わらない（使う範囲が前後に滑る）。
+    `trimEndRange`）。開始位置を動かしても尺は変わらない（使う範囲が前後に滑る）。
   - Ken Burns: 進行度 `p = (t − visibleStart) / (visibleEnd − visibleStart − 1)`。
   - キャプション: 表示区間は `coreStart + inOffsetFrames` から `coreEnd − outOffsetFrames`。フェードは 8 フレーム固定。
 - トランジション区間 `[coreEnd − floor(d/2), coreEnd + ceil(d/2))` では 2 つの素材が同時に見える。
