@@ -8,6 +8,7 @@ import { newId } from '../model/ids'
 import type { GroupPreset } from '../model/types'
 import { useAppStore, type NewEntry } from '../state/store'
 import { maxItems } from '../timeline/durations'
+import { Section } from './Section'
 import { Button } from './ui/Button'
 
 /** iPhone / iPad かどうか（案内文の出し分けにだけ使う）。iPad の Safari は UA が Macintosh なので、タッチの有無で見分ける */
@@ -78,13 +79,16 @@ export function MediaPicker() {
   }
 
   return (
-    <section className="space-y-2">
-      <h2 className="text-base font-bold">
-        写真・動画を追加{' '}
-        <span className="text-sm font-normal text-stone-500">
-          （{count} / {maxItems(preset.totalFrames)} 個）
-        </span>
-      </h2>
+    <Section
+      title={
+        <>
+          写真・動画を追加{' '}
+          <span className="text-sm font-normal text-stone-500">
+            （{count} / {maxItems(preset.totalFrames)} 個）
+          </span>
+        </>
+      }
+    >
       {/* iOS は accept に HEIC を書いても JPEG に変換して渡す（2026-10-13 に iOS 18.7 で確認）。image/* で十分 */}
       <input
         ref={inputRef}
@@ -119,7 +123,7 @@ export function MediaPicker() {
           ))}
         </ul>
       )}
-    </section>
+    </Section>
   )
 }
 
