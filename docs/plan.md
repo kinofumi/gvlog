@@ -1,4 +1,4 @@
-# groupe-vlog 開発プラン（Vlog 素材作成 Web アプリ）
+# gvlog 開発プラン（Vlog 素材作成 Web アプリ）
 
 > 作成日: 2026-10-08。元の構想は [idea.md](./idea.md)。
 > 改訂 v2（2026-10-08）: Codex レビュー（[reviews/2026-10-08-plan-codex-consult.md](./reviews/2026-10-08-plan-codex-consult.md)）を反映。
@@ -57,9 +57,9 @@ URL を共有するだけで全員が使える。仕上げ担当者は各自の 
 v1 で作るのは太字のモジュールだけ。他は後の章で追加する（最初から全部は作らない）。
 
 ```
-groupe-vlog/
+gvlog/
   .github/workflows/deploy.yml      # build → actions/deploy-pages
-  vite.config.ts                    # base: '/groupe-vlog/'、plugin-basic-ssl（LAN 実機検証用 HTTPS）
+  vite.config.ts                    # base: '/gvlog/'、plugin-basic-ssl（LAN 実機検証用 HTTPS）
   public/fonts/*.woff2              # テロップ用サブセットフォント（v1 は 1 書体）
   docs/                             # plan, adr, devlog, reviews, testing-checklist
   src/
@@ -274,7 +274,7 @@ for (let t = 0; t < totalFrames; t++) {
 ## 5. 状態管理と永続化
 
 - **zustand** のフラットな 1 ストア。`project`、`ui`（screen, selectedItemId, playheadFrame, isPlaying）、`saveStatus`、`exportJob`。
-- **idb-keyval**（`createStore('groupe-vlog', 'kv')`）。キー: `project:<id>`（JSON）、`blob:<key>`（File/Blob）、`thumb:<key>`、`index`。
+- **idb-keyval**（`createStore('gvlog', 'kv')`）。キー: `project:<id>`（JSON）、`blob:<key>`（File/Blob）、`thumb:<key>`、`index`。
 - **保存の順序**（Codex 指摘 7）:
   1. Blob は import の中で先に保存する。保存に失敗したら素材を追加しない。
   2. プロジェクト JSON と `index` は `setMany` で 1 回の書き込みにまとめる。
@@ -287,7 +287,7 @@ for (let t = 0; t < totalFrames; t++) {
 ## 6. グループプリセットの配布
 
 **URL ハッシュによるプリセットリンク**を採用（リポジトリ内プリセットは既定値のみ）。
-`https://<user>.github.io/groupe-vlog/#p=v1&name=Trip2026&ar=9x16&dur=10&res=1080`
+`https://<user>.github.io/gvlog/#p=v1&name=Trip2026&ar=9x16&dur=10&res=1080`
 リーダーがアプリ内「プリセットリンクを作る」で生成し LINE 等で共有。開いた側は固定モードで新規プロジェクトが
 作られ、プリセットはスナップショットとして Project に保存される。値は §2.4 の検証を通す。fps は v1 では含めない（30 固定）。
 

@@ -1,4 +1,4 @@
-# CLAUDE.md — groupe-vlog
+# CLAUDE.md — gvlog
 
 グループ Vlog 用の短尺素材（固定尺の MP4）をブラウザだけで作る Web アプリ。
 このリポジトリは完成後に「AI との開発の教科書」にする。読者はプログラミング経験者で、TypeScript と Tailwind は初心者。

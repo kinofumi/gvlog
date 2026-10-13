@@ -130,7 +130,7 @@ export default function App() {
   return (
     <main className="mx-auto max-w-md px-4 py-6 space-y-6">
       <header>
-        <h1 className="text-xl font-bold">groupe-vlog（M0 検証版）</h1>
+        <h1 className="text-xl font-bold">gvlog（M0 検証版）</h1>
         <p className="text-sm text-stone-600">
           {preset.width}x{preset.height} / {preset.fps}fps / {preset.totalFrames / preset.fps} 秒 /
           無音 MP4
