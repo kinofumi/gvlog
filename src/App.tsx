@@ -13,7 +13,7 @@ export default function App() {
   const preset = useAppStore((s) => s.project.preset)
   const meta = useAppStore((s) => s.project.meta)
   const setMeta = useAppStore((s) => s.setMeta)
-  const busy = useAppStore((s) => s.ui.isPlaying)
+  const isPlaying = useAppStore((s) => s.ui.isPlaying)
 
   return (
     <main className="mx-auto max-w-md space-y-6 px-4 py-6">
@@ -51,7 +51,8 @@ export default function App() {
       <MediaList />
       <ItemEditor />
 
-      <EncodeProbePanel preset={preset} disabled={busy} onProbingChange={() => {}} />
+      {/* 診断はエンコーダを使うので、再生中は押せないようにする */}
+      <EncodeProbePanel preset={preset} disabled={isPlaying} />
 
       <footer className="text-xs text-stone-500">
         <p>{navigator.userAgent}</p>

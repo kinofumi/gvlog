@@ -22,7 +22,12 @@ export function PreviewCanvas() {
         style={{ aspectRatio: `${preset.width} / ${preset.height}` }}
       />
       <div className="flex items-center gap-3">
-        <Button className="w-24" disabled={!hasItems} onClick={() => setPlaying(!isPlaying)}>
+        {/* 再生中は素材が無くても止められるようにする */}
+        <Button
+          className="w-24"
+          disabled={!hasItems && !isPlaying}
+          onClick={() => setPlaying(!isPlaying)}
+        >
           {isPlaying ? '停止' : '再生'}
         </Button>
         <input
@@ -30,6 +35,7 @@ export function PreviewCanvas() {
           type="range"
           min={0}
           max={preset.totalFrames - 1}
+          step={1}
           value={playheadFrame}
           onChange={(e) => {
             setPlaying(false)

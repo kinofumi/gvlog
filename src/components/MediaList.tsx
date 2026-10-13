@@ -12,8 +12,6 @@ export function MediaList() {
   const moveItem = useAppStore((s) => s.moveItem)
   const removeItem = useAppStore((s) => s.removeItem)
   const setItemDuration = useAppStore((s) => s.setItemDuration)
-  // 取り込み中は追加のたびに尺が割り直されるので、編集を受け付けない
-  const importing = useAppStore((s) => s.ui.importing)
 
   if (items.length === 0) {
     return <p className="text-sm text-stone-600">写真を追加すると、ここに並びます。</p>
@@ -37,14 +35,15 @@ export function MediaList() {
                 {index + 1}. {item.fileName}
               </p>
               <label className="flex items-center gap-2 text-xs">
+                {/* step は 1 フレーム。3（0.1 秒）にすると均等割りの値が格子に乗らず、つまみと表示がずれる */}
                 <input
                   className="flex-1"
                   type="range"
                   min={MIN_ITEM_FRAMES}
                   max={maxFrames}
-                  step={3}
+                  step={1}
                   value={item.durationFrames}
-                  disabled={items.length === 1 || importing}
+                  disabled={items.length === 1}
                   onChange={(e) => setItemDuration(item.itemId, Number(e.target.value))}
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -56,19 +55,15 @@ export function MediaList() {
             <div className="flex flex-col gap-1">
               <SmallButton
                 label="▲"
-                disabled={index === 0 || importing}
+                disabled={index === 0}
                 onClick={() => moveItem(item.itemId, index - 1)}
               />
               <SmallButton
                 label="▼"
-                disabled={index === items.length - 1 || importing}
+                disabled={index === items.length - 1}
                 onClick={() => moveItem(item.itemId, index + 1)}
               />
-              <SmallButton
-                label="削除"
-                disabled={importing}
-                onClick={() => removeItem(item.itemId)}
-              />
+              <SmallButton label="削除" onClick={() => removeItem(item.itemId)} />
             </div>
           </li>
         )

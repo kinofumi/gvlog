@@ -9,7 +9,8 @@ export function frameAtElapsed(
   fps: number,
   totalFrames: number,
 ): { frame: number; finished: boolean } {
-  const frame = startFrame + Math.floor((elapsedMs * fps) / 1000)
+  // rAF が渡す時刻は開始時刻より少し前のことがあるので、負の経過時間は 0 として扱う
+  const frame = startFrame + Math.floor((Math.max(0, elapsedMs) * fps) / 1000)
   if (frame >= totalFrames - 1) return { frame: totalFrames - 1, finished: true }
   return { frame, finished: false }
 }

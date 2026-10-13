@@ -18,6 +18,10 @@ describe('frameAtElapsed（再生開始からの経過時間 → フレーム番
     expect(frameAtElapsed(290, 1000, 30, 300)).toEqual({ frame: 299, finished: true })
   })
 
+  it('経過時間が負（rAF の時刻が開始時刻より前）でも開始フレームから戻らない', () => {
+    expect(frameAtElapsed(120, -3, 30, 300)).toEqual({ frame: 120, finished: false })
+  })
+
   it('最後のフレームの手前は finished ではない', () => {
     expect(frameAtElapsed(0, 9966, 30, 300)).toEqual({ frame: 298, finished: false })
   })

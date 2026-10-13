@@ -21,6 +21,8 @@ export type AppState = {
 
   setMeta(meta: { memberName: string; spot: string }): void
   addPhoto(itemId: string, info: actions.PhotoInfo, image: LoadedImage): void
+  /** まとめて追加（均等割りは 1 回）。入らなかった写真の画像は閉じる */
+  addPhotos(photos: { itemId: string; info: actions.PhotoInfo; image: LoadedImage }[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void
   setItemDuration(itemId: string, frames: number): void
@@ -44,14 +46,20 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
-  addPhoto: (itemId, info, image) => {
-    const project = actions.addPhoto(get().project, itemId, info)
-    if (project === get().project) {
-      // 上限で追加できなかった。受け取った画像は使わないので閉じる
-      image.image.close()
-      return
+  addPhoto: (itemId, info, image) => get().addPhotos([{ itemId, info, image }]),
+
+  addPhotos: (photos) => {
+    const before = get().project
+    const project = actions.addPhotos(before, photos)
+    const images = { ...get().images }
+    for (const { itemId, image } of photos) {
+      const isNew = project.items.some((i) => i.itemId === itemId) && !(itemId in images)
+      // 入った写真の画像は store が持つ。入らなかった（上限・重複）画像は使わないので閉じる
+      if (isNew) images[itemId] = image
+      else image.image.close()
     }
-    set((s) => ({ project, images: { ...s.images, [itemId]: image } }))
+    if (project === before) return
+    set({ project, images })
   },
 
   removeItem: (itemId) => {
@@ -63,7 +71,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({
       project,
       images,
-      ui: { ...s.ui, selectedItemId: s.ui.selectedItemId === itemId ? null : s.ui.selectedItemId },
+      ui: {
+        ...s.ui,
+        selectedItemId: s.ui.selectedItemId === itemId ? null : s.ui.selectedItemId,
+        // 素材が無くなったら再生も止める（止めるボタンが押せなくなるのを防ぐ）
+        isPlaying: project.items.length === 0 ? false : s.ui.isPlaying,
+      },
     }))
   },
 
@@ -82,10 +95,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   seek: (frame) => {
     // 数でない値（空の入力など）は無視し、整数フレームに丸めて範囲に収める
     if (!Number.isFinite(frame)) return
+    const next = Math.max(0, Math.min(Math.floor(frame), get().project.preset.totalFrames - 1))
+    // 同じフレームなら通知しない（rAF は表示フレームより高い頻度で呼ばれる）
+    if (next === get().ui.playheadFrame) return
     set((s) => ({
       ui: {
         ...s.ui,
-        playheadFrame: Math.max(0, Math.min(Math.floor(frame), s.project.preset.totalFrames - 1)),
+        playheadFrame: next,
       },
     }))
   },

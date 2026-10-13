@@ -3,7 +3,6 @@ import type {
   GroupPreset,
   KenBurns,
   MediaItem,
-  PhotoItem,
   Project,
   Transition,
 } from '../model/types'
@@ -48,23 +47,38 @@ export function setMeta(project: Project, meta: { memberName: string; spot: stri
 }
 
 /**
- * 写真を末尾に追加する。尺は全素材で均等に割り直す。
+ * 写真を 1 枚末尾に追加する。尺は全素材で均等に割り直す。
  * v1 の割り切り: 追加・削除のたびに手動調整した尺は失われる（plan §2.2）。
  * 「写真を全部入れてから尺を調整する」流れを想定している。
  */
 export function addPhoto(project: Project, itemId: string, info: PhotoInfo): Project {
-  if (project.items.length >= maxItems(project.preset.totalFrames)) return project
-  // 同じ ID が既にあれば拒否する（素材が二重になり、画像との対応が壊れるため）
-  if (indexOf(project, itemId) >= 0) return project
-  const photo: PhotoItem = {
-    itemId,
-    kind: 'photo',
-    ...info,
-    durationFrames: 0,
-    kenBurns: kenBurnsPreset('none'),
-    transitionOut: { type: 'cut', durationFrames: 0 },
+  return addPhotos(project, [{ itemId, info }])
+}
+
+/**
+ * 写真を複数まとめて末尾に追加する。均等割りは 1 回だけ行う（1 枚ずつ addPhoto を呼ぶと毎回割り直す）。
+ * 上限を超える分と重複 ID は入れない。1 枚も入らなければ元のまま。
+ */
+export function addPhotos(
+  project: Project,
+  photos: { itemId: string; info: PhotoInfo }[],
+): Project {
+  const limit = maxItems(project.preset.totalFrames)
+  const items: MediaItem[] = [...project.items]
+  for (const { itemId, info } of photos) {
+    if (items.length >= limit) break
+    if (items.some((i) => i.itemId === itemId)) continue
+    items.push({
+      itemId,
+      kind: 'photo',
+      ...info,
+      durationFrames: 0,
+      kenBurns: kenBurnsPreset('none'),
+      transitionOut: { type: 'cut', durationFrames: 0 },
+    })
   }
-  return withItems(project, resplit([...project.items, photo], project.preset.totalFrames))
+  if (items.length === project.items.length) return project
+  return withItems(project, resplit(items, project.preset.totalFrames))
 }
 
 /** 素材を外す。残りで均等に割り直す */
