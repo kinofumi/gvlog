@@ -1,8 +1,11 @@
+import { useMemo } from 'react'
 import type { KenBurns } from '../model/types'
 import { useAppStore } from '../state/store'
 import { clampTransition } from '../timeline/clamp'
+import { compileTimeline } from '../timeline/compile'
 import { CaptionEditor } from './CaptionEditor'
 import { Chip, ChipGroup } from './Chip'
+import { TrimEditor } from './TrimEditor'
 
 const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
   { id: 'none', label: '動かない' },
@@ -15,14 +18,17 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
 /** クロスフェードを選んだときの最初の長さ（0.5 秒） */
 const DEFAULT_CROSSFADE_FRAMES = 15
 
-/** 選択中の素材の編集: Ken Burns、次へのつなぎ、テロップ */
+/** 選択中の素材の編集: Ken Burns（写真）/ 開始位置（動画）、次へのつなぎ、テロップ */
 export function ItemEditor() {
   const items = useAppStore((s) => s.project.items)
   const fps = useAppStore((s) => s.project.preset.fps)
   const selectedItemId = useAppStore((s) => s.ui.selectedItemId)
   const setKenBurns = useAppStore((s) => s.setKenBurns)
+  const setTrimStart = useAppStore((s) => s.setTrimStart)
   const setTransition = useAppStore((s) => s.setTransition)
   const setCaption = useAppStore((s) => s.setCaption)
+  // 動画の開始位置の上限は「見える長さ」（トランジション込み）で決まる
+  const compiled = useMemo(() => compileTimeline(items), [items])
 
   const index = items.findIndex((i) => i.itemId === selectedItemId)
   const item = items[index]
@@ -55,6 +61,15 @@ export function ItemEditor() {
             onChange={(id) => setKenBurns(item.itemId, id)}
           />
         </div>
+      )}
+
+      {item.kind === 'video' && (
+        <TrimEditor
+          item={item}
+          visibleLength={compiled[index].visibleEnd - compiled[index].visibleStart}
+          fps={fps}
+          onChange={(frames) => setTrimStart(item.itemId, frames)}
+        />
       )}
 
       <div className="space-y-1">

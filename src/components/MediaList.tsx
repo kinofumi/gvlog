@@ -16,7 +16,7 @@ export function MediaList() {
   const exporting = useAppStore((s) => s.ui.exporting)
 
   if (items.length === 0) {
-    return <p className="text-sm text-stone-600">写真を追加すると、ここに並びます。</p>
+    return <p className="text-sm text-stone-600">写真や動画を追加すると、ここに並びます。</p>
   }
   // 1 つの素材が取れる最大の尺（他が全員最小尺のとき）
   const maxFrames = preset.totalFrames - MIN_ITEM_FRAMES * (items.length - 1)
@@ -34,7 +34,8 @@ export function MediaList() {
             <Thumbnail source={images[item.itemId]} />
             <div className="min-w-0 flex-1 space-y-1">
               <p className="truncate text-sm">
-                {index + 1}. {item.fileName}
+                {index + 1}. {item.kind === 'video' && '🎬 '}
+                {item.fileName}
               </p>
               <label className="flex items-center gap-2 text-xs">
                 {/* step は 1 フレーム。3（0.1 秒）にすると均等割りの値が格子に乗らず、つまみと表示がずれる */}
