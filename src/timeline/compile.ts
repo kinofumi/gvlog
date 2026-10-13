@@ -2,32 +2,6 @@ import type { TimelineItem, Transition } from '../model/types'
 import { MIN_CAPTION_FRAMES, clampTransition } from './clamp'
 import { checkDurations } from './durations'
 
-/** 素材がタイムライン上で占める区間。start は含み、end は含まない */
-export type Segment = {
-  itemId: string
-  start: number
-  end: number
-}
-
-/** 素材を順に並べて区間を計算する。トランジション無し（cut のみ）の単純版。M0 の書き出しで使う */
-export function compileSegments(items: TimelineItem[]): Segment[] {
-  const segments: Segment[] = []
-  let cursor = 0
-  for (const item of items) {
-    segments.push({ itemId: item.itemId, start: cursor, end: cursor + item.durationFrames })
-    cursor += item.durationFrames
-  }
-  return segments
-}
-
-/** そのフレームで見える区間を返す。無ければ null */
-export function segmentAt(segments: Segment[], frame: number): Segment | null {
-  for (const segment of segments) {
-    if (frame >= segment.start && frame < segment.end) return segment
-  }
-  return null
-}
-
 /** 次の素材へのトランジション区間。start は含み、end は含まない。前後の素材が同時に見える */
 export type TransitionWindow = {
   type: Transition['type']
