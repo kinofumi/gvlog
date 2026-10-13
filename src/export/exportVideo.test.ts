@@ -2,7 +2,7 @@ import { createCanvas } from '@napi-rs/canvas'
 import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_PRESET } from '../model/defaults'
 import type { ProvidedImage } from '../render/renderFrame'
-import { addPhotos, createProject } from '../state/projectActions'
+import { addItems, createProject, type PhotoInfo } from '../state/projectActions'
 import type { FrameEncoder } from './encoder'
 import { compileTimeline } from '../timeline/compile'
 import { ExportCancelled, exportFrames } from './exportVideo'
@@ -10,8 +10,15 @@ import type { ExportFrameProvider } from './frameProvider'
 
 // 30 フレーム（1 秒）の短いプリセットでループを確かめる
 const preset = { ...DEFAULT_PRESET, totalFrames: 30 }
-const info = { blobKey: 'b', thumbKey: 't', fileName: 'a.jpg', width: 200, height: 100 }
-const project = addPhotos(createProject(preset, { memberName: '', spot: '' }), [
+const info: PhotoInfo = {
+  kind: 'photo',
+  blobKey: 'b',
+  thumbKey: 't',
+  fileName: 'a.jpg',
+  width: 200,
+  height: 100,
+}
+const project = addItems(createProject(preset, { memberName: '', spot: '' }), [
   { itemId: 'p1', info },
   { itemId: 'p2', info },
 ])

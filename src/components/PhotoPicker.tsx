@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { importImage } from '../media/importImage'
 import { MediaError } from '../media/errors'
 import { newId } from '../model/ids'
-import { useAppStore, type LoadedImage } from '../state/store'
+import { useAppStore, type NewEntry } from '../state/store'
 import { maxItems } from '../timeline/durations'
 
 /** iPhone / iPad かどうか（案内文の出し分けにだけ使う）。iPad の Safari は UA が Macintosh なので、タッチの有無で見分ける */
@@ -17,7 +17,7 @@ const IS_IOS =
 export function PhotoPicker() {
   const preset = useAppStore((s) => s.project.preset)
   const count = useAppStore((s) => s.project.items.length)
-  const addPhotos = useAppStore((s) => s.addPhotos)
+  const addItems = useAppStore((s) => s.addItems)
   const importing = useAppStore((s) => s.ui.importing)
   const exporting = useAppStore((s) => s.ui.exporting)
   const setImporting = useAppStore((s) => s.setImporting)
@@ -35,11 +35,7 @@ export function PhotoPicker() {
     if (picked.length > room)
       setMessage(`写真は ${limit} 枚までです。先頭の ${room} 枚だけ追加します。`)
 
-    const photos: {
-      itemId: string
-      info: Parameters<typeof addPhotos>[0][number]['info']
-      image: LoadedImage
-    }[] = []
+    const photos: NewEntry[] = []
     const targets = picked.slice(0, Math.max(0, room))
     setTiming([])
     try {
@@ -61,6 +57,7 @@ export function PhotoPicker() {
             itemId,
             // blobKey / thumbKey は M4（IndexedDB 保存）で本物の鍵になる。今は素材 ID で埋める
             info: {
+              kind: 'photo',
               blobKey: itemId,
               thumbKey: itemId,
               fileName: file.name,
@@ -75,7 +72,7 @@ export function PhotoPicker() {
           )
         }
       }
-      addPhotos(photos)
+      addItems(photos)
     } finally {
       setProgress('')
       setImporting(false)

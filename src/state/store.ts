@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { ImportedVideo } from '../media/importVideo'
 import { DEFAULT_PRESET } from '../model/defaults'
 import type { Caption, KenBurns, Project, Transition } from '../model/types'
 import type { ProvidedImage } from '../render/renderFrame'
@@ -7,10 +8,20 @@ import * as actions from './projectActions'
 /** 取り込んだ写真の実体。保存はしない（M4 で IndexedDB の Blob から復元する）。ImageBitmap は store が閉じる */
 export type LoadedImage = ProvidedImage & { image: ImageBitmap }
 
+/** 追加する素材 1 つ分。動画は video も渡す（image はポスター = 先頭フレームの画像） */
+export type NewEntry = {
+  itemId: string
+  info: actions.MediaInfo
+  image: LoadedImage
+  video?: ImportedVideo
+}
+
 export type AppState = {
   project: Project
-  /** itemId → 描画に使う画像 */
+  /** itemId → 描画に使う画像。動画はポスター（サムネイルと、<video> が用意できるまでの代わり） */
   images: Record<string, LoadedImage>
+  /** itemId → 取り込んだ動画（メモリ上のデータとデコード用の Input）。store が解放する */
+  videos: Record<string, ImportedVideo>
   ui: {
     selectedItemId: string | null
     playheadFrame: number
@@ -24,15 +35,15 @@ export type AppState = {
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
-  addPhoto(itemId: string, info: actions.PhotoInfo, image: LoadedImage): void
-  /** まとめて追加（均等割りは 1 回）。入らなかった写真の画像は閉じる */
-  addPhotos(photos: { itemId: string; info: actions.PhotoInfo; image: LoadedImage }[]): void
+  /** まとめて追加（均等割りは 1 回）。入らなかった素材の画像と動画は解放する */
+  addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void
   setItemDuration(itemId: string, frames: number): void
   setKenBurns(itemId: string, presetId: KenBurns['presetId']): void
   setCaption(itemId: string, caption: Caption | undefined): void
   setTransition(itemId: string, transition: Transition): void
+  setTrimStart(itemId: string, trimStartFrames: number): void
   select(itemId: string | null): void
   seek(frame: number): void
   setPlaying(isPlaying: boolean): void
@@ -48,6 +59,7 @@ export type AppState = {
 export const useAppStore = create<AppState>((set, get) => ({
   project: actions.createProject(DEFAULT_PRESET, { memberName: '', spot: '' }),
   images: {},
+  videos: {},
   ui: {
     selectedItemId: null,
     playheadFrame: 0,
@@ -59,33 +71,41 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
-  addPhoto: (itemId, info, image) => get().addPhotos([{ itemId, info, image }]),
-
-  addPhotos: (photos) => {
+  addItems: (entries) => {
     const before = get().project
-    const project = actions.addPhotos(before, photos)
+    const project = actions.addItems(before, entries)
     const images = { ...get().images }
-    for (const { itemId, image } of photos) {
+    const videos = { ...get().videos }
+    for (const { itemId, image, video } of entries) {
       const isNew = project.items.some((i) => i.itemId === itemId) && !(itemId in images)
-      // 入った写真の画像は store が持つ。入らなかった（上限・重複）画像は使わないので閉じる
-      if (isNew) images[itemId] = image
-      else image.image.close()
+      // 入った素材の画像と動画は store が持つ。入らなかった（上限・重複）分は使わないので解放する
+      if (isNew) {
+        images[itemId] = image
+        if (video) videos[itemId] = video
+      } else {
+        image.image.close()
+        video?.input.dispose()
+      }
     }
     if (project === before) return
-    set({ project, images })
+    set({ project, images, videos })
   },
 
   removeItem: (itemId) => {
-    // 書き出し中は画像を使っているので閉じない（UI でも止めるが、store でも守る）
+    // 書き出し中は画像と動画を使っているので解放しない（UI でも止めるが、store でも守る）
     if (get().ui.exporting) return
     const project = actions.removeItem(get().project, itemId)
     if (project === get().project) return
     const images = { ...get().images }
     images[itemId]?.image.close()
     delete images[itemId]
+    const videos = { ...get().videos }
+    videos[itemId]?.input.dispose()
+    delete videos[itemId]
     set((s) => ({
       project,
       images,
+      videos,
       ui: {
         ...s.ui,
         selectedItemId: s.ui.selectedItemId === itemId ? null : s.ui.selectedItemId,
@@ -105,6 +125,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ project: actions.setCaption(s.project, itemId, caption) })),
   setTransition: (itemId, transition) =>
     set((s) => ({ project: actions.setTransition(s.project, itemId, transition) })),
+  setTrimStart: (itemId, trimStartFrames) =>
+    set((s) => ({ project: actions.setTrimStart(s.project, itemId, trimStartFrames) })),
 
   select: (selectedItemId) => set((s) => ({ ui: { ...s.ui, selectedItemId } })),
   seek: (frame) => {

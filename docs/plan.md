@@ -68,13 +68,13 @@ gvlog/
     components/                     # Slider, Chips, BottomSheet, Stepper, PreviewCanvas, ProgressBar
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
-    **timeline/**                   # compile.ts, durations.ts, clamp.ts  ← 純粋関数・Vitest 対象
+    **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
     **render/**                     # renderFrame.ts, drawCaption.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）,
                                     # coverRect.ts, drawCover.ts（M0 の書き出し用、M3 で廃止）, clamp01.ts, ctx.ts
                                     # ← DOM 非依存（Canvas の型のみ）
     **media/**                      # importImage.ts, importVideo.ts, limits.ts, errors.ts
     **preview/**                    # PreviewPlayer.ts（rAF クロック + <video> プール）
-    **export/**                     # exportVideo.ts（main thread）, frameSource.ts, codec.ts, naming.ts, share.ts
+    **export/**                     # exportVideo.ts（main thread）, frameSource.ts, videoSources.ts, codec.ts, naming.ts, share.ts
     **storage/**                    # db.ts（idb-keyval）, projectRepo.ts
     **state/**                      # store.ts（zustand、フラットな 1 ストア）, persistence.ts
     capability/detect.ts            # 端末能力の表示（補助。成立の証明ではない）
