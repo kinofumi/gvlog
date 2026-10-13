@@ -13,6 +13,8 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
   { id: 'zoomOut', label: 'ズームアウト' },
   { id: 'panLR', label: '左→右' },
   { id: 'panRL', label: '右→左' },
+  { id: 'panTB', label: '上→下' },
+  { id: 'panBT', label: '下→上' },
 ]
 
 /** クロスフェードを選んだときの最初の長さ（0.5 秒） */

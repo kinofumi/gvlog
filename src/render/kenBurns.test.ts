@@ -72,6 +72,24 @@ describe('kenBurnsPreset（チップで選ぶ既定の動き）', () => {
     expect(lr.from.zoom).toBe(rl.from.zoom)
   })
 
+  it('panTB は上から下へ、panBT はその逆（横位置と zoom は左右のパンと同じ）', () => {
+    const tb = kenBurnsPreset('panTB')
+    const bt = kenBurnsPreset('panBT')
+    expect(tb.from.cy).toBeLessThan(tb.to.cy)
+    expect(bt.from.cy).toBeGreaterThan(bt.to.cy)
+    expect(tb.from.cx).toBe(0.5)
+    expect(tb.to.cx).toBe(0.5)
+    expect(tb.from.zoom).toBe(kenBurnsPreset('panLR').from.zoom)
+    // 縦の振れ幅も余白ちょうど。出力と同じ縦横比の写真で、上端から下端まで止まらずに動く
+    const w = 1080
+    const h = 1920
+    const start = kenBurnsRect(tb, 0, w, h, w, h)
+    const end = kenBurnsRect(tb, 1, w, h, w, h)
+    expect(start.sy).toBeCloseTo(0)
+    expect(end.sy).toBeCloseTo(h - end.sh)
+    expect(kenBurnsRect(tb, 0.5, w, h, w, h).sy).toBeCloseTo((h - end.sh) / 2)
+  })
+
   it('パンの振れ幅は zoom で空く余白ちょうど（どんな縦横比の写真でも端で止まらず一定の速さで動く）', () => {
     const lr = kenBurnsPreset('panLR')
     const margin = (1 - 1 / lr.from.zoom) / 2

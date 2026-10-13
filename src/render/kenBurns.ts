@@ -55,6 +55,17 @@ const PRESETS: Record<KenBurns['presetId'], KenBurns> = {
     from: { cx: 0.5 + PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
     to: { cx: 0.5 - PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
   },
+  // 上下のパン。振れ幅は左右と同じ（zoom で空く余白は縦横とも同じ比率）
+  panTB: {
+    presetId: 'panTB',
+    from: { cx: 0.5, cy: 0.5 - PAN_MARGIN, zoom: PAN_ZOOM },
+    to: { cx: 0.5, cy: 0.5 + PAN_MARGIN, zoom: PAN_ZOOM },
+  },
+  panBT: {
+    presetId: 'panBT',
+    from: { cx: 0.5, cy: 0.5 + PAN_MARGIN, zoom: PAN_ZOOM },
+    to: { cx: 0.5, cy: 0.5 - PAN_MARGIN, zoom: PAN_ZOOM },
+  },
 }
 
 /** presetId に対応する動きを返す。未知の値（古い保存データなど）は none として扱う */
