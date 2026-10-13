@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type RefObject } from 'react'
+import { useEffect, useMemo, useState, type RefObject } from 'react'
 import { renderFrame, type ProvidedImage, type RenderItem } from '../render/renderFrame'
 import { compileTimeline } from '../timeline/compile'
 import { useAppStore } from '../state/store'
@@ -20,6 +20,8 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
   const setPlaying = useAppStore((s) => s.setPlaying)
 
   const compiled = useMemo(() => compileTimeline(project.items), [project.items])
+  // キャンバスの内部解像度。変わったら再描画する（サイズ変更で描画内容が消えるため）
+  const [size, setSize] = useState({ width: 0, height: 0 })
 
   // キャンバスの内部解像度を、表示幅に合わせる（縦横比はプリセット）
   useEffect(() => {
@@ -33,6 +35,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width
         canvas.height = height
+        setSize({ width, height })
       }
     }
     resize()
@@ -47,7 +50,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
     if (!ctx) return
     const provider = { get: (itemId: string): ProvidedImage => images[itemId] ?? BLANK }
     renderFrame(compiled, project.items as RenderItem[], playheadFrame, ctx, provider)
-  }, [canvasRef, compiled, project.items, images, playheadFrame])
+  }, [canvasRef, compiled, project.items, images, playheadFrame, size])
 
   // 再生: 開始時刻からの経過時間でフレームを決める。末尾で止まる
   useEffect(() => {

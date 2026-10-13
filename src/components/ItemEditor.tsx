@@ -27,6 +27,7 @@ export function ItemEditor() {
   const setKenBurns = useAppStore((s) => s.setKenBurns)
   const setTransition = useAppStore((s) => s.setTransition)
   const setCaption = useAppStore((s) => s.setCaption)
+  const importing = useAppStore((s) => s.ui.importing)
 
   const index = items.findIndex((i) => i.itemId === selectedItemId)
   const item = items[index]
@@ -34,6 +35,10 @@ export function ItemEditor() {
     return (
       <p className="text-sm text-stone-600">素材を選ぶと、ここで動きとテロップを編集できます。</p>
     )
+
+  if (importing) {
+    return <p className="text-sm text-stone-600">写真の取り込みが終わるまでお待ちください。</p>
+  }
 
   const following = items[index + 1]
   const transition: Transition = item.transitionOut ?? { type: 'cut', durationFrames: 0 }

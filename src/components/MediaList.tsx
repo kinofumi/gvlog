@@ -12,6 +12,8 @@ export function MediaList() {
   const moveItem = useAppStore((s) => s.moveItem)
   const removeItem = useAppStore((s) => s.removeItem)
   const setItemDuration = useAppStore((s) => s.setItemDuration)
+  // 取り込み中は追加のたびに尺が割り直されるので、編集を受け付けない
+  const importing = useAppStore((s) => s.ui.importing)
 
   if (items.length === 0) {
     return <p className="text-sm text-stone-600">写真を追加すると、ここに並びます。</p>
@@ -42,7 +44,7 @@ export function MediaList() {
                   max={maxFrames}
                   step={3}
                   value={item.durationFrames}
-                  disabled={items.length === 1}
+                  disabled={items.length === 1 || importing}
                   onChange={(e) => setItemDuration(item.itemId, Number(e.target.value))}
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -54,15 +56,19 @@ export function MediaList() {
             <div className="flex flex-col gap-1">
               <SmallButton
                 label="▲"
-                disabled={index === 0}
+                disabled={index === 0 || importing}
                 onClick={() => moveItem(item.itemId, index - 1)}
               />
               <SmallButton
                 label="▼"
-                disabled={index === items.length - 1}
+                disabled={index === items.length - 1 || importing}
                 onClick={() => moveItem(item.itemId, index + 1)}
               />
-              <SmallButton label="削除" onClick={() => removeItem(item.itemId)} />
+              <SmallButton
+                label="削除"
+                disabled={importing}
+                onClick={() => removeItem(item.itemId)}
+              />
             </div>
           </li>
         )
@@ -82,7 +88,7 @@ function SmallButton({
 }) {
   return (
     <button
-      className="min-w-11 rounded border border-stone-400 px-2 py-1 text-xs disabled:text-stone-300"
+      className="min-h-11 min-w-11 rounded border border-stone-400 px-2 text-xs disabled:text-stone-300"
       disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()

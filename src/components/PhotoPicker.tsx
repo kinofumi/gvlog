@@ -10,7 +10,8 @@ export function PhotoPicker() {
   const preset = useAppStore((s) => s.project.preset)
   const count = useAppStore((s) => s.project.items.length)
   const addPhoto = useAppStore((s) => s.addPhoto)
-  const [importing, setImporting] = useState(false)
+  const importing = useAppStore((s) => s.ui.importing)
+  const setImporting = useAppStore((s) => s.setImporting)
   const [message, setMessage] = useState('')
 
   async function onPick(files: FileList | null) {

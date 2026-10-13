@@ -15,6 +15,8 @@ export type AppState = {
     selectedItemId: string | null
     playheadFrame: number
     isPlaying: boolean
+    /** 写真の取り込み中。追加のたびに尺を割り直すので、その間は編集を止める */
+    importing: boolean
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
@@ -28,6 +30,7 @@ export type AppState = {
   select(itemId: string | null): void
   seek(frame: number): void
   setPlaying(isPlaying: boolean): void
+  setImporting(importing: boolean): void
 }
 
 /**
@@ -37,7 +40,7 @@ export type AppState = {
 export const useAppStore = create<AppState>((set, get) => ({
   project: actions.createProject(DEFAULT_PRESET, { memberName: '', spot: '' }),
   images: {},
-  ui: { selectedItemId: null, playheadFrame: 0, isPlaying: false },
+  ui: { selectedItemId: null, playheadFrame: 0, isPlaying: false, importing: false },
 
   setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
@@ -87,4 +90,5 @@ export const useAppStore = create<AppState>((set, get) => ({
     }))
   },
   setPlaying: (isPlaying) => set((s) => ({ ui: { ...s.ui, isPlaying } })),
+  setImporting: (importing) => set((s) => ({ ui: { ...s.ui, importing } })),
 }))
