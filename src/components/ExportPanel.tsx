@@ -7,7 +7,8 @@ import { Button } from './ui/Button'
 
 type Phase =
   | { kind: 'idle' }
-  | { kind: 'exporting'; progress: ExportProgress }
+  /** progress が null の間は、使えるエンコーダの確認中（初回は数秒かかる） */
+  | { kind: 'exporting'; progress: ExportProgress | null }
   | { kind: 'done'; file: File; codecString: string; elapsedMs: number }
   | { kind: 'error'; message: string }
 
@@ -17,13 +18,15 @@ export function ExportPanel() {
   const images = useAppStore((s) => s.images)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
+  const probing = useAppStore((s) => s.ui.probing)
   const setExporting = useAppStore((s) => s.setExporting)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const [shareMessage, setShareMessage] = useState('')
   const abortRef = useRef<AbortController | null>(null)
 
   const exporting = phase.kind === 'exporting'
-  const canExport = project.items.length > 0 && !exporting && !importing
+  // 取り込み中（尺が変わる）と診断中（エンコーダが使用中）は始めない
+  const canExport = project.items.length > 0 && !exporting && !importing && !probing
 
   // 画面を離れたら書き出しを中断する（続けても結果を受け取る相手がいない）
   useEffect(() => () => abortRef.current?.abort(), [])
@@ -31,10 +34,19 @@ export function ExportPanel() {
   async function onExport() {
     const controller = new AbortController()
     abortRef.current = controller
+    // 画面が隠れたら（画面ロック、アプリ切り替え）中断する。main thread の書き出しは裏では進まない（plan §4.2）
+    let hidden = false
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hidden = true
+        controller.abort()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
     setPlaying(false)
     setExporting(true)
     setShareMessage('')
-    setPhase({ kind: 'exporting', progress: { frame: 0, totalFrames: project.preset.totalFrames } })
+    setPhase({ kind: 'exporting', progress: null })
     try {
       // 動画素材のデコーダは M3(B) で渡す。今は写真だけ
       const result = await exportProject(
@@ -52,10 +64,20 @@ export function ExportPanel() {
       }
       setPhase({ kind: 'done', file, codecString: result.codecString, elapsedMs: result.elapsedMs })
     } catch (error) {
-      if (error instanceof ExportCancelled) setPhase({ kind: 'idle' })
-      else
+      if (error instanceof ExportCancelled) {
+        setPhase(
+          hidden
+            ? {
+                kind: 'error',
+                message: '画面が隠れたため中断しました。もう一度書き出してください。',
+              }
+            : { kind: 'idle' },
+        )
+      } else {
         setPhase({ kind: 'error', message: error instanceof Error ? error.message : String(error) })
+      }
     } finally {
+      document.removeEventListener('visibilitychange', onVisibility)
       abortRef.current = null
       setExporting(false)
     }
@@ -79,14 +101,20 @@ export function ExportPanel() {
 
       {phase.kind === 'exporting' && (
         <div className="space-y-2">
-          <progress
-            className="w-full"
-            value={phase.progress.frame}
-            max={phase.progress.totalFrames}
-          />
-          <p className="text-sm">
-            {phase.progress.frame} / {phase.progress.totalFrames} フレーム
-          </p>
+          {phase.progress ? (
+            <>
+              <progress
+                className="w-full"
+                value={phase.progress.frame}
+                max={phase.progress.totalFrames}
+              />
+              <p className="text-sm">
+                {phase.progress.frame} / {phase.progress.totalFrames} フレーム
+              </p>
+            </>
+          ) : (
+            <p className="text-sm">この端末で使えるエンコーダを確認中…</p>
+          )}
           <Button variant="secondary" onClick={() => abortRef.current?.abort()}>
             キャンセル
           </Button>

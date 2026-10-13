@@ -4,6 +4,7 @@ import { DEFAULT_PRESET } from '../model/defaults'
 import type { ProvidedImage } from '../render/renderFrame'
 import { addPhotos, createProject } from '../state/projectActions'
 import type { FrameEncoder } from './encoder'
+import { compileTimeline } from '../timeline/compile'
 import { ExportCancelled, exportFrames } from './exportVideo'
 import type { ExportFrameProvider } from './frameProvider'
 
@@ -15,6 +16,7 @@ const project = addPhotos(createProject(preset, { memberName: '', spot: '' }), [
   { itemId: 'p2', info },
 ])
 const signalOf = () => new AbortController().signal
+const compiled = compileTimeline(project.items)
 
 function solid(color: string): ProvidedImage {
   const c = createCanvas(200, 100)
@@ -69,7 +71,12 @@ describe('exportFrames（書き出しのループ）', () => {
   it('全フレームを順に用意して描き、エンコードし、finalize の結果を返す', async () => {
     const provider = fakeProvider()
     const encoder = fakeEncoder()
-    const blob = await exportFrames(project, { ctx: ctx(), provider, encoder }, vi.fn(), signalOf())
+    const blob = await exportFrames(
+      project,
+      { compiled, ctx: ctx(), provider, encoder },
+      vi.fn(),
+      signalOf(),
+    )
     expect(blob.type).toBe('video/mp4')
     expect(provider.prepared).toEqual(Array.from({ length: 30 }, (_, i) => i))
     expect(encoder.added).toEqual(Array.from({ length: 30 }, (_, i) => i))
@@ -81,7 +88,7 @@ describe('exportFrames（書き出しのループ）', () => {
     const progress = vi.fn()
     await exportFrames(
       project,
-      { ctx: ctx(), provider: fakeProvider(), encoder: fakeEncoder() },
+      { compiled, ctx: ctx(), provider: fakeProvider(), encoder: fakeEncoder() },
       progress,
       signalOf(),
     )
@@ -113,7 +120,12 @@ describe('exportFrames（書き出しのループ）', () => {
       events.push(`added ${frame}`)
     }
     const two = { ...project, preset: { ...preset, totalFrames: 2 } }
-    await exportFrames(two, { ctx: context, provider, encoder }, () => {}, signalOf())
+    await exportFrames(
+      two,
+      { compiled: compileTimeline(two.items), ctx: context, provider, encoder },
+      () => {},
+      signalOf(),
+    )
     expect(events).toEqual([
       'prepare 0',
       'add 0 red',
@@ -134,7 +146,12 @@ describe('exportFrames（書き出しのループ）', () => {
       await original(frame)
     }
     await expect(
-      exportFrames(project, { ctx: ctx(), provider, encoder }, () => {}, controller.signal),
+      exportFrames(
+        project,
+        { compiled, ctx: ctx(), provider, encoder },
+        () => {},
+        controller.signal,
+      ),
     ).rejects.toBeInstanceOf(ExportCancelled)
     expect(encoder.cancelled).toBe(true)
     expect(encoder.finalized).toBe(false)
@@ -150,7 +167,7 @@ describe('exportFrames（書き出しのループ）', () => {
     await expect(
       exportFrames(
         project,
-        { ctx: ctx(), provider: fakeProvider(), encoder },
+        { compiled, ctx: ctx(), provider: fakeProvider(), encoder },
         () => {},
         controller.signal,
       ),
@@ -169,19 +186,19 @@ describe('exportFrames（書き出しのループ）', () => {
     await expect(
       exportFrames(
         project,
-        { ctx: ctx(), provider: fakeProvider(), encoder },
+        { compiled, ctx: ctx(), provider: fakeProvider(), encoder },
         () => {},
         controller.signal,
       ),
     ).rejects.toBeInstanceOf(ExportCancelled)
   })
 
-  it('フレームの用意に失敗したら、そのフレームはエンコードせず失敗として止める（黒フレームを出さない）', async () => {
+  it('フレームの用意に失敗したら、そのフレームはエンコードせず、使った設定を含めた失敗として止める', async () => {
     const provider = fakeProvider(7)
     const encoder = fakeEncoder()
     await expect(
-      exportFrames(project, { ctx: ctx(), provider, encoder }, () => {}, signalOf()),
-    ).rejects.toThrow('デコード失敗')
+      exportFrames(project, { compiled, ctx: ctx(), provider, encoder }, () => {}, signalOf()),
+    ).rejects.toThrow('デコード失敗（avc1.42E028）')
     expect(encoder.added).toEqual([0, 1, 2, 3, 4, 5, 6])
     expect(encoder.cancelled).toBe(true)
     expect(provider.disposed).toBe(true)
@@ -193,25 +210,45 @@ describe('exportFrames（書き出しのループ）', () => {
       throw new Error('解放できない')
     }
     await expect(
-      exportFrames(project, { ctx: ctx(), provider, encoder: fakeEncoder() }, () => {}, signalOf()),
+      exportFrames(
+        project,
+        { compiled, ctx: ctx(), provider, encoder: fakeEncoder() },
+        () => {},
+        signalOf(),
+      ),
     ).rejects.toThrow(/デコード失敗.*後始末にも失敗: 解放できない/)
   })
 
-  it('成功したのに解放に失敗したら、失敗にする', async () => {
+  it('成功したあとで解放に失敗しても、できた MP4 は捨てず、警告だけ出す', async () => {
     const provider = fakeProvider()
     provider.dispose = async () => {
       throw new Error('解放できない')
     }
-    await expect(
-      exportFrames(project, { ctx: ctx(), provider, encoder: fakeEncoder() }, () => {}, signalOf()),
-    ).rejects.toThrow('解放できない')
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const blob = await exportFrames(
+        project,
+        { compiled, ctx: ctx(), provider, encoder: fakeEncoder() },
+        () => {},
+        signalOf(),
+      )
+      expect(blob.type).toBe('video/mp4')
+      expect(warn).toHaveBeenCalledTimes(1)
+    } finally {
+      warn.mockRestore()
+    }
   })
 
   it('素材が無ければ始める前に失敗する', async () => {
     const empty = createProject(preset, { memberName: '', spot: '' })
     const encoder = fakeEncoder()
     await expect(
-      exportFrames(empty, { ctx: ctx(), provider: fakeProvider(), encoder }, () => {}, signalOf()),
+      exportFrames(
+        empty,
+        { compiled, ctx: ctx(), provider: fakeProvider(), encoder },
+        () => {},
+        signalOf(),
+      ),
     ).rejects.toThrow('素材がありません')
     expect(encoder.added).toEqual([])
   })

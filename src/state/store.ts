@@ -19,6 +19,8 @@ export type AppState = {
     importing: boolean
     /** 書き出し中。使用中の画像を閉じないよう、素材の削除や差し替えを止める */
     exporting: boolean
+    /** エンコードの診断中。エンコーダを 2 本同時に動かさないよう、書き出しを止める */
+    probing: boolean
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
@@ -36,6 +38,7 @@ export type AppState = {
   setPlaying(isPlaying: boolean): void
   setImporting(importing: boolean): void
   setExporting(exporting: boolean): void
+  setProbing(probing: boolean): void
 }
 
 /**
@@ -51,6 +54,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     isPlaying: false,
     importing: false,
     exporting: false,
+    probing: false,
   },
 
   setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
@@ -119,4 +123,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPlaying: (isPlaying) => set((s) => ({ ui: { ...s.ui, isPlaying } })),
   setImporting: (importing) => set((s) => ({ ui: { ...s.ui, importing } })),
   setExporting: (exporting) => set((s) => ({ ui: { ...s.ui, exporting } })),
+  setProbing: (probing) => set((s) => ({ ui: { ...s.ui, probing } })),
 }))
