@@ -11,7 +11,7 @@ export interface FrameEncoder {
   add(timeSec: number, durationSec: number): Promise<void>
   /** 終了して MP4 を返す */
   finalize(): Promise<Blob>
-  /** 途中でやめる。finalize 済みなら何もしない */
+  /** 途中でやめる。finalize 済みなら何もしない。解放に失敗したら投げる（呼び出し側が元の失敗と併記する） */
   cancel(): Promise<void>
   /** 実際に使われたコーデック文字列（失敗時の表示用） */
   usedCodecString(): string
@@ -24,6 +24,7 @@ export function createMp4Encoder(
   choice: EncoderChoice,
 ): FrameEncoder {
   let usedCodec = choice.fullCodecString ?? '(auto)'
+  let finalized = false
   const target = new BufferTarget()
   const output = new Output({ format: new Mp4OutputFormat(), target })
   const source = new CanvasSource(canvas, {
@@ -43,10 +44,14 @@ export function createMp4Encoder(
     add: (timeSec, durationSec) => source.add(timeSec, durationSec),
     finalize: async () => {
       await output.finalize()
+      finalized = true
       if (!target.buffer) throw new Error('書き出し結果が空でした。')
       return new Blob([target.buffer as BlobPart], { type: 'video/mp4' })
     },
-    cancel: () => output.cancel().catch(() => {}),
+    cancel: async () => {
+      if (finalized) return
+      await output.cancel()
+    },
     usedCodecString: () => usedCodec,
   }
 }

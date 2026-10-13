@@ -14,6 +14,7 @@ const project = addPhotos(createProject(preset, { memberName: '', spot: '' }), [
   { itemId: 'p1', info },
   { itemId: 'p2', info },
 ])
+const signalOf = () => new AbortController().signal
 
 function solid(color: string): ProvidedImage {
   const c = createCanvas(200, 100)
@@ -24,13 +25,12 @@ function solid(color: string): ProvidedImage {
 }
 
 function fakeProvider(failAt?: number) {
-  const prepared: number[] = []
   const provider: ExportFrameProvider & { prepared: number[]; disposed: boolean } = {
-    prepared,
+    prepared: [],
     disposed: false,
     async prepare(frame) {
       if (frame === failAt) throw new Error('デコード失敗')
-      prepared.push(frame)
+      this.prepared.push(frame)
     },
     get: () => solid('#f00'),
     async dispose() {
@@ -41,14 +41,13 @@ function fakeProvider(failAt?: number) {
 }
 
 function fakeEncoder() {
-  const added: number[] = []
   const encoder: FrameEncoder & { added: number[]; cancelled: boolean; finalized: boolean } = {
-    added,
+    added: [],
     cancelled: false,
     finalized: false,
     async start() {},
     async add(timeSec) {
-      added.push(Math.round(timeSec * preset.fps))
+      this.added.push(Math.round(timeSec * preset.fps))
     },
     async finalize() {
       this.finalized = true
@@ -70,13 +69,7 @@ describe('exportFrames（書き出しのループ）', () => {
   it('全フレームを順に用意して描き、エンコードし、finalize の結果を返す', async () => {
     const provider = fakeProvider()
     const encoder = fakeEncoder()
-    const progress = vi.fn()
-    const blob = await exportFrames(
-      project,
-      { ctx: ctx(), provider, encoder },
-      progress,
-      new AbortController().signal,
-    )
+    const blob = await exportFrames(project, { ctx: ctx(), provider, encoder }, vi.fn(), signalOf())
     expect(blob.type).toBe('video/mp4')
     expect(provider.prepared).toEqual(Array.from({ length: 30 }, (_, i) => i))
     expect(encoder.added).toEqual(Array.from({ length: 30 }, (_, i) => i))
@@ -90,9 +83,45 @@ describe('exportFrames（書き出しのループ）', () => {
       project,
       { ctx: ctx(), provider: fakeProvider(), encoder: fakeEncoder() },
       progress,
-      new AbortController().signal,
+      signalOf(),
     )
     expect(progress.mock.calls.map((c) => c[0].frame)).toEqual([0, 10, 20, 30])
+  })
+
+  it('「用意 → 描く → エンコード」の順を守り、エンコード時のキャンバスには用意した画像が描かれている', async () => {
+    const events: string[] = []
+    const c = createCanvas(90, 160)
+    const context = c.getContext('2d') as unknown as CanvasRenderingContext2D
+    const colors = ['#f00', '#0f0']
+    let n = 0
+    const provider: ExportFrameProvider = {
+      async prepare(frame) {
+        // 非同期の待ちを模す。終わる前に描かれていないことを events の順で確かめる
+        await new Promise((r) => setTimeout(r, 1))
+        events.push(`prepare ${frame}`)
+        n = frame
+      },
+      get: () => solid(colors[n % 2]),
+      async dispose() {},
+    }
+    const encoder = fakeEncoder()
+    encoder.add = async (timeSec) => {
+      const frame = Math.round(timeSec * preset.fps)
+      const [r, g] = c.getContext('2d').getImageData(45, 80, 1, 1).data
+      events.push(`add ${frame} ${r > 200 ? 'red' : g > 200 ? 'green' : '?'}`)
+      await new Promise((res) => setTimeout(res, 1))
+      events.push(`added ${frame}`)
+    }
+    const two = { ...project, preset: { ...preset, totalFrames: 2 } }
+    await exportFrames(two, { ctx: context, provider, encoder }, () => {}, signalOf())
+    expect(events).toEqual([
+      'prepare 0',
+      'add 0 red',
+      'added 0',
+      'prepare 1',
+      'add 1 green',
+      'added 1',
+    ])
   })
 
   it('キャンセルすると ExportCancelled を投げ、エンコーダを止めてデコーダを解放する', async () => {
@@ -113,43 +142,76 @@ describe('exportFrames（書き出しのループ）', () => {
   })
 
   it('最後のフレームのあとにキャンセルされても成功にしない', async () => {
-    const provider = fakeProvider()
     const encoder = fakeEncoder()
     const controller = new AbortController()
     encoder.add = async () => {
       if (encoder.added.push(0) === 30) controller.abort()
     }
     await expect(
-      exportFrames(project, { ctx: ctx(), provider, encoder }, () => {}, controller.signal),
+      exportFrames(
+        project,
+        { ctx: ctx(), provider: fakeProvider(), encoder },
+        () => {},
+        controller.signal,
+      ),
     ).rejects.toBeInstanceOf(ExportCancelled)
     expect(encoder.finalized).toBe(false)
   })
 
-  it('フレームの用意に失敗したら、使った設定を含めた失敗として止める（黒フレームを出さない）', async () => {
-    const provider = fakeProvider(7)
+  it('finalize を待っている間にキャンセルされたら、Blob があってもキャンセルにする', async () => {
     const encoder = fakeEncoder()
+    const controller = new AbortController()
+    encoder.finalize = async () => {
+      controller.abort()
+      encoder.finalized = true
+      return new Blob(['mp4'])
+    }
     await expect(
       exportFrames(
         project,
-        { ctx: ctx(), provider, encoder },
+        { ctx: ctx(), provider: fakeProvider(), encoder },
         () => {},
-        new AbortController().signal,
+        controller.signal,
       ),
-    ).rejects.toThrow('デコード失敗（avc1.42E028）')
+    ).rejects.toBeInstanceOf(ExportCancelled)
+  })
+
+  it('フレームの用意に失敗したら、そのフレームはエンコードせず失敗として止める（黒フレームを出さない）', async () => {
+    const provider = fakeProvider(7)
+    const encoder = fakeEncoder()
+    await expect(
+      exportFrames(project, { ctx: ctx(), provider, encoder }, () => {}, signalOf()),
+    ).rejects.toThrow('デコード失敗')
+    expect(encoder.added).toEqual([0, 1, 2, 3, 4, 5, 6])
     expect(encoder.cancelled).toBe(true)
     expect(provider.disposed).toBe(true)
+  })
+
+  it('後始末（デコーダの解放）に失敗しても、元の失敗を残して併記する', async () => {
+    const provider = fakeProvider(3)
+    provider.dispose = async () => {
+      throw new Error('解放できない')
+    }
+    await expect(
+      exportFrames(project, { ctx: ctx(), provider, encoder: fakeEncoder() }, () => {}, signalOf()),
+    ).rejects.toThrow(/デコード失敗.*後始末にも失敗: 解放できない/)
+  })
+
+  it('成功したのに解放に失敗したら、失敗にする', async () => {
+    const provider = fakeProvider()
+    provider.dispose = async () => {
+      throw new Error('解放できない')
+    }
+    await expect(
+      exportFrames(project, { ctx: ctx(), provider, encoder: fakeEncoder() }, () => {}, signalOf()),
+    ).rejects.toThrow('解放できない')
   })
 
   it('素材が無ければ始める前に失敗する', async () => {
     const empty = createProject(preset, { memberName: '', spot: '' })
     const encoder = fakeEncoder()
     await expect(
-      exportFrames(
-        empty,
-        { ctx: ctx(), provider: fakeProvider(), encoder },
-        () => {},
-        new AbortController().signal,
-      ),
+      exportFrames(empty, { ctx: ctx(), provider: fakeProvider(), encoder }, () => {}, signalOf()),
     ).rejects.toThrow('素材がありません')
     expect(encoder.added).toEqual([])
   })

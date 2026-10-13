@@ -65,6 +65,15 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
     expect(useAppStore.getState().ui.isPlaying).toBe(false)
   })
 
+  it('書き出し中は素材を外せない（使用中の画像を閉じないため）', () => {
+    const img = fakeImage()
+    useAppStore.getState().addPhoto('p1', info, img)
+    useAppStore.getState().setExporting(true)
+    useAppStore.getState().removeItem('p1')
+    expect(useAppStore.getState().project.items).toHaveLength(1)
+    expect(img.image.close).not.toHaveBeenCalled()
+  })
+
   it('同じフレームへの seek は状態を変えない', () => {
     useAppStore.getState().seek(10)
     const ui = useAppStore.getState().ui

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { exportProject, ExportCancelled, type ExportProgress } from '../export/exportVideo'
 import { buildFileName } from '../export/naming'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
@@ -17,6 +17,7 @@ export function ExportPanel() {
   const images = useAppStore((s) => s.images)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
+  const setExporting = useAppStore((s) => s.setExporting)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const [shareMessage, setShareMessage] = useState('')
   const abortRef = useRef<AbortController | null>(null)
@@ -24,10 +25,14 @@ export function ExportPanel() {
   const exporting = phase.kind === 'exporting'
   const canExport = project.items.length > 0 && !exporting && !importing
 
+  // 画面を離れたら書き出しを中断する（続けても結果を受け取る相手がいない）
+  useEffect(() => () => abortRef.current?.abort(), [])
+
   async function onExport() {
     const controller = new AbortController()
     abortRef.current = controller
     setPlaying(false)
+    setExporting(true)
     setShareMessage('')
     setPhase({ kind: 'exporting', progress: { frame: 0, totalFrames: project.preset.totalFrames } })
     try {
@@ -52,6 +57,7 @@ export function ExportPanel() {
         setPhase({ kind: 'error', message: error instanceof Error ? error.message : String(error) })
     } finally {
       abortRef.current = null
+      setExporting(false)
     }
   }
 

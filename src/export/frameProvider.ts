@@ -34,7 +34,14 @@ export function createFrameProvider(
       return photo
     },
     async dispose() {
-      for (const source of videos.values()) await source.dispose()
+      // 1 つが失敗しても残りの解放を続け、失敗はまとめて投げる
+      const results = await Promise.allSettled([...videos.values()].map((s) => s.dispose()))
+      const failures = results.filter((r) => r.status === 'rejected')
+      if (failures.length > 0) {
+        throw new Error(`デコーダの解放に ${failures.length} 件失敗しました。`, {
+          cause: failures[0],
+        })
+      }
     },
   }
 }

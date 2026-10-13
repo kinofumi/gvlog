@@ -17,6 +17,8 @@ export type AppState = {
     isPlaying: boolean
     /** 写真の取り込み中。追加のたびに尺を割り直すので、その間は編集を止める */
     importing: boolean
+    /** 書き出し中。使用中の画像を閉じないよう、素材の削除や差し替えを止める */
+    exporting: boolean
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
@@ -33,6 +35,7 @@ export type AppState = {
   seek(frame: number): void
   setPlaying(isPlaying: boolean): void
   setImporting(importing: boolean): void
+  setExporting(exporting: boolean): void
 }
 
 /**
@@ -42,7 +45,13 @@ export type AppState = {
 export const useAppStore = create<AppState>((set, get) => ({
   project: actions.createProject(DEFAULT_PRESET, { memberName: '', spot: '' }),
   images: {},
-  ui: { selectedItemId: null, playheadFrame: 0, isPlaying: false, importing: false },
+  ui: {
+    selectedItemId: null,
+    playheadFrame: 0,
+    isPlaying: false,
+    importing: false,
+    exporting: false,
+  },
 
   setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
@@ -63,6 +72,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   removeItem: (itemId) => {
+    // 書き出し中は画像を使っているので閉じない（UI でも止めるが、store でも守る）
+    if (get().ui.exporting) return
     const project = actions.removeItem(get().project, itemId)
     if (project === get().project) return
     const images = { ...get().images }
@@ -107,4 +118,5 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
   setPlaying: (isPlaying) => set((s) => ({ ui: { ...s.ui, isPlaying } })),
   setImporting: (importing) => set((s) => ({ ui: { ...s.ui, importing } })),
+  setExporting: (exporting) => set((s) => ({ ui: { ...s.ui, exporting } })),
 }))
