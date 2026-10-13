@@ -70,10 +70,10 @@ gvlog/
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
     **render/**                     # renderFrame.ts, drawCaption.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）,
-                                    # coverRect.ts, drawCover.ts（M0 の書き出し用、M3 で廃止）, clamp01.ts, ctx.ts
+                                    # coverRect.ts, clamp01.ts, ctx.ts
                                     # ← DOM 非依存（Canvas の型のみ）
-    **media/**                      # importImage.ts, importVideo.ts, limits.ts, errors.ts
-    **preview/**                    # PreviewPlayer.ts（rAF クロック + <video> プール）
+    **media/**                      # importImage.ts, importVideo.ts, videoPoster.ts（先頭フレーム）, fileTypes.ts, limits.ts, errors.ts
+    **preview/**                    # usePreview.ts（描画と rAF 再生）, clock.ts, previewVideos.ts（<video> の管理）, videoPlan.ts（シーク・再生の判断）
     **export/**                     # exportVideo.ts（main thread）, frameSource.ts, videoSources.ts, codec.ts, naming.ts, share.ts
     **storage/**                    # db.ts（idb-keyval）, projectRepo.ts
     **state/**                      # store.ts（zustand、フラットな 1 ストア）, persistence.ts
@@ -243,8 +243,10 @@ renderFrame(compiled: CompiledItem[], items: RenderItem[], frame: number,
 
 ### 3.3 プレビュー
 
-- 動画は `HTMLVideoElement`（`muted`、`playsInline`、Blob URL）。保持は現在と次の素材のみ（≤ 2）。
-  再生時は `visibleStart` で `currentTime = trimStart 秒` → `play()`。100ms 超のドリフトで再同期。
+- 動画は `HTMLVideoElement`（`muted`、`playsInline`、メモリ上の Blob の Object URL）。`preview/previewVideos.ts` が素材ごとに 1 つ持つ
+  （v1 は上限 10 素材なので「現在と次だけ保持」はしない。iPhone で同時 `<video>` の上限に当たったら見直す）。
+  停止中は `currentTime` を素材内の時刻（`sourceFrameAt / fps`）に合わせ、`seeked` で描き直す。再生中は `play()` し、100ms 超のずれで再同期。
+  見えていない動画は `pause()`。描けないとき（読み込み前）はポスター（先頭フレームの画像、`media/videoPoster.ts`）で代用する。
 - 写真は import 時に作った `ImageBitmap`。
 - プレビューと export の数フレーム差は許容する。export の正しさは出力フレームの内容検証（§11）で確認する。
 

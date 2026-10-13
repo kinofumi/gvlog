@@ -1,10 +1,12 @@
-import { BufferSource, Input, MP4, QTFF, type InputVideoTrack } from 'mediabunny'
+import { BlobSource, Input, MP4, QTFF, type InputVideoTrack } from 'mediabunny'
 import { VIDEO_MAX_BYTES, VIDEO_MAX_HEIGHT, VIDEO_MAX_WIDTH } from './limits'
 import { MediaError } from './errors'
 
 /** 動画を読み込んで分かったこと。UI の表示と書き出しの両方で使う */
 export type ImportedVideo = {
   fileName: string
+  /** 動画のデータ（メモリ上）。プレビューの <video> はこれから Object URL を作る */
+  blob: Blob
   input: Input
   track: InputVideoTrack
   codec: string
@@ -33,12 +35,13 @@ export async function importVideo(file: File): Promise<ImportedVideo> {
   // ファイルは取り込み時にまるごとメモリへ読む（ADR 012）。
   // Android では選択した File がアプリ切り替えや時間経過で読めなくなり、書き出しの途中で
   // 「TypeError: network error」になることがあった。ここで読んでおけば、読めない素材はこの場で分かる。
-  const buffer = await readWholeFile(file)
+  // メモリ上の Blob にするのは、デコード（BlobSource）とプレビューの <video>（Object URL）で 1 つのデータを共有するため
+  const blob = await readWholeFile(file)
 
   // 読むのは MP4 と MOV（QTFF）だけ。ALL_FORMATS にすると未使用のパーサーまでバンドルされて重くなる
-  const input = new Input({ formats: [MP4, QTFF], source: new BufferSource(buffer) })
+  const input = new Input({ formats: [MP4, QTFF], source: new BlobSource(blob) })
   try {
-    return await probe(file, input)
+    return await probe(file, blob, input)
   } catch (error) {
     // 途中で失敗したら Input を解放してから投げ直す（連続で失敗したときに溜め込まない）
     input.dispose()
@@ -46,7 +49,7 @@ export async function importVideo(file: File): Promise<ImportedVideo> {
   }
 }
 
-async function probe(file: File, input: Input): Promise<ImportedVideo> {
+async function probe(file: File, blob: Blob, input: Input): Promise<ImportedVideo> {
   let track: InputVideoTrack | null
   try {
     track = await input.getPrimaryVideoTrack()
@@ -83,6 +86,7 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
   const transfer: string | null = colorSpace.transfer ?? null
   return {
     fileName: file.name,
+    blob,
     input,
     track,
     codec: codec ?? 'unknown',
@@ -97,9 +101,14 @@ async function probe(file: File, input: Input): Promise<ImportedVideo> {
   }
 }
 
-async function readWholeFile(file: File): Promise<ArrayBuffer> {
+/**
+ * File の中身をメモリ上の Blob に読み込む。
+ * `new Blob([await file.arrayBuffer()])` だと途中で ArrayBuffer と Blob の両方が生きて、一時的にファイルの 2 倍のメモリを使う。
+ * Response 経由なら中身を直接 Blob に読めるので、ピークがファイル 1 つ分で済む。
+ */
+async function readWholeFile(file: File): Promise<Blob> {
   try {
-    return await file.arrayBuffer()
+    return await new Response(file).blob()
   } catch {
     throw new MediaError('動画を読み込めませんでした。もう一度ファイルを選び直してください。')
   }

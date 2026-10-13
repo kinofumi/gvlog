@@ -19,3 +19,8 @@ Android ではファイル選択で渡される File が一時的なアクセス
 書き出し中にファイルを読む経路がなくなるので、失敗の原因が 1 つ減る。
 代わりにメモリが動画サイズ分増えるが、10 秒素材に使う動画は数十 MB で、200 MB の上限で足りる。
 M4 で IndexedDB に保存するときも、保存した Blob から同じように読み直せる。
+
+## 補足（2026-10-14、M3(B)）
+読み込んだデータは `ArrayBuffer` ではなく、メモリ上の `Blob` にして持つ（`new Response(file).blob()`）。デコード（`BlobSource`）と
+プレビューの `<video>`（`URL.createObjectURL`）で同じデータを使うため。`BufferSource` + 別の Blob にすると動画サイズの 2 倍のメモリになる。
+`file.arrayBuffer()` → `new Blob([...])` も、読み込みの瞬間は 2 倍になる。メモリ上の Blob は Android の File と違って読めなくならない。
