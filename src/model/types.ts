@@ -35,7 +35,7 @@ export type Caption = CaptionTiming & {
 
 /** 写真の動き。cx, cy は 0..1 の正規化座標、zoom は cover 比（1 = 画面いっぱい） */
 export type KenBurns = {
-  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL'
+  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL' | 'panTB' | 'panBT'
   from: { cx: number; cy: number; zoom: number }
   to: { cx: number; cy: number; zoom: number }
 }

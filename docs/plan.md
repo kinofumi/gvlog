@@ -135,7 +135,7 @@ interface VideoItem extends ItemBase {
 }
 
 interface KenBurns {
-  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL'
+  presetId: 'none' | 'zoomIn' | 'zoomOut' | 'panLR' | 'panRL' | 'panTB' | 'panBT'
   from: { cx: number; cy: number; zoom: number } // cx, cy は 0..1、zoom は cover 比（1 = 画面いっぱい）
   to: { cx: number; cy: number; zoom: number }
 }

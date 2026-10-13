@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { KenBurns } from '../model/types'
+import { easeInOut } from './easing'
 import { kenBurnsPreset, kenBurnsRect } from './kenBurns'
 
 // 4:3 の写真（4000x3000）を縦型 1080x1920 に cover すると、幅 1687.5 x 高さ 3000 の中央を使う
@@ -70,6 +71,33 @@ describe('kenBurnsPreset（チップで選ぶ既定の動き）', () => {
     expect(lr.from.cx).toBeLessThan(lr.to.cx)
     expect(rl.from.cx).toBeGreaterThan(rl.to.cx)
     expect(lr.from.zoom).toBe(rl.from.zoom)
+  })
+
+  it('panTB は上から下へ、panBT はその逆（横位置と zoom は左右のパンと同じ）', () => {
+    const tb = kenBurnsPreset('panTB')
+    const bt = kenBurnsPreset('panBT')
+    expect(tb.from.cy).toBeLessThan(tb.to.cy)
+    expect(bt.from).toEqual(tb.to)
+    expect(bt.to).toEqual(tb.from)
+    expect(tb.from.cx).toBe(0.5)
+    expect(tb.to.cx).toBe(0.5)
+    expect(tb.from.zoom).toBe(kenBurnsPreset('panLR').from.zoom)
+  })
+
+  it('上下のパンも余白ちょうど動く（出力と同じ縦横比の写真で、上端から下端まで止まらず easeInOut の速さで）', () => {
+    const tb = kenBurnsPreset('panTB')
+    const bt = kenBurnsPreset('panBT')
+    const w = 1080
+    const h = 1920
+    // 切り出す高さは zoom 分だけ小さく、動ける余白は h − sh
+    const room = h - kenBurnsRect(tb, 0, w, h, w, h).sh
+    expect(room).toBeGreaterThan(0)
+    for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+      expect(kenBurnsRect(tb, progress, w, h, w, h).sy).toBeCloseTo(room * easeInOut(progress))
+      expect(kenBurnsRect(bt, progress, w, h, w, h).sy).toBeCloseTo(
+        room * (1 - easeInOut(progress)),
+      )
+    }
   })
 
   it('パンの振れ幅は zoom で空く余白ちょうど（どんな縦横比の写真でも端で止まらず一定の速さで動く）', () => {

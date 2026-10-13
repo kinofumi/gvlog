@@ -40,21 +40,28 @@ const PAN_ZOOM = 1.15
  */
 const PAN_MARGIN = (1 - 1 / PAN_ZOOM) / 2
 
+/**
+ * 中央から (dx, dy) の向きへ、余白ちょうどの振れ幅で動くパン。dx, dy は −1 / 0 / 1。
+ * 正規化座標での振れ幅は縦横とも同じだが、画面上の動く量は写真の縦横比で変わる。
+ * 例: 横長の写真を縦型に出すと cover が全高を使うので、縦の余白は zoom 分しかなく上下のパンは小さく見え、左右は大きく動く。
+ */
+function pan(presetId: KenBurns['presetId'], dx: number, dy: number): KenBurns {
+  return {
+    presetId,
+    from: { cx: 0.5 - dx * PAN_MARGIN, cy: 0.5 - dy * PAN_MARGIN, zoom: PAN_ZOOM },
+    to: { cx: 0.5 + dx * PAN_MARGIN, cy: 0.5 + dy * PAN_MARGIN, zoom: PAN_ZOOM },
+  }
+}
+
 /** チップで選ぶ既定の動き。微調整したいときはこの値を書き換えて保存する */
 const PRESETS: Record<KenBurns['presetId'], KenBurns> = {
   none: { presetId: 'none', from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1 } },
   zoomIn: { presetId: 'zoomIn', from: { ...CENTER, zoom: 1 }, to: { ...CENTER, zoom: 1.2 } },
   zoomOut: { presetId: 'zoomOut', from: { ...CENTER, zoom: 1.2 }, to: { ...CENTER, zoom: 1 } },
-  panLR: {
-    presetId: 'panLR',
-    from: { cx: 0.5 - PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
-    to: { cx: 0.5 + PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
-  },
-  panRL: {
-    presetId: 'panRL',
-    from: { cx: 0.5 + PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
-    to: { cx: 0.5 - PAN_MARGIN, cy: 0.5, zoom: PAN_ZOOM },
-  },
+  panLR: pan('panLR', 1, 0),
+  panRL: pan('panRL', -1, 0),
+  panTB: pan('panTB', 0, 1),
+  panBT: pan('panBT', 0, -1),
 }
 
 /** presetId に対応する動きを返す。未知の値（古い保存データなど）は none として扱う */
