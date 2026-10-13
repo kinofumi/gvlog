@@ -79,6 +79,30 @@ export type VideoItem = ItemBase & {
 
 export type MediaItem = PhotoItem | VideoItem
 
+/** 写真を取り込んだ結果のうち、素材として保存する情報 */
+export type PhotoInfo = {
+  kind: 'photo'
+  blobKey: string
+  thumbKey: string
+  fileName: string
+  width: number
+  height: number
+}
+
+/** 動画を取り込んだ結果のうち、素材として保存する情報。寸法は回転適用後 */
+export type VideoInfo = {
+  kind: 'video'
+  blobKey: string
+  thumbKey: string
+  fileName: string
+  width: number
+  height: number
+  /** 元動画の尺（出力 fps 換算） */
+  sourceDurationFrames: number
+}
+
+export type MediaInfo = PhotoInfo | VideoInfo
+
 export type Project = {
   id: string
   schemaVersion: 1

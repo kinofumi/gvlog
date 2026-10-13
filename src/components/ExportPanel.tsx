@@ -16,6 +16,7 @@ type Phase =
 export function ExportPanel() {
   const project = useAppStore((s) => s.project)
   const images = useAppStore((s) => s.images)
+  const videos = useAppStore((s) => s.videos)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
   const probing = useAppStore((s) => s.ui.probing)
@@ -48,11 +49,10 @@ export function ExportPanel() {
     setShareMessage('')
     setPhase({ kind: 'exporting', progress: null })
     try {
-      // 動画素材のデコーダは M3(B) で渡す。今は写真だけ
       const result = await exportProject(
         project,
         images,
-        new Map(),
+        videos,
         (progress) => setPhase({ kind: 'exporting', progress }),
         controller.signal,
       )

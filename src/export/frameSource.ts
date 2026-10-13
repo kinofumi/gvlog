@@ -1,5 +1,6 @@
 import { CanvasSink, type WrappedCanvas } from 'mediabunny'
 import type { ImportedVideo } from '../media/importVideo'
+import { sourceFrameAt } from '../timeline/trim'
 
 /**
  * 書き出しのとき、動画の各フレームで描く画像を用意する役。
@@ -49,7 +50,9 @@ export class VideoFrameSource implements FrameSource {
     // 素材内の時刻の規則（plan §2.3）: 見え始めた瞬間が trimStart。動画の先頭時刻（0 とは限らない）を足す
     const timestamps: number[] = []
     for (let frame = visibleStart; frame < visibleEnd; frame++) {
-      timestamps.push(video.firstTimestampSec + (trimStartFrames + (frame - visibleStart)) / fps)
+      timestamps.push(
+        video.firstTimestampSec + sourceFrameAt(trimStartFrames, visibleStart, frame) / fps,
+      )
     }
     this.frames = this.sink.canvasesAtTimestamps(timestamps)
   }

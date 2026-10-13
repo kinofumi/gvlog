@@ -1,21 +1,23 @@
-import type { Caption, GroupPreset, KenBurns, MediaItem, Project, Transition } from '../model/types'
+import type {
+  Caption,
+  GroupPreset,
+  KenBurns,
+  MediaInfo,
+  MediaItem,
+  PhotoInfo,
+  Project,
+  Transition,
+  VideoItem,
+} from '../model/types'
 import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
 import { adjustDurations, equalSplit, maxItems } from '../timeline/durations'
+import { clampTrims } from '../timeline/trim'
 
 // プロジェクトを変える操作。すべて純粋関数で、新しい Project を返す（元は変えない）。
 // 変えられないときは元の Project をそのまま返す（呼び出し側は同一性で判定できる）。
 // 不変条件「尺の合計 = totalFrames」は、素材の増減のたびに均等割りをやり直すことで守る。
-
-/** 写真を追加するときに必要な情報（取り込み結果） */
-export type PhotoInfo = {
-  blobKey: string
-  thumbKey: string
-  fileName: string
-  width: number
-  height: number
-}
 
 export function createProject(
   preset: GroupPreset,
@@ -42,33 +44,33 @@ export function setMeta(project: Project, meta: { memberName: string; spot: stri
 /**
  * 写真を 1 枚末尾に追加する。尺は全素材で均等に割り直す。
  * v1 の割り切り: 追加・削除のたびに手動調整した尺は失われる（plan §2.2）。
- * 「写真を全部入れてから尺を調整する」流れを想定している。
+ * 「素材を全部入れてから尺を調整する」流れを想定している。
  */
 export function addPhoto(project: Project, itemId: string, info: PhotoInfo): Project {
-  return addPhotos(project, [{ itemId, info }])
+  return addItems(project, [{ itemId, info }])
 }
 
 /**
- * 写真を複数まとめて末尾に追加する。均等割りは 1 回だけ行う（1 枚ずつ addPhoto を呼ぶと毎回割り直す）。
- * 上限を超える分と重複 ID は入れない。1 枚も入らなければ元のまま。
+ * 写真と動画を複数まとめて末尾に追加する。均等割りは 1 回だけ行う（1 つずつ足すと毎回割り直す）。
+ * 上限を超える分と重複 ID は入れない。1 つも入らなければ元のまま。
+ * 動画は開始位置 0 で始める。
  */
-export function addPhotos(
+export function addItems(
   project: Project,
-  photos: { itemId: string; info: PhotoInfo }[],
+  entries: { itemId: string; info: MediaInfo }[],
 ): Project {
   const limit = maxItems(project.preset.totalFrames)
   const items: MediaItem[] = [...project.items]
-  for (const { itemId, info } of photos) {
+  for (const { itemId, info } of entries) {
     if (items.length >= limit) break
     if (items.some((i) => i.itemId === itemId)) continue
-    items.push({
-      itemId,
-      kind: 'photo',
-      ...info,
-      durationFrames: 0,
-      kenBurns: kenBurnsPreset('none'),
-      transitionOut: { type: 'cut', durationFrames: 0 },
-    })
+    const transitionOut: Transition = { type: 'cut', durationFrames: 0 }
+    const base = { itemId, durationFrames: 0, transitionOut }
+    if (info.kind === 'photo') {
+      items.push({ ...base, ...info, kenBurns: kenBurnsPreset('none') })
+    } else {
+      items.push({ ...base, ...info, trimStartFrames: 0 })
+    }
   }
   if (items.length === project.items.length) return project
   return withItems(project, resplit(items, project.preset.totalFrames))
@@ -146,6 +148,21 @@ export function setTransition(project: Project, itemId: string, transition: Tran
   })
 }
 
+/**
+ * 動画の開始位置（元動画のどこから使うか）を設定する。上限への切り詰めは withItems（clampTrims）に任せる。
+ * 写真や無い ID、切り詰めた結果が同じ値なら元のまま。
+ */
+export function setTrimStart(project: Project, itemId: string, trimStartFrames: number): Project {
+  const index = indexOf(project, itemId)
+  const item = project.items[index]
+  if (!item || item.kind !== 'video') return project
+  const value = Number.isNaN(trimStartFrames) ? 0 : Math.max(0, Math.floor(trimStartFrames))
+  const items = project.items.map((i, k) => (k === index ? { ...i, trimStartFrames: value } : i))
+  const next = withItems(project, items)
+  const applied = (next.items[index] as VideoItem).trimStartFrames
+  return applied === item.trimStartFrames ? project : next
+}
+
 // --- 内部の小さな助け ---
 
 function indexOf(project: Project, itemId: string): number {
@@ -172,6 +189,10 @@ function updateItem(
   return withItems(project, clampAfterResize(items))
 }
 
+/**
+ * 素材を置き換える。尺やトランジションが変わると動画の「見える長さ」も変わるので、
+ * そのたびに開始位置を上限内に切り詰める（上限は見える長さに依存し、clampAfterResize では分からない）。
+ */
 function withItems(project: Project, items: MediaItem[]): Project {
-  return { ...project, items, updatedAt: new Date().toISOString() }
+  return { ...project, items: clampTrims(items), updatedAt: new Date().toISOString() }
 }

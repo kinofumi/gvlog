@@ -1,3 +1,4 @@
+import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
 import type { Ctx } from '../render/ctx'
 import { renderFrame, type ProvidedImage } from '../render/renderFrame'
@@ -6,7 +7,8 @@ import { pickEncoder, EXPORT_BITRATE } from './codec'
 import { createMp4Encoder, type FrameEncoder } from './encoder'
 import { formatError } from './formatError'
 import { createFrameProvider, type ExportFrameProvider } from './frameProvider'
-import type { FrameSource } from './frameSource'
+import { VideoFrameSource, type FrameSource } from './frameSource'
+import { createVideoSources } from './videoSources'
 
 export type ExportProgress = {
   frame: number
@@ -109,23 +111,32 @@ function withCleanupError(original: unknown, cleanup: unknown): unknown {
 
 /**
  * プロジェクトを無音 MP4 に書き出す（実物の組み立て）。
- * 1. 使える H.264 の設定を選ぶ（2 回目以降は覚えた値）。この間は進捗が出ないので onProbing で知らせる
- * 2. 出力サイズの Canvas、画像の供給役、エンコーダを用意して exportFrames を回す
- * videos は M3(B) で動画素材のデコーダを渡す。写真だけなら空。
- * 受け取ったデコーダは、exportFrames に渡す前に失敗したときもここで解放する。
+ * 1. 動画のデコーダを用意する（データの欠けはここで分かる。遅いエンコーダ診断の前に止める）
+ * 2. 使える H.264 の設定を選ぶ（2 回目以降は覚えた値）。この間は進捗が出ない
+ * 3. 出力サイズの Canvas、画像の供給役、エンコーダを用意して exportFrames を回す
+ * videos は取り込んだ動画（store が持つもの）。作ったデコーダは、exportFrames に渡す前に失敗したときもここで解放する。
  */
 export async function exportProject(
   project: Project,
   photos: Record<string, ProvidedImage>,
-  videos: Map<string, FrameSource>,
+  videos: Record<string, ImportedVideo>,
   onProgress: (p: ExportProgress) => void,
   signal: AbortSignal,
 ): Promise<ExportResult> {
   const startedAt = performance.now()
   const { width, height, fps } = project.preset
+  let sources = new Map<string, FrameSource>()
   let handedOver = false
   try {
     if (project.items.length === 0) throw new Error('素材がありません。')
+    const compiled = compileTimeline(project.items)
+    sources = await createVideoSources(
+      compiled,
+      project.items,
+      videos,
+      (video, visibleStart, visibleEnd, trimStartFrames) =>
+        new VideoFrameSource(video, visibleStart, visibleEnd, trimStartFrames, fps, width, height),
+    )
     const choice = await pickEncoder(width, height, fps, EXPORT_BITRATE, signal)
     if (signal.aborted) throw new ExportCancelled()
     if (!choice)
@@ -137,9 +148,8 @@ export async function exportProject(
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas を作れませんでした。')
 
-    const compiled = compileTimeline(project.items)
     const encoder = createMp4Encoder(canvas, fps, choice)
-    const provider = createFrameProvider(compiled, photos, videos)
+    const provider = createFrameProvider(compiled, photos, sources)
     handedOver = true
     const blob = await exportFrames(
       project,
@@ -153,6 +163,6 @@ export async function exportProject(
       elapsedMs: performance.now() - startedAt,
     }
   } finally {
-    if (!handedOver) await Promise.allSettled([...videos.values()].map((v) => v.dispose()))
+    if (!handedOver) await Promise.allSettled([...sources.values()].map((v) => v.dispose()))
   }
 }
