@@ -5,8 +5,10 @@ import { newId } from '../model/ids'
 import { useAppStore, type LoadedImage } from '../state/store'
 import { maxItems } from '../timeline/durations'
 
-/** iPhone / iPad かどうか（案内文の出し分けにだけ使う） */
-const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+/** iPhone / iPad かどうか（案内文の出し分けにだけ使う）。iPad の Safari は UA が Macintosh なので、タッチの有無で見分ける */
+const IS_IOS =
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
 
 /**
  * 写真を複数選んで取り込む。取り込みは直列（iPhone のメモリを一度に使わないため）、
@@ -108,8 +110,8 @@ export function PhotoPicker() {
       {message && <p className="text-sm text-red-700">{message}</p>}
       {timing.length > 0 && (
         <ul className="text-xs text-stone-500">
-          {timing.map((t) => (
-            <li key={t}>{t}</li>
+          {timing.map((t, i) => (
+            <li key={i}>{t}</li>
           ))}
         </ul>
       )}
