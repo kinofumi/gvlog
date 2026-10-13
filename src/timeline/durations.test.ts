@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { adjustDurations, equalSplit, maxItems, splitProportionally } from './durations'
+import {
+  adjustDurations,
+  checkDurations,
+  equalSplit,
+  maxItems,
+  splitProportionally,
+} from './durations'
 
 describe('equalSplit（均等割り）', () => {
   it('割り切れるときは全員同じ尺になる', () => {
@@ -74,6 +80,48 @@ describe('adjustDurations（1 つの尺を変え、差分を他へ比例配分�
     adjustDurations(original, 0, 150)
     expect(original).toEqual([100, 100, 100])
   })
+
+  it('元の尺が不正（最小尺未満、非整数）なら何もせず元のまま', () => {
+    expect(adjustDurations([10, 10], 0, 30)).toEqual([10, 10])
+    expect(adjustDurations([100.5, 199.5], 0, 150)).toEqual([100.5, 199.5])
+  })
+
+  it('index が範囲外なら元のまま', () => {
+    expect(adjustDurations([150, 150], 2, 100)).toEqual([150, 150])
+    expect(adjustDurations([150, 150], -1, 100)).toEqual([150, 150])
+  })
+
+  it('newFrames が非整数なら切り捨てて扱う', () => {
+    expect(adjustDurations([150, 150], 0, 100.9)).toEqual([100, 200])
+  })
+
+  it('newFrames が NaN や Infinity なら元のまま（入力欄が空のときなど）', () => {
+    expect(adjustDurations([150, 150], 0, Number.NaN)).toEqual([150, 150])
+    expect(adjustDurations([150, 150], 0, Number.POSITIVE_INFINITY)).toEqual([150, 150])
+  })
+})
+
+describe('checkDurations（尺の不変条件）', () => {
+  it('合計が総尺と一致し、全員が最小尺以上の整数なら問題なし', () => {
+    expect(checkDurations([150, 150], 300)).toEqual([])
+  })
+
+  it('合計が総尺と違えばエラー', () => {
+    expect(checkDurations([150, 100], 300)).toEqual([
+      '尺の合計（250）が総尺（300）と一致しません。',
+    ])
+  })
+
+  it('最小尺未満や非整数の尺はエラー', () => {
+    expect(checkDurations([10, 290], 300)).toContain('素材 1 の尺（10）が最小尺（30）未満です。')
+    expect(checkDurations([150.5, 149.5], 300)).toContain(
+      '素材 1 の尺（150.5）が整数ではありません。',
+    )
+  })
+
+  it('素材が 0 なら総尺に関係なく問題なし（空のタイムライン）', () => {
+    expect(checkDurations([], 300)).toEqual([])
+  })
 })
 
 describe('splitProportionally（整数の比例配分）', () => {
@@ -88,7 +136,21 @@ describe('splitProportionally（整数の比例配分）', () => {
     expect(splitProportionally(7, [1, 2])).toEqual([2, 5])
   })
 
-  it('重みがすべて 0 なら何も配らない', () => {
-    expect(splitProportionally(10, [0, 0])).toEqual([0, 0])
+  it('量が 0 なら何も配らない（重みがすべて 0 でもよい）', () => {
+    expect(splitProportionally(0, [0, 0])).toEqual([0, 0])
+  })
+
+  it('正の量を配る先がない（重みがすべて 0）のはプログラムの誤りなので投げる', () => {
+    expect(() => splitProportionally(10, [0, 0])).toThrow()
+  })
+
+  it('量が負や非整数なのはプログラムの誤りなので投げる', () => {
+    expect(() => splitProportionally(-1, [1, 1])).toThrow()
+    expect(() => splitProportionally(0.5, [1, 1])).toThrow()
+  })
+
+  it('重みに負や NaN が混ざるのもプログラムの誤りなので投げる', () => {
+    expect(() => splitProportionally(10, [-1, 2])).toThrow()
+    expect(() => splitProportionally(10, [Number.NaN, 1])).toThrow()
   })
 })

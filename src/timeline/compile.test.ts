@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { compileSegments, compileTimeline, itemsAt, segmentAt, transitionAt } from './compile'
+import {
+  checkTimeline,
+  compileSegments,
+  compileTimeline,
+  itemsAt,
+  segmentAt,
+  transitionAt,
+} from './compile'
 
 describe('compileSegments（区間の計算）', () => {
   it('素材を順に並べ、区間は前の終わりから始まる', () => {
@@ -149,5 +156,60 @@ describe('itemsAt / transitionAt（そのフレームで見える素材と進行
   it('範囲外のフレームでは何も見えない', () => {
     expect(itemsAt(compiled, 300)).toEqual([])
     expect(itemsAt(compiled, -1)).toEqual([])
+  })
+})
+
+describe('checkTimeline（タイムライン全体の不変条件）', () => {
+  it('問題がなければ空', () => {
+    expect(
+      checkTimeline(
+        [
+          { itemId: 'a', durationFrames: 150 },
+          { itemId: 'b', durationFrames: 150 },
+        ],
+        300,
+      ),
+    ).toEqual([])
+  })
+
+  it('itemId が重複していればエラー', () => {
+    expect(
+      checkTimeline(
+        [
+          { itemId: 'a', durationFrames: 150 },
+          { itemId: 'a', durationFrames: 150 },
+        ],
+        300,
+      ),
+    ).toContain('素材 ID「a」が重複しています。')
+  })
+
+  it('尺の問題（合計不一致、最小尺未満）も含める', () => {
+    const errors = checkTimeline(
+      [
+        { itemId: 'a', durationFrames: 10 },
+        { itemId: 'b', durationFrames: 150 },
+      ],
+      300,
+    )
+    expect(errors).toContain('尺の合計（160）が総尺（300）と一致しません。')
+    expect(errors).toContain('素材 1 の尺（10）が最小尺（30）未満です。')
+  })
+
+  it('トランジションが長すぎる、キャプションの表示区間が足りない、もエラーにする（compile は黙って切り詰めるため）', () => {
+    const errors = checkTimeline(
+      [
+        {
+          itemId: 'a',
+          durationFrames: 60,
+          transitionOut: { type: 'crossfade', durationFrames: 100 },
+          caption: { inOffsetFrames: 50, outOffsetFrames: 50 },
+        },
+        { itemId: 'b', durationFrames: 240 },
+      ],
+      300,
+    )
+    expect(errors).toContain('素材 1 のトランジション（100）が上限（30）を超えています。')
+    expect(errors).toContain('素材 1 のキャプションの表示区間が足りません（16 フレーム以上必要）。')
   })
 })

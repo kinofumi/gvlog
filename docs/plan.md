@@ -108,7 +108,7 @@ interface Project {
 
 type MediaItem = PhotoItem | VideoItem;
 interface ItemBase {
-  id: string; kind: 'photo' | 'video';
+  itemId: string; kind: 'photo' | 'video';   // タイムラインの区間（Segment）と同じ名前で参照する
   blobKey: string; thumbKey: string; fileName: string;
   width: number; height: number;     // 回転適用後の表示サイズ
   durationFrames: number;            // タイムライン上の尺。合計 = totalFrames が不変条件
@@ -143,15 +143,20 @@ interface Transition { type: 'cut' | 'crossfade'; durationFrames: number; }   //
 - `MIN_ITEM_FRAMES = 30`（1 秒）。`MAX_ITEMS = floor(totalFrames / MIN_ITEM_FRAMES)`（10 秒なら 10 個）。
   上限を超える追加は UI で拒否する。
 - `equalSplit(n, totalFrames)`: `floor(total / n)` を全員に、余りを先頭から 1 フレームずつ配る。合計は常に `totalFrames`。
-- `adjustDuration(items, id, newFrames)`: 対象を `newFrames` にし、差分を他の素材へ比例配分する。
-  比例配分で最小尺を下回る素材は最小尺で止め、残りの差分をさらに他へ回す。全員が最小尺なら変更を拒否して元の値を返す。
+- `adjustDurations(durations, index, newFrames)`: 尺の数値配列を受け取り、対象を `newFrames` にして差分を他の素材へ
+  比例配分する（ADR 013: timeline/ の関数は素材ではなく必要な値だけを受け取る）。比例配分で最小尺を下回る素材は最小尺で
+  止め、残りの差分をさらに他へ回す。全員が最小尺なら変更を拒否して元の値を返す。元の尺や index が不正なときも元の値。
+- `checkDurations(durations, totalFrames)` / `checkTimeline(items, totalFrames)`: 不変条件（合計、最小尺、整数、ID の一意性、
+  トランジション上限、キャプションの最低表示長）を確かめて問題を文で返す。状態を変えた側はこれで確認する。
 - 素材が 1 つのときは尺を変更できない（常に `totalFrames`）。素材が 0 のときはタイムラインは空。
 - 尺を変えたあとは、隣接するトランジション長を `min(d, floor(min(前, 後) / 2))` に切り詰め、キャプションのオフセットも
-  コア区間に収まるよう切り詰める（`clampAfterResize`）。
+  コア区間に収まるよう切り詰める（`clampAfterResize`）。キャプションは最低 `MIN_CAPTION_FRAMES = 16`（フェード 8 × 2）を
+  表示に残す。末尾素材の `transitionOut` は消さずに残す（compile が無視する）。cut の長さは 0 に揃える。
 
 ### 2.3 区間の計算（`timeline/compile.ts`）
 
-`compileTimeline(project)` が各素材について次を返す。すべてフレーム番号。
+`compileTimeline(items)` が各素材について次を返す（`items` は `TimelineItem[]`。`MediaItem` はこれを含む）。すべてフレーム番号。
+`itemsAt(compiled, frame)` でそのフレームに見える 0〜2 素材、`transitionAt(compiled, frame)` で種類と進行度を取る。
 
 - `coreStart`, `coreEnd`: 均等割りの区間。`coreEnd = coreStart + durationFrames`（末尾は含まない）。
 - `visibleStart = coreStart − floor(dIn / 2)`、`visibleEnd = coreEnd + ceil(dOut / 2)`。

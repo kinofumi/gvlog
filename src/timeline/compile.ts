@@ -1,5 +1,6 @@
 import type { TimelineItem, Transition } from '../model/types'
-import { clampTransition } from './clamp'
+import { MIN_CAPTION_FRAMES, clampTransition } from './clamp'
+import { checkDurations } from './durations'
 
 /** 素材がタイムライン上で占める区間。start は含み、end は含まない */
 export type Segment = {
@@ -114,4 +115,42 @@ export function transitionAt(
     }
   }
   return null
+}
+
+/**
+ * タイムライン全体の不変条件を確かめ、問題を日本語の文で返す（なければ空）。
+ * compileTimeline は入力を信用して計算するだけなので、状態を変えた側はこれで確認してから渡す。
+ */
+export function checkTimeline(items: TimelineItem[], totalFrames: number): string[] {
+  const errors = checkDurations(
+    items.map((item) => item.durationFrames),
+    totalFrames,
+  )
+  const seen = new Set<string>()
+  items.forEach((item, i) => {
+    if (seen.has(item.itemId)) errors.push(`素材 ID「${item.itemId}」が重複しています。`)
+    seen.add(item.itemId)
+
+    const following = items[i + 1]
+    const t = item.transitionOut
+    if (t && t.type !== 'cut' && following) {
+      const limit = clampTransition(t.durationFrames, item.durationFrames, following.durationFrames)
+      if (t.durationFrames > limit) {
+        errors.push(
+          `素材 ${i + 1} のトランジション（${t.durationFrames}）が上限（${limit}）を超えています。`,
+        )
+      }
+    }
+
+    const c = item.caption
+    if (c) {
+      const minShow = Math.min(MIN_CAPTION_FRAMES, item.durationFrames)
+      if (item.durationFrames - c.inOffsetFrames - c.outOffsetFrames < minShow) {
+        errors.push(
+          `素材 ${i + 1} のキャプションの表示区間が足りません（${MIN_CAPTION_FRAMES} フレーム以上必要）。`,
+        )
+      }
+    }
+  })
+  return errors
 }
