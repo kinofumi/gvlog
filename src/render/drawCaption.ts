@@ -29,12 +29,15 @@ export function drawCaption(ctx: Ctx, caption: Caption, alpha: number): void {
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
-    const lines = wrapText(caption.text, captionMaxWidth(W), (t) => ctx.measureText(t).width)
+    const padding = fontSize * PADDING_RATIO
+    // ボックスは文字の左右に余白を足すので、その分だけ折り返し幅を狭め、ボックス全体が 90% に収まるようにする
+    // （行幅が上限ちょうどのとき、ボックスが画面の端に接していた。フォントの違いで CI だけ失敗した）
+    const maxWidth = captionMaxWidth(W) - (caption.presetId === 'box' ? padding * 2 : 0)
+    const lines = wrapText(caption.text, maxWidth, (t) => ctx.measureText(t).width)
     const layout = layoutCaption(lines, caption.position, fontSize, W, H)
 
     const textColor = caption.overrides?.textColor ?? DEFAULT_TEXT_COLOR
     const bgColor = caption.overrides?.bgColor ?? DEFAULT_BG_COLOR[caption.presetId]
-    const padding = fontSize * PADDING_RATIO
     const first = layout.lines[0]
     const last = layout.lines[layout.lines.length - 1]
     const top = first.y - fontSize / 2 - padding
@@ -45,13 +48,12 @@ export function drawCaption(ctx: Ctx, caption: Caption, alpha: number): void {
       ctx.fillStyle = bgColor
       ctx.fillRect(0, top, W, bottom - top)
     } else if (caption.presetId === 'box') {
-      // 文字の幅に合わせた角丸のボックス。左右の余白は画面からはみ出さない範囲で
+      // 文字の幅に合わせた角丸のボックス
       const textWidth = Math.max(...layout.lines.map((l) => ctx.measureText(l.text).width))
-      const sidePadding = Math.min(padding, (W - textWidth) / 2)
-      const left = W / 2 - textWidth / 2 - sidePadding
+      const left = W / 2 - textWidth / 2 - padding
       ctx.fillStyle = bgColor
       ctx.beginPath()
-      ctx.roundRect(left, top, textWidth + sidePadding * 2, bottom - top, padding / 2)
+      ctx.roundRect(left, top, textWidth + padding * 2, bottom - top, padding / 2)
       ctx.fill()
     }
 
