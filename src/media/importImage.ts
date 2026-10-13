@@ -10,51 +10,99 @@ export type ImportedImage = {
 }
 
 /**
- * 写真を読み込み、長辺が maxLongSide 以下になるよう縮小した ImageBitmap を返す。
- * createImageBitmap は既定で EXIF の回転を適用するので、アプリ側で回転しない。
- *
- * 注意: 元の寸法を知るために一度フルサイズでデコードしている。
- * 大きな写真では一時的にメモリを使うので、縮小後すぐに元の bitmap を close する。
+ * 写真を読み込み、長辺が出力の長辺 × PHOTO_SCALE_FACTOR 以下になるよう縮小した ImageBitmap を返す。
+ * 寸法は <img> の load で読み、デコードは縮小指定付きの createImageBitmap で行う。
+ * 以前はフルサイズでデコードしてから縮小しており、iPhone の 12MP 写真でもたついた。
+ * この形にして iPhone（iOS 18.7）で体感で速くなった（<img> がいつデコードするかはブラウザ次第で、
+ * 「デコードは 1 回」と仕様で保証されているわけではない）。
+ * EXIF の回転は <img> も createImageBitmap も既定で適用する（対象は Safari 16.4 以上、plan §要件）ので、
+ * アプリ側では回転しない。
  */
 export async function importImage(
   file: File,
   outputWidth: number,
   outputHeight: number,
 ): Promise<ImportedImage> {
-  let full: ImageBitmap
+  const img = await loadImageElement(file)
+  const original = { width: img.naturalWidth, height: img.naturalHeight }
+  if (original.width === 0 || original.height === 0) {
+    // 固有の寸法を持たない画像（SVG など）。0 で割ると先の計算が壊れるのでここで止める
+    throw new MediaError('この写真は読み込めませんでした。JPEG または PNG を選んでください。')
+  }
+  const maxLongSide = Math.max(outputWidth, outputHeight) * PHOTO_SCALE_FACTOR
+  const scale = Math.min(1, maxLongSide / Math.max(original.width, original.height))
+  const width = Math.round(original.width * scale)
+  const height = Math.round(original.height * scale)
+
+  let bitmap: ImageBitmap
   try {
-    full = await createImageBitmap(file)
+    bitmap =
+      scale < 1
+        ? await createImageBitmap(file, {
+            resizeWidth: width,
+            resizeHeight: height,
+            // 出力の 2 倍の大きさに縮めるので medium で足りる。high は Chrome で目に見えて遅い
+            resizeQuality: 'medium',
+          })
+        : await createImageBitmap(file)
   } catch {
     throw new MediaError('この写真は読み込めませんでした。JPEG または PNG を選んでください。')
   }
 
-  const maxLongSide = Math.max(outputWidth, outputHeight) * PHOTO_SCALE_FACTOR
-  const longSide = Math.max(full.width, full.height)
-  if (longSide <= maxLongSide) {
-    return {
-      bitmap: full,
-      width: full.width,
-      height: full.height,
-      originalWidth: full.width,
-      originalHeight: full.height,
-    }
+  // 保険: createImageBitmap が縮小や EXIF の回転を期待どおりに適用しなかったとき（フルサイズのまま、
+  // または縦横比が <img> の寸法と食い違う）は、<img> から Canvas で縮小して向きと寸法を揃える。
+  // 対象ブラウザ（Safari 16.4 以上、Chrome）では通らない想定で、通ったら support-matrix に記録する。
+  const expectedRatio = original.width / original.height
+  const actualRatio = bitmap.width / bitmap.height
+  const mismatched = Math.abs(actualRatio - expectedRatio) > 0.01
+  if (bitmap.width > width || bitmap.height > height || mismatched) {
+    bitmap.close()
+    bitmap = await shrinkWithCanvas(img, width, height)
   }
 
-  // close() したあとは width/height が 0 になるので、先に控えておく
-  const originalWidth = full.width
-  const originalHeight = full.height
-  const scale = maxLongSide / longSide
-  const width = Math.round(originalWidth * scale)
-  const height = Math.round(originalHeight * scale)
-  try {
-    const resized = await createImageBitmap(full, {
-      resizeWidth: width,
-      resizeHeight: height,
-      resizeQuality: 'high',
-    })
-    return { bitmap: resized, width, height, originalWidth, originalHeight }
-  } finally {
-    // 縮小に成功しても失敗しても、フルサイズのビットマップは必ず閉じる
-    full.close()
+  return {
+    bitmap,
+    width: bitmap.width,
+    height: bitmap.height,
+    originalWidth: original.width,
+    originalHeight: original.height,
   }
+}
+
+/** <img> に読ませる。寸法（EXIF 回転適用後）が取れ、保険の縮小にも使う。Object URL は必ず解放する */
+function loadImageElement(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      const isHeic = /\.(heic|heif)$/i.test(file.name) || /hei[cf]/.test(file.type)
+      reject(
+        new MediaError(
+          isHeic
+            ? 'この端末では HEIC の写真を読めません。JPEG で撮り直すか、PC で変換してください。'
+            : 'この写真は読み込めませんでした。JPEG または PNG を選んでください。',
+        ),
+      )
+    }
+    img.src = url
+  })
+}
+
+async function shrinkWithCanvas(
+  img: HTMLImageElement,
+  width: number,
+  height: number,
+): Promise<ImageBitmap> {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new MediaError('Canvas を作れませんでした。')
+  ctx.drawImage(img, 0, 0, width, height)
+  return createImageBitmap(canvas)
 }
