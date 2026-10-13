@@ -16,6 +16,8 @@ export function PhotoPicker() {
   const importing = useAppStore((s) => s.ui.importing)
   const setImporting = useAppStore((s) => s.setImporting)
   const [message, setMessage] = useState('')
+  const [progress, setProgress] = useState('')
+  const [timing, setTiming] = useState<string[]>([])
 
   async function onPick(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -32,10 +34,22 @@ export function PhotoPicker() {
       info: Parameters<typeof addPhotos>[0][number]['info']
       image: LoadedImage
     }[] = []
+    const targets = picked.slice(0, Math.max(0, room))
+    setTiming([])
     try {
-      for (const file of picked.slice(0, Math.max(0, room))) {
+      for (const [i, file] of targets.entries()) {
+        setProgress(`${i + 1} / ${targets.length} 枚目を読み込み中…`)
         try {
+          const startedAt = performance.now()
           const imported = await importImage(file, preset.width, preset.height)
+          if (import.meta.env.DEV) {
+            // 取り込みの速さを実機で測るための表示（開発サーバーだけ）
+            const ms = Math.round(performance.now() - startedAt)
+            setTiming((t) => [
+              ...t,
+              `${file.name} ${imported.originalWidth}x${imported.originalHeight} ${ms}ms`,
+            ])
+          }
           const itemId = newId()
           photos.push({
             itemId,
@@ -57,6 +71,7 @@ export function PhotoPicker() {
       }
       addPhotos(photos)
     } finally {
+      setProgress('')
       setImporting(false)
     }
   }
@@ -79,8 +94,15 @@ export function PhotoPicker() {
           }}
         />
       </label>
-      {importing && <p className="text-sm text-stone-600">読み込み中…</p>}
+      {progress && <p className="text-sm text-stone-600">{progress}</p>}
       {message && <p className="text-sm text-red-700">{message}</p>}
+      {timing.length > 0 && (
+        <ul className="text-xs text-stone-500">
+          {timing.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }
