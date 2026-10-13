@@ -65,7 +65,14 @@ function readImageSize(file: File): Promise<{ width: number; height: number }> {
     }
     img.onerror = () => {
       URL.revokeObjectURL(url)
-      reject(new MediaError('この写真は読み込めませんでした。JPEG または PNG を選んでください。'))
+      const isHeic = /\.(heic|heif)$/i.test(file.name) || /hei[cf]/.test(file.type)
+      reject(
+        new MediaError(
+          isHeic
+            ? 'この端末では HEIC の写真を読めません。JPEG で撮り直すか、PC で変換してください。'
+            : 'この写真は読み込めませんでした。JPEG または PNG を選んでください。',
+        ),
+      )
     }
     img.src = url
   })

@@ -5,6 +5,9 @@ import { newId } from '../model/ids'
 import { useAppStore, type LoadedImage } from '../state/store'
 import { maxItems } from '../timeline/durations'
 
+/** iPhone / iPad かどうか（案内文の出し分けにだけ使う） */
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent)
+
 /**
  * 写真を複数選んで取り込む。取り込みは直列（iPhone のメモリを一度に使わないため）、
  * store への追加は全部そろってから 1 回（尺の割り直しを 1 回にする）。
@@ -47,7 +50,7 @@ export function PhotoPicker() {
             const ms = Math.round(performance.now() - startedAt)
             setTiming((t) => [
               ...t,
-              `${file.name} ${imported.originalWidth}x${imported.originalHeight} ${ms}ms`,
+              `${file.name} (${file.type || '種類不明'}) ${imported.originalWidth}x${imported.originalHeight} ${ms}ms`,
             ])
           }
           const itemId = newId()
@@ -82,10 +85,11 @@ export function PhotoPicker() {
         <span className="text-sm">
           写真を追加（{count} / {maxItems(preset.totalFrames)} 枚）
         </span>
+        {/* HEIC を明示すると、iOS が JPEG に変換せずそのまま渡すことがある（渡されれば Safari が直接デコードできる） */}
         <input
           className="mt-1 block w-full text-sm"
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif,image/heic,image/heif"
           multiple
           disabled={importing}
           onChange={(e) => {
@@ -94,6 +98,12 @@ export function PhotoPicker() {
           }}
         />
       </label>
+      {IS_IOS && (
+        <p className="text-xs text-stone-500">
+          iPhone で「高効率（HEIC）」で撮った写真は、選んだあと JPEG への変換に時間がかかります。
+          カメラ設定の「フォーマット」を「互換性優先」にすると速くなります。
+        </p>
+      )}
       {progress && <p className="text-sm text-stone-600">{progress}</p>}
       {message && <p className="text-sm text-red-700">{message}</p>}
       {timing.length > 0 && (
