@@ -12,8 +12,9 @@ import type {
 import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
-import { adjustDurations, equalSplit, maxItems } from '../timeline/durations'
-import { clampTrims } from '../timeline/trim'
+import { compileTimeline } from '../timeline/compile'
+import { adjustDurations, equalSplit, maxItemFrames, maxItems } from '../timeline/durations'
+import { clampTrims, trimEndRange } from '../timeline/trim'
 
 // プロジェクトを変える操作。すべて純粋関数で、新しい Project を返す（元は変えない）。
 // 変えられないときは元の Project をそのまま返す（呼び出し側は同一性で判定できる）。
@@ -161,6 +162,29 @@ export function setTrimStart(project: Project, itemId: string, trimStartFrames: 
   const next = withItems(project, items)
   const applied = (next.items[index] as VideoItem).trimStartFrames
   return applied === item.trimStartFrames ? project : next
+}
+
+/**
+ * 動画の終了位置（元動画のどこまで使うか）を設定する。開始位置は変えず、尺を「終了位置 − 開始位置」にする（ADR 014）。
+ * 尺の変更は setItemDuration と同じ規則（最小尺、他の素材の最小尺、差分の比例配分）に従う。
+ * 素材が 1 つのときは尺が総尺で固定なので変えられない（元のまま）。
+ */
+export function setTrimEnd(project: Project, itemId: string, trimEndFrames: number): Project {
+  const index = indexOf(project, itemId)
+  const item = project.items[index]
+  if (!item || item.kind !== 'video') return project
+  if (!Number.isFinite(trimEndFrames)) return project
+  // 元動画の末尾（トランジションで広がる分を除く）より先は使えない。超えた値をそのまま尺にすると、
+  // withItems（clampTrims）が開始位置を手前に戻してしまうので、先に上限に止める
+  const compiled = compileTimeline(project.items)
+  const visibleLength = compiled[index].visibleEnd - compiled[index].visibleStart
+  const range = trimEndRange(
+    item,
+    visibleLength,
+    maxItemFrames(project.items.length, project.preset.totalFrames),
+  )
+  const end = Math.min(trimEndFrames, range.max)
+  return setItemDuration(project, itemId, end - item.trimStartFrames)
 }
 
 // --- 内部の小さな助け ---

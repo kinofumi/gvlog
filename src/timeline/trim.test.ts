@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MediaItem, VideoItem } from '../model/types'
-import { clampTrimStart, clampTrims, maxTrimStart, sourceFrameAt } from './trim'
+import { clampTrimStart, clampTrims, maxTrimStart, sourceFrameAt, trimEndRange } from './trim'
 
 describe('sourceFrameAt（出力フレーム → 元動画のフレーム）', () => {
   it('見え始めた瞬間が trimStart で、1 フレームごとに 1 進む', () => {
@@ -65,5 +65,25 @@ describe('clampTrims（素材の並び全体で開始位置を上限内に収め
     ]
     // b は 15 フレーム早く見え始める → 見える長さ 165、上限 135
     expect((clampTrims(items)[1] as VideoItem).trimStartFrames).toBe(135)
+  })
+})
+
+describe('trimEndRange（終了位置スライダーの範囲）', () => {
+  const item = { trimStartFrames: 90, durationFrames: 120, sourceDurationFrames: 600 }
+
+  it('下限は開始位置 + 最小尺、上限は元動画の末尾（尺の上限に収まる範囲で）', () => {
+    expect(trimEndRange(item, 120, 270)).toEqual({ min: 120, max: 360 })
+    expect(trimEndRange(item, 120, 900)).toEqual({ min: 120, max: 600 })
+  })
+
+  it('トランジションで見える長さが尺より延びる分は、上限から引く（開始位置が切り詰められないように）', () => {
+    // 見える長さ 135 = 尺 120 + 15 → 元動画の末尾 600 から 15 引いた 585 まで
+    expect(trimEndRange(item, 135, 900)).toEqual({ min: 120, max: 585 })
+  })
+
+  it('元動画が最小尺より短いと上限 < 下限になる（スライダーは無効にする）', () => {
+    const short = { trimStartFrames: 0, durationFrames: 100, sourceDurationFrames: 20 }
+    const range = trimEndRange(short, 100, 300)
+    expect(range.max).toBeLessThan(range.min)
   })
 })

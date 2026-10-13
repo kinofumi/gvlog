@@ -1,5 +1,6 @@
 import { useAppStore } from '../state/store'
-import { MIN_ITEM_FRAMES } from '../timeline/durations'
+import { MIN_ITEM_FRAMES, maxItemFrames } from '../timeline/durations'
+import { FrameSlider } from './FrameSlider'
 import { Thumbnail } from './Thumbnail'
 
 /** 素材の一覧: 選択、並べ替え、削除、尺の調整 */
@@ -19,7 +20,7 @@ export function MediaList() {
     return <p className="text-sm text-stone-600">写真や動画を追加すると、ここに並びます。</p>
   }
   // 1 つの素材が取れる最大の尺（他が全員最小尺のとき）
-  const maxFrames = preset.totalFrames - MIN_ITEM_FRAMES * (items.length - 1)
+  const maxFrames = maxItemFrames(items.length, preset.totalFrames)
 
   return (
     <ul className="space-y-2">
@@ -37,23 +38,14 @@ export function MediaList() {
                 {index + 1}. {item.kind === 'video' && '🎬 '}
                 {item.fileName}
               </p>
-              <label className="flex items-center gap-2 text-xs">
-                {/* step は 1 フレーム。3（0.1 秒）にすると均等割りの値が格子に乗らず、つまみと表示がずれる */}
-                <input
-                  className="flex-1"
-                  type="range"
-                  min={MIN_ITEM_FRAMES}
-                  max={maxFrames}
-                  step={1}
-                  value={item.durationFrames}
-                  disabled={items.length === 1 || exporting}
-                  onChange={(e) => setItemDuration(item.itemId, Number(e.target.value))}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className="w-12 text-right tabular-nums">
-                  {(item.durationFrames / preset.fps).toFixed(1)} 秒
-                </span>
-              </label>
+              <FrameSlider
+                min={MIN_ITEM_FRAMES}
+                max={maxFrames}
+                value={item.durationFrames}
+                fps={preset.fps}
+                disabled={items.length === 1 || exporting}
+                onChange={(frames) => setItemDuration(item.itemId, frames)}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <SmallButton

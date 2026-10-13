@@ -3,8 +3,10 @@ import type { KenBurns } from '../model/types'
 import { useAppStore } from '../state/store'
 import { clampTransition } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
+import { maxItemFrames } from '../timeline/durations'
 import { CaptionEditor } from './CaptionEditor'
 import { Chip, ChipGroup } from './Chip'
+import { FrameSlider } from './FrameSlider'
 import { TrimEditor } from './TrimEditor'
 
 const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
@@ -20,16 +22,18 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
 /** クロスフェードを選んだときの最初の長さ（0.5 秒） */
 const DEFAULT_CROSSFADE_FRAMES = 15
 
-/** 選択中の素材の編集: Ken Burns（写真）/ 開始位置（動画）、次へのつなぎ、テロップ */
+/** 選択中の素材の編集: Ken Burns（写真）/ 開始位置と終了位置（動画）、次へのつなぎ、テロップ */
 export function ItemEditor() {
   const items = useAppStore((s) => s.project.items)
   const fps = useAppStore((s) => s.project.preset.fps)
+  const totalFrames = useAppStore((s) => s.project.preset.totalFrames)
   const selectedItemId = useAppStore((s) => s.ui.selectedItemId)
   const setKenBurns = useAppStore((s) => s.setKenBurns)
   const setTrimStart = useAppStore((s) => s.setTrimStart)
+  const setTrimEnd = useAppStore((s) => s.setTrimEnd)
   const setTransition = useAppStore((s) => s.setTransition)
   const setCaption = useAppStore((s) => s.setCaption)
-  // 書き出し中は開始位置を動かさない（プレビューの <video> がシークを始めるため）
+  // 書き出し中は開始位置・終了位置を動かさない（プレビューの <video> がシークを始めるため）
   const exporting = useAppStore((s) => s.ui.exporting)
   // 動画の開始位置の上限は「見える長さ」（トランジション込み）で決まる
   const compiled = useMemo(() => compileTimeline(items), [items])
@@ -71,9 +75,12 @@ export function ItemEditor() {
         <TrimEditor
           item={item}
           visibleLength={compiled[index].visibleEnd - compiled[index].visibleStart}
+          maxDurationFrames={maxItemFrames(items.length, totalFrames)}
+          canChangeDuration={items.length > 1}
           fps={fps}
           disabled={exporting}
-          onChange={(frames) => setTrimStart(item.itemId, frames)}
+          onChangeStart={(frames) => setTrimStart(item.itemId, frames)}
+          onChangeEnd={(frames) => setTrimEnd(item.itemId, frames)}
         />
       )}
 
@@ -98,25 +105,15 @@ export function ItemEditor() {
           />
         </div>
         {isCrossfade && following && (
-          <label className="flex items-center gap-2 text-xs">
-            <input
-              className="flex-1"
-              type="range"
-              min={0}
-              max={maxTransition}
-              step={1}
-              value={crossfadeFrames}
-              onChange={(e) =>
-                setTransition(item.itemId, {
-                  type: 'crossfade',
-                  durationFrames: Number(e.target.value),
-                })
-              }
-            />
-            <span className="w-12 text-right tabular-nums">
-              {(crossfadeFrames / fps).toFixed(1)} 秒
-            </span>
-          </label>
+          <FrameSlider
+            min={0}
+            max={maxTransition}
+            value={crossfadeFrames}
+            fps={fps}
+            onChange={(frames) =>
+              setTransition(item.itemId, { type: 'crossfade', durationFrames: frames })
+            }
+          />
         )}
       </div>
 

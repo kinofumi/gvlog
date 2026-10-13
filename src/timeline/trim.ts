@@ -1,7 +1,16 @@
 import type { MediaItem } from '../model/types'
 import { compileTimeline } from './compile'
+import { MIN_ITEM_FRAMES } from './durations'
 
-// 動画の開始位置（トリム）に関する計算（plan §2.3）。すべてフレーム番号。
+// 動画の開始位置・終了位置（トリム）に関する計算（plan §2.3）。すべてフレーム番号。
+// 保存するのは開始位置と尺だけで、終了位置は「開始位置 + 尺」から求める（終了位置を動かすと尺が変わる）。
+
+/** 終了位置の計算に使う、動画素材の 3 つの値 */
+export type TrimInput = {
+  trimStartFrames: number
+  durationFrames: number
+  sourceDurationFrames: number
+}
 
 /**
  * 出力の frame で、元動画のどのフレームを使うか。
@@ -49,4 +58,22 @@ export function clampTrims(items: MediaItem[]): MediaItem[] {
     )
     return trimStartFrames === item.trimStartFrames ? item : { ...item, trimStartFrames }
   })
+}
+
+/**
+ * 終了位置スライダーの範囲。下限は開始位置 + 最小尺。
+ * 上限は元動画の末尾と「開始位置 + 尺の上限（maxDurationFrames）」の小さい方。
+ * トランジションで見える長さが尺より延びる分（visibleLength − durationFrames）は末尾から引く。
+ * 引かないと、末尾まで使ったときに見える長さが元動画を超え、clampTrims が開始位置を手前に戻してしまう。
+ * 元動画が最小尺より短いときは max < min になる（呼び出し側はスライダーを無効にする）。
+ */
+export function trimEndRange(
+  item: TrimInput,
+  visibleLength: number,
+  maxDurationFrames: number,
+): { min: number; max: number } {
+  const extra = Math.max(0, visibleLength - item.durationFrames)
+  const min = item.trimStartFrames + MIN_ITEM_FRAMES
+  const max = Math.min(item.sourceDurationFrames - extra, item.trimStartFrames + maxDurationFrames)
+  return { min, max }
 }

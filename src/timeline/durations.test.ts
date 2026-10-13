@@ -3,6 +3,7 @@ import {
   adjustDurations,
   checkDurations,
   equalSplit,
+  maxItemFrames,
   maxItems,
   splitProportionally,
 } from './durations'
@@ -34,6 +35,16 @@ describe('maxItems（素材数の上限）', () => {
 
   it('5 秒（150 フレーム）なら 5 個まで', () => {
     expect(maxItems(150)).toBe(5)
+  })
+})
+
+describe('maxItemFrames（1 つの素材が取れる尺の上限 = 他が全員最小尺のときの残り）', () => {
+  it('10 秒で 3 素材なら 300 − 30 × 2 = 240', () => {
+    expect(maxItemFrames(3, 300)).toBe(240)
+  })
+
+  it('素材が 1 つなら総尺そのもの', () => {
+    expect(maxItemFrames(1, 300)).toBe(300)
   })
 })
 
