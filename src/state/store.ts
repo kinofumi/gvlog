@@ -1,20 +1,23 @@
 import { create } from 'zustand'
 import type { ImportedVideo } from '../media/importVideo'
 import { DEFAULT_PRESET } from '../model/defaults'
-import type { Caption, KenBurns, Project, Transition } from '../model/types'
+import type { Caption, KenBurns, PhotoInfo, Project, Transition, VideoInfo } from '../model/types'
 import type { ProvidedImage } from '../render/renderFrame'
 import * as actions from './projectActions'
 
 /** 取り込んだ写真の実体。保存はしない（M4 で IndexedDB の Blob から復元する）。ImageBitmap は store が閉じる */
 export type LoadedImage = ProvidedImage & { image: ImageBitmap }
 
-/** 追加する素材 1 つ分。動画は video も渡す（image はポスター = 先頭フレームの画像） */
-export type NewEntry = {
+/** 追加する写真 1 枚分 */
+export type NewPhoto = { itemId: string; info: PhotoInfo; image: LoadedImage }
+/** 追加する動画 1 本分。image はポスター（先頭フレームの画像）、video は取り込んだ動画の実体 */
+export type NewVideo = {
   itemId: string
-  info: actions.MediaInfo
+  info: VideoInfo
   image: LoadedImage
-  video?: ImportedVideo
+  video: ImportedVideo
 }
+export type NewEntry = NewPhoto | NewVideo
 
 export type AppState = {
   project: Project
@@ -76,8 +79,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     const project = actions.addItems(before, entries)
     const images = { ...get().images }
     const videos = { ...get().videos }
-    for (const { itemId, image, video } of entries) {
-      const isNew = project.items.some((i) => i.itemId === itemId) && !(itemId in images)
+    for (const entry of entries) {
+      const { itemId, image } = entry
+      const video = 'video' in entry ? entry.video : null
+      // この呼び出しで新しく入った素材か（前から同じ ID があれば重複として入らない）
+      const isNew =
+        !before.items.some((i) => i.itemId === itemId) &&
+        project.items.some((i) => i.itemId === itemId) &&
+        !(itemId in images)
       // 入った素材の画像と動画は store が持つ。入らなかった（上限・重複）分は使わないので解放する
       if (isNew) {
         images[itemId] = image
@@ -96,12 +105,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (get().ui.exporting) return
     const project = actions.removeItem(get().project, itemId)
     if (project === get().project) return
-    const images = { ...get().images }
-    images[itemId]?.image.close()
-    delete images[itemId]
-    const videos = { ...get().videos }
-    videos[itemId]?.input.dispose()
-    delete videos[itemId]
+    const { [itemId]: image, ...images } = get().images
+    const { [itemId]: video, ...videos } = get().videos
+    // 先に状態から外してから解放する（解放が失敗しても、閉じた画像が状態に残らない）
     set((s) => ({
       project,
       images,
@@ -113,6 +119,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isPlaying: project.items.length === 0 ? false : s.ui.isPlaying,
       },
     }))
+    image?.image.close()
+    video?.input.dispose()
   },
 
   moveItem: (itemId, toIndex) =>

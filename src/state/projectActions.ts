@@ -1,38 +1,23 @@
-import type { Caption, GroupPreset, KenBurns, MediaItem, Project, Transition } from '../model/types'
+import type {
+  Caption,
+  GroupPreset,
+  KenBurns,
+  MediaInfo,
+  MediaItem,
+  PhotoInfo,
+  Project,
+  Transition,
+  VideoItem,
+} from '../model/types'
 import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
-import { compileTimeline } from '../timeline/compile'
 import { adjustDurations, equalSplit, maxItems } from '../timeline/durations'
-import { clampTrimStart } from '../timeline/trim'
+import { clampTrims } from '../timeline/trim'
 
 // プロジェクトを変える操作。すべて純粋関数で、新しい Project を返す（元は変えない）。
 // 変えられないときは元の Project をそのまま返す（呼び出し側は同一性で判定できる）。
 // 不変条件「尺の合計 = totalFrames」は、素材の増減のたびに均等割りをやり直すことで守る。
-
-/** 写真を追加するときに必要な情報（取り込み結果） */
-export type PhotoInfo = {
-  kind: 'photo'
-  blobKey: string
-  thumbKey: string
-  fileName: string
-  width: number
-  height: number
-}
-
-/** 動画を追加するときに必要な情報（取り込み結果）。寸法は回転適用後 */
-export type VideoInfo = {
-  kind: 'video'
-  blobKey: string
-  thumbKey: string
-  fileName: string
-  width: number
-  height: number
-  /** 元動画の尺（出力 fps 換算） */
-  sourceDurationFrames: number
-}
-
-export type MediaInfo = PhotoInfo | VideoInfo
 
 export function createProject(
   preset: GroupPreset,
@@ -164,19 +149,18 @@ export function setTransition(project: Project, itemId: string, transition: Tran
 }
 
 /**
- * 動画の開始位置（元動画のどこから使うか）を設定する。0〜（元動画の尺 − 見える長さ）に収める。
- * 写真や無い ID、同じ値なら元のまま。
+ * 動画の開始位置（元動画のどこから使うか）を設定する。上限への切り詰めは withItems（clampTrims）に任せる。
+ * 写真や無い ID、切り詰めた結果が同じ値なら元のまま。
  */
 export function setTrimStart(project: Project, itemId: string, trimStartFrames: number): Project {
   const index = indexOf(project, itemId)
   const item = project.items[index]
   if (!item || item.kind !== 'video') return project
-  const compiled = compileTimeline(project.items)[index]
-  const visibleLength = compiled.visibleEnd - compiled.visibleStart
-  const next = clampTrimStart(trimStartFrames, item.sourceDurationFrames, visibleLength)
-  if (next === item.trimStartFrames) return project
-  const items = project.items.map((i, k) => (k === index ? { ...i, trimStartFrames: next } : i))
-  return withItems(project, items)
+  const value = Number.isNaN(trimStartFrames) ? 0 : Math.max(0, Math.floor(trimStartFrames))
+  const items = project.items.map((i, k) => (k === index ? { ...i, trimStartFrames: value } : i))
+  const next = withItems(project, items)
+  const applied = (next.items[index] as VideoItem).trimStartFrames
+  return applied === item.trimStartFrames ? project : next
 }
 
 // --- 内部の小さな助け ---
@@ -211,18 +195,4 @@ function updateItem(
  */
 function withItems(project: Project, items: MediaItem[]): Project {
   return { ...project, items: clampTrims(items), updatedAt: new Date().toISOString() }
-}
-
-function clampTrims(items: MediaItem[]): MediaItem[] {
-  const compiled = compileTimeline(items)
-  return items.map((item, i) => {
-    if (item.kind !== 'video') return item
-    const visibleLength = compiled[i].visibleEnd - compiled[i].visibleStart
-    const trimStartFrames = clampTrimStart(
-      item.trimStartFrames,
-      item.sourceDurationFrames,
-      visibleLength,
-    )
-    return trimStartFrames === item.trimStartFrames ? item : { ...item, trimStartFrames }
-  })
 }

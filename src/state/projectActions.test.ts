@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_PRESET } from '../model/defaults'
-import type { PhotoItem, Project, VideoItem } from '../model/types'
+import type { PhotoInfo, PhotoItem, Project, VideoInfo, VideoItem } from '../model/types'
 import { checkTimeline } from '../timeline/compile'
 import {
   addItems,
@@ -14,8 +14,6 @@ import {
   setMeta,
   setTransition,
   setTrimStart,
-  type PhotoInfo,
-  type VideoInfo,
 } from './projectActions'
 
 const photoInfo = (n: number): PhotoInfo => ({

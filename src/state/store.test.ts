@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ImportedVideo } from '../media/importVideo'
-import type { VideoItem } from '../model/types'
-import type { PhotoInfo, VideoInfo } from './projectActions'
+import type { PhotoInfo, VideoInfo, VideoItem } from '../model/types'
 import { useAppStore, type LoadedImage } from './store'
 
 function fakeImage(): LoadedImage {
