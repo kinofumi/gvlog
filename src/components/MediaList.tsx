@@ -1,9 +1,10 @@
 import { useAppStore } from '../state/store'
 import { MIN_ITEM_FRAMES, maxItemFrames } from '../timeline/durations'
 import { FrameSlider } from './FrameSlider'
+import { ItemEditor } from './ItemEditor'
 import { Thumbnail } from './Thumbnail'
 
-/** 素材の一覧: 選択、並べ替え、削除、尺の調整 */
+/** 素材の一覧: 選択、並べ替え、削除、尺の調整。選んだ素材のすぐ下に設定（ItemEditor）を出す */
 export function MediaList() {
   const items = useAppStore((s) => s.project.items)
   const preset = useAppStore((s) => s.project.preset)
@@ -29,44 +30,58 @@ export function MediaList() {
         return (
           <li
             key={item.itemId}
-            className={`flex gap-3 rounded border p-2 ${selected ? 'border-stone-900' : 'border-stone-300'}`}
+            className={`rounded border p-2 ${selected ? 'border-stone-900' : 'border-stone-300'}`}
             onClick={() => select(item.itemId)}
           >
-            <Thumbnail source={images[item.itemId]} />
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="truncate text-sm">
-                {index + 1}. {item.kind === 'video' && '🎬 '}
-                {item.fileName}
-              </p>
-              <FrameSlider
-                min={MIN_ITEM_FRAMES}
-                max={maxFrames}
-                value={item.durationFrames}
-                fps={preset.fps}
-                disabled={items.length === 1 || exporting}
-                onChange={(frames) => setItemDuration(item.itemId, frames)}
-              />
+            <div className="flex gap-3">
+              <Thumbnail source={images[item.itemId]} />
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="truncate text-sm">
+                  {index + 1}. {item.kind === 'video' && '🎬 '}
+                  {item.fileName}
+                </p>
+                <FrameSlider
+                  min={MIN_ITEM_FRAMES}
+                  max={maxFrames}
+                  value={item.durationFrames}
+                  fps={preset.fps}
+                  disabled={items.length === 1 || exporting}
+                  onChange={(frames) => setItemDuration(item.itemId, frames)}
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <SmallButton
+                  label="▲"
+                  disabled={index === 0 || exporting}
+                  onClick={() => moveItem(item.itemId, index - 1)}
+                />
+                <SmallButton
+                  label="▼"
+                  disabled={index === items.length - 1 || exporting}
+                  onClick={() => moveItem(item.itemId, index + 1)}
+                />
+                <SmallButton
+                  label="削除"
+                  disabled={exporting}
+                  onClick={() => removeItem(item.itemId)}
+                />
+              </div>
             </div>
-            <div className="flex flex-col gap-1">
-              <SmallButton
-                label="▲"
-                disabled={index === 0 || exporting}
-                onClick={() => moveItem(item.itemId, index - 1)}
-              />
-              <SmallButton
-                label="▼"
-                disabled={index === items.length - 1 || exporting}
-                onClick={() => moveItem(item.itemId, index + 1)}
-              />
-              <SmallButton
-                label="削除"
-                disabled={exporting}
-                onClick={() => removeItem(item.itemId)}
-              />
-            </div>
+            {selected && (
+              // 設定の中のタップで選択をやり直さない（同じ素材なので害はないが、無駄な更新を避ける）
+              <div
+                className="mt-3 border-t border-stone-200 pt-3"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ItemEditor item={item} index={index} />
+              </div>
+            )}
           </li>
         )
       })}
+      {selectedItemId === null && (
+        <p className="text-sm text-stone-600">素材をタップすると、その下に設定が出ます。</p>
+      )}
     </ul>
   )
 }
