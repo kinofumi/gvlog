@@ -1,11 +1,4 @@
-import type {
-  Caption,
-  GroupPreset,
-  KenBurns,
-  MediaItem,
-  Project,
-  Transition,
-} from '../model/types'
+import type { Caption, GroupPreset, KenBurns, MediaItem, Project, Transition } from '../model/types'
 import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'

@@ -1,13 +1,11 @@
 import { CanvasSink, type WrappedCanvas } from 'mediabunny'
 import type { ImportedVideo } from '../media/importVideo'
-import type { Segment } from '../timeline/compile'
 
 /**
- * 書き出しのとき、各フレームで描く画像を用意する役。
+ * 書き出しのとき、動画の各フレームで描く画像を用意する役。
  * デコードは非同期なので prepare() で待ち、get() は同期で必ず画像を返す。
- * prepare() は区間の先頭から 1 フレームずつ順に呼ぶこと（飛ばし読みはしない）。
+ * prepare() は見える区間の先頭から 1 フレームずつ順に呼ぶこと（飛ばし読みはしない）。
  * 自分で作った資源（デコーダ）は dispose() で解放する。呼び出し側から受け取った資源は解放しない。
- * dispose() は解放が終わるまで待てるよう Promise を返す。
  */
 export interface FrameSource {
   prepare(frame: number): Promise<void>
@@ -18,39 +16,10 @@ export interface FrameSource {
 }
 
 /**
- * 写真: 常に同じビットマップを返す。
- * ビットマップの持ち主は呼び出し側（画面の状態）なので、ここでは close しない。
- * 書き出しのたびに閉じてしまうと、2 回目の書き出しで描けなくなる。
- */
-export class PhotoFrameSource implements FrameSource {
-  private readonly bitmap: ImageBitmap
-
-  constructor(bitmap: ImageBitmap) {
-    this.bitmap = bitmap
-  }
-
-  async prepare(): Promise<void> {}
-
-  get(): CanvasImageSource {
-    return this.bitmap
-  }
-
-  width(): number {
-    return this.bitmap.width
-  }
-
-  height(): number {
-    return this.bitmap.height
-  }
-
-  async dispose(): Promise<void> {}
-}
-
-/**
- * 動画: 区間の各フレームに対応する元動画の時刻を先に並べ、
+ * 動画: 見える区間の各フレームに対応する元動画の時刻を先に並べ、
  * mediabunny の canvasesAtTimestamps() に渡して順にデコードしてもらう。
  * 「その時刻以下で最新のフレーム」の選択と、末尾フレームのホールドはライブラリがやる。
- * CanvasSink が回転と cover フィットも済ませるので、アプリ側で回転しない。
+ * CanvasSink が回転と cover フィットも済ませる（出力サイズのキャンバスを返す）ので、アプリ側で回転しない。
  */
 export class VideoFrameSource implements FrameSource {
   private readonly sink: CanvasSink
@@ -61,9 +30,10 @@ export class VideoFrameSource implements FrameSource {
 
   constructor(
     video: ImportedVideo,
-    segment: Segment,
+    visibleStart: number,
+    visibleEnd: number,
+    trimStartFrames: number,
     fps: number,
-    trimStartSec: number,
     outputWidth: number,
     outputHeight: number,
   ) {
@@ -76,11 +46,10 @@ export class VideoFrameSource implements FrameSource {
       poolSize: 2,
     })
 
-    // 素材内の時刻: 動画の先頭フレームの時刻（0 とは限らない）を基準に、
-    // 見え始めた瞬間を trimStartSec とし、1 フレームずつ進める
+    // 素材内の時刻の規則（plan §2.3）: 見え始めた瞬間が trimStart。動画の先頭時刻（0 とは限らない）を足す
     const timestamps: number[] = []
-    for (let frame = segment.start; frame < segment.end; frame++) {
-      timestamps.push(video.firstTimestampSec + trimStartSec + (frame - segment.start) / fps)
+    for (let frame = visibleStart; frame < visibleEnd; frame++) {
+      timestamps.push(video.firstTimestampSec + (trimStartFrames + (frame - visibleStart)) / fps)
     }
     this.frames = this.sink.canvasesAtTimestamps(timestamps)
   }

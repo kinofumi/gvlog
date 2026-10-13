@@ -1,18 +1,20 @@
 import { useState } from 'react'
+import { useAppStore } from '../state/store'
 import type { GroupPreset } from '../model/types'
 import { EXPORT_BITRATE, probeAll, type ProbeResult } from '../export/codec'
 import { Button } from './ui/Button'
 
 type Props = {
   preset: GroupPreset
-  /** 再生中などはボタンを押せなくする */
-  disabled: boolean
 }
 
 /** M0 の診断: この端末で H.264 のどの設定が実際にエンコードできるかを一覧にする */
-export function EncodeProbePanel({ preset, disabled }: Props) {
+export function EncodeProbePanel({ preset }: Props) {
   const [probes, setProbes] = useState<ProbeResult[] | null>(null)
-  const [probing, setProbing] = useState(false)
+  // 診断中は store に知らせる（書き出しと同時にエンコーダを動かさないため）。書き出し中・再生中は押せない
+  const probing = useAppStore((s) => s.ui.probing)
+  const setProbing = useAppStore((s) => s.setProbing)
+  const disabled = useAppStore((s) => s.ui.exporting || s.ui.isPlaying)
 
   async function onProbe() {
     setProbing(true)

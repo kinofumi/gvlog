@@ -19,6 +19,7 @@ export function PhotoPicker() {
   const count = useAppStore((s) => s.project.items.length)
   const addPhotos = useAppStore((s) => s.addPhotos)
   const importing = useAppStore((s) => s.ui.importing)
+  const exporting = useAppStore((s) => s.ui.exporting)
   const setImporting = useAppStore((s) => s.setImporting)
   const [message, setMessage] = useState('')
   const [progress, setProgress] = useState('')
@@ -93,7 +94,7 @@ export function PhotoPicker() {
           type="file"
           accept="image/*"
           multiple
-          disabled={importing}
+          disabled={importing || exporting}
           onChange={(e) => {
             void onPick(e.target.files)
             e.target.value = ''

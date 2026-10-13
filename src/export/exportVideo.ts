@@ -1,19 +1,12 @@
-import { BufferTarget, CanvasSource, Mp4OutputFormat, Output } from 'mediabunny'
-import type { GroupPreset } from '../model/types'
-import type { ImportedVideo } from '../media/importVideo'
-import { compileSegments, segmentAt, type Segment } from '../timeline/compile'
-import { equalSplit } from '../timeline/durations'
-import { drawCover } from '../render/drawCover'
-import { EXPORT_BITRATE, pickEncoder } from './codec'
+import type { Project } from '../model/types'
+import type { Ctx } from '../render/ctx'
+import { renderFrame, type ProvidedImage } from '../render/renderFrame'
+import { compileTimeline, type CompiledItem } from '../timeline/compile'
+import { pickEncoder, EXPORT_BITRATE } from './codec'
+import { createMp4Encoder, type FrameEncoder } from './encoder'
 import { formatError } from './formatError'
-import { PhotoFrameSource, VideoFrameSource, type FrameSource } from './frameSource'
-
-/** M0 の入力: 写真 1 枚と動画 1 本（どちらか片方でもよい） */
-export type ExportInput = {
-  preset: GroupPreset
-  photo: ImageBitmap | null
-  video: ImportedVideo | null
-}
+import { createFrameProvider, type ExportFrameProvider } from './frameProvider'
+import type { FrameSource } from './frameSource'
 
 export type ExportProgress = {
   frame: number
@@ -22,8 +15,7 @@ export type ExportProgress = {
 
 export type ExportResult = {
   blob: Blob
-  fullCodecString: string
-  latencyMode: string
+  codecString: string
   elapsedMs: number
 }
 
@@ -34,116 +26,133 @@ export class ExportCancelled extends Error {
   }
 }
 
+/** ループが依存するもの。実物は exportProject が組み立て、テストではフェイクを渡す */
+export type ExportDeps = {
+  /** タイムライン。provider と renderFrame が同じものを見る */
+  compiled: CompiledItem[]
+  ctx: Ctx
+  provider: ExportFrameProvider
+  encoder: FrameEncoder
+}
+
 /**
- * 写真と動画を cut でつないで、プリセットどおりの無音 MP4 を書き出す。
- * main thread で動く。1 フレームごとに「非同期で用意 → 同期で描く → エンコードを待つ」を繰り返す。
+ * 書き出しのループ。1 フレームごとに「非同期で用意 → 同期で描く（renderFrame）→ エンコードを待つ」を繰り返す。
+ * プレビューと同じ renderFrame を使うので、見た目が揃う。
+ * 失敗・キャンセルのどちらでもエンコーダを止め、デコーダは必ず解放する。
+ * 失敗時は、どの設定で失敗したかを文に含める（実機での原因切り分け用）。後始末の失敗は元の失敗に併記する。
+ * 成功したあとで解放に失敗したときは、できた MP4 を捨てず、警告だけ出して返す。
  */
-export async function exportVideo(
-  input: ExportInput,
+export async function exportFrames(
+  project: Project,
+  deps: ExportDeps,
+  onProgress: (p: ExportProgress) => void,
+  signal: AbortSignal,
+): Promise<Blob> {
+  const { fps, totalFrames } = project.preset
+  const { compiled, ctx, provider, encoder } = deps
+  let result: Blob | null = null
+  let failure: unknown = null
+
+  try {
+    if (project.items.length === 0) throw new Error('素材がありません。')
+    await encoder.start()
+    for (let frame = 0; frame < totalFrames; frame++) {
+      if (signal.aborted) throw new ExportCancelled()
+      await provider.prepare(frame)
+      renderFrame(compiled, project.items, frame, ctx, provider)
+      await encoder.add(frame / fps, 1 / fps)
+      if (frame % 10 === 0) onProgress({ frame, totalFrames })
+    }
+    // 最後のフレームや finalize を待っている間にキャンセルされた場合も、成功として返さない
+    if (signal.aborted) throw new ExportCancelled()
+    result = await encoder.finalize()
+    if (signal.aborted) throw new ExportCancelled()
+    onProgress({ frame: totalFrames, totalFrames })
+  } catch (error) {
+    failure =
+      error instanceof ExportCancelled
+        ? error
+        : new Error(`${formatError(error)}（${encoder.usedCodecString()}）`, { cause: error })
+    // 失敗・キャンセルのどちらでもエンコーダを止める（finalize 済みなら何もしない）
+    try {
+      await encoder.cancel()
+    } catch (cancelError) {
+      failure = withCleanupError(failure, cancelError)
+    }
+  }
+
+  // 成功でも失敗でもデコーダは必ず解放し、解放が終わるまで待つ
+  try {
+    await provider.dispose()
+  } catch (disposeError) {
+    if (failure === null) {
+      // MP4 はできている。解放の失敗は利用者には直せないので、捨てずに警告だけ出す
+      console.warn('書き出しは完了しましたが、デコーダの解放に失敗しました。', disposeError)
+    } else {
+      failure = withCleanupError(failure, disposeError)
+    }
+  }
+
+  if (failure !== null) throw failure
+  return result as Blob
+}
+
+/** 元の失敗を残したまま、後始末の失敗を文に足す。キャンセルはキャンセルのまま（後始末の失敗は警告に出す） */
+function withCleanupError(original: unknown, cleanup: unknown): unknown {
+  if (original instanceof ExportCancelled) {
+    console.warn('キャンセルの後始末に失敗しました。', cleanup)
+    return original
+  }
+  const message = original instanceof Error ? original.message : String(original)
+  return new Error(`${message} 後始末にも失敗: ${formatError(cleanup)}`, { cause: original })
+}
+
+/**
+ * プロジェクトを無音 MP4 に書き出す（実物の組み立て）。
+ * 1. 使える H.264 の設定を選ぶ（2 回目以降は覚えた値）。この間は進捗が出ないので onProbing で知らせる
+ * 2. 出力サイズの Canvas、画像の供給役、エンコーダを用意して exportFrames を回す
+ * videos は M3(B) で動画素材のデコーダを渡す。写真だけなら空。
+ * 受け取ったデコーダは、exportFrames に渡す前に失敗したときもここで解放する。
+ */
+export async function exportProject(
+  project: Project,
+  photos: Record<string, ProvidedImage>,
+  videos: Map<string, FrameSource>,
   onProgress: (p: ExportProgress) => void,
   signal: AbortSignal,
 ): Promise<ExportResult> {
-  const { preset } = input
   const startedAt = performance.now()
-
-  // 1. 素材の確認（安い検査を先に）と、タイムライン: 素材を均等割りで並べる（M0 はトランジション無し）
-  const itemIds: string[] = []
-  if (input.photo) itemIds.push('photo')
-  if (input.video) itemIds.push('video')
-  if (itemIds.length === 0) throw new Error('素材がありません。')
-
-  // 2. この端末で使える H.264 の設定を、実際に数フレームをエンコードして選ぶ（2 回目以降は覚えた値）
-  const choice = await pickEncoder(preset.width, preset.height, preset.fps, EXPORT_BITRATE, signal)
-  if (signal.aborted) throw new ExportCancelled()
-  if (!choice) {
-    throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
-  }
-
-  const durations = equalSplit(itemIds.length, preset.totalFrames)
-  const segments = compileSegments(
-    itemIds.map((itemId, i) => ({ itemId, durationFrames: durations[i] })),
-  )
-
-  // 3. 各素材のフレーム供給役を作る
-  const sources = new Map<string, FrameSource>()
-  const canvas = document.createElement('canvas')
-  canvas.width = preset.width
-  canvas.height = preset.height
-  const ctx = canvas.getContext('2d')
-  if (!ctx) throw new Error('Canvas を作れませんでした。')
-
-  let usedCodecString = choice.fullCodecString ?? '(auto)'
-  const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
-  const canvasSource = new CanvasSource(canvas, {
-    codec: 'avc',
-    bitrate: EXPORT_BITRATE,
-    keyFrameInterval: 1,
-    latencyMode: choice.latencyMode,
-    fullCodecString: choice.fullCodecString,
-    // 実際に使われたエンコーダ設定を控えておく（失敗時の表示用）
-    onEncoderConfig: (config) => {
-      usedCodecString = config.codec
-    },
-  })
-  output.addVideoTrack(canvasSource, { frameRate: preset.fps })
-
+  const { width, height, fps } = project.preset
+  let handedOver = false
   try {
-    if (input.photo) sources.set('photo', new PhotoFrameSource(input.photo))
-    if (input.video) {
-      const segment = findSegment(segments, 'video')
-      sources.set(
-        'video',
-        new VideoFrameSource(input.video, segment, preset.fps, 0, preset.width, preset.height),
-      )
-    }
-
-    await output.start()
-
-    // 4. フレームループ
-    for (let frame = 0; frame < preset.totalFrames; frame++) {
-      if (signal.aborted) throw new ExportCancelled()
-
-      const segment = segmentAt(segments, frame)
-      if (!segment) throw new Error(`フレーム ${frame} に対応する素材がありません。`)
-      const source = sources.get(segment.itemId)
-      if (!source) throw new Error(`素材 ${segment.itemId} が見つかりません。`)
-
-      await source.prepare(frame)
-      drawCover(ctx, source.get(), source.width(), source.height())
-      await canvasSource.add(frame / preset.fps, 1 / preset.fps)
-
-      if (frame % 10 === 0) onProgress({ frame, totalFrames: preset.totalFrames })
-    }
-
-    // 最後のフレームを待っている間にキャンセルされた場合も、成功として返さない
+    if (project.items.length === 0) throw new Error('素材がありません。')
+    const choice = await pickEncoder(width, height, fps, EXPORT_BITRATE, signal)
     if (signal.aborted) throw new ExportCancelled()
-    await output.finalize()
-    const buffer = output.target.buffer
-    if (!buffer) throw new Error('書き出し結果が空でした。')
-    onProgress({ frame: preset.totalFrames, totalFrames: preset.totalFrames })
+    if (!choice)
+      throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
 
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas を作れませんでした。')
+
+    const compiled = compileTimeline(project.items)
+    const encoder = createMp4Encoder(canvas, fps, choice)
+    const provider = createFrameProvider(compiled, photos, videos)
+    handedOver = true
+    const blob = await exportFrames(
+      project,
+      { compiled, ctx, provider, encoder },
+      onProgress,
+      signal,
+    )
     return {
-      blob: new Blob([buffer as BlobPart], { type: 'video/mp4' }),
-      fullCodecString: usedCodecString,
-      latencyMode: choice.latencyMode,
+      blob,
+      codecString: encoder.usedCodecString(),
       elapsedMs: performance.now() - startedAt,
     }
-  } catch (error) {
-    // 失敗・キャンセルのどちらでも Output は閉じる（finalize 済みなら何もしない）
-    await output.cancel().catch(() => {})
-    if (error instanceof ExportCancelled) throw error
-    // どの設定で失敗したかを含めて投げ直す（iPhone での原因切り分け用）
-    throw new Error(`${formatError(error)}（${usedCodecString} / ${choice.latencyMode}）`, {
-      cause: error,
-    })
   } finally {
-    // 失敗でも成功でも、デコーダは必ず解放し、解放が終わるまで待つ
-    for (const source of sources.values()) await source.dispose()
+    if (!handedOver) await Promise.allSettled([...videos.values()].map((v) => v.dispose()))
   }
-}
-
-function findSegment(segments: Segment[], itemId: string): Segment {
-  const segment = segments.find((s) => s.itemId === itemId)
-  if (!segment) throw new Error(`素材 ${itemId} の区間がありません。`)
-  return segment
 }

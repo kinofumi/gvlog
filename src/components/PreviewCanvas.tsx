@@ -13,6 +13,8 @@ export function PreviewCanvas() {
   const seek = useAppStore((s) => s.seek)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const hasItems = useAppStore((s) => s.project.items.length > 0)
+  // 書き出し中は CPU を取り合わないよう再生しない
+  const exporting = useAppStore((s) => s.ui.exporting)
 
   return (
     <section className="space-y-2">
@@ -25,7 +27,7 @@ export function PreviewCanvas() {
         {/* 再生中は素材が無くても止められるようにする */}
         <Button
           className="w-24"
-          disabled={!hasItems && !isPlaying}
+          disabled={(!hasItems && !isPlaying) || exporting}
           onClick={() => setPlaying(!isPlaying)}
         >
           {isPlaying ? '停止' : '再生'}

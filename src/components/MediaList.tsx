@@ -12,6 +12,8 @@ export function MediaList() {
   const moveItem = useAppStore((s) => s.moveItem)
   const removeItem = useAppStore((s) => s.removeItem)
   const setItemDuration = useAppStore((s) => s.setItemDuration)
+  // 書き出し中は使用中の画像を閉じてしまう操作（削除・並べ替え）と尺の変更を止める
+  const exporting = useAppStore((s) => s.ui.exporting)
 
   if (items.length === 0) {
     return <p className="text-sm text-stone-600">写真を追加すると、ここに並びます。</p>
@@ -43,7 +45,7 @@ export function MediaList() {
                   max={maxFrames}
                   step={1}
                   value={item.durationFrames}
-                  disabled={items.length === 1}
+                  disabled={items.length === 1 || exporting}
                   onChange={(e) => setItemDuration(item.itemId, Number(e.target.value))}
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -55,15 +57,19 @@ export function MediaList() {
             <div className="flex flex-col gap-1">
               <SmallButton
                 label="▲"
-                disabled={index === 0}
+                disabled={index === 0 || exporting}
                 onClick={() => moveItem(item.itemId, index - 1)}
               />
               <SmallButton
                 label="▼"
-                disabled={index === items.length - 1}
+                disabled={index === items.length - 1 || exporting}
                 onClick={() => moveItem(item.itemId, index + 1)}
               />
-              <SmallButton label="削除" onClick={() => removeItem(item.itemId)} />
+              <SmallButton
+                label="削除"
+                disabled={exporting}
+                onClick={() => removeItem(item.itemId)}
+              />
             </div>
           </li>
         )
