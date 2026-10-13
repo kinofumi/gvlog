@@ -44,6 +44,34 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
     expect(second.image.close).toHaveBeenCalledTimes(1)
   })
 
+  it('まとめて追加すると、入った分だけ画像を持ち、入らなかった分は閉じる', () => {
+    const imgs = Array.from({ length: 3 }, fakeImage)
+    useAppStore.getState().addPhotos([
+      { itemId: 'a', info, image: imgs[0] },
+      { itemId: 'a', info, image: imgs[1] },
+      { itemId: 'b', info, image: imgs[2] },
+    ])
+    expect(useAppStore.getState().project.items.map((i) => i.itemId)).toEqual(['a', 'b'])
+    expect(useAppStore.getState().images.a).toBe(imgs[0])
+    expect(imgs[0].image.close).not.toHaveBeenCalled()
+    expect(imgs[1].image.close).toHaveBeenCalledTimes(1)
+    expect(imgs[2].image.close).not.toHaveBeenCalled()
+  })
+
+  it('再生中に最後の素材を外したら再生を止める', () => {
+    useAppStore.getState().addPhoto('p1', info, fakeImage())
+    useAppStore.getState().setPlaying(true)
+    useAppStore.getState().removeItem('p1')
+    expect(useAppStore.getState().ui.isPlaying).toBe(false)
+  })
+
+  it('同じフレームへの seek は状態を変えない', () => {
+    useAppStore.getState().seek(10)
+    const ui = useAppStore.getState().ui
+    useAppStore.getState().seek(10)
+    expect(useAppStore.getState().ui).toBe(ui)
+  })
+
   it('seek は 0〜totalFrames−1 の整数に収め、数でない値は無視する', () => {
     useAppStore.getState().seek(-5)
     expect(useAppStore.getState().ui.playheadFrame).toBe(0)

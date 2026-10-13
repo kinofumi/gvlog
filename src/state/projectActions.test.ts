@@ -4,6 +4,7 @@ import type { PhotoItem, Project } from '../model/types'
 import { checkTimeline } from '../timeline/compile'
 import {
   addPhoto,
+  addPhotos,
   createProject,
   moveItem,
   removeItem,
@@ -70,6 +71,30 @@ describe('addPhoto（写真を末尾に追加し、尺を均等に割り直す�
   it('追加後も不変条件を満たす', () => {
     const p = withPhotos(7)
     expect(checkTimeline(p.items, p.preset.totalFrames)).toEqual([])
+  })
+})
+
+describe('addPhotos（複数をまとめて追加。均等割りは 1 回だけ）', () => {
+  it('まとめて追加しても 1 枚ずつ追加したのと同じ結果', () => {
+    const p = addPhotos(withPhotos(1), [
+      { itemId: 'p2', info: photoInfo(2) },
+      { itemId: 'p3', info: photoInfo(3) },
+    ])
+    expect(p.items.map((i) => i.itemId)).toEqual(['p1', 'p2', 'p3'])
+    expect(durations(p)).toEqual([100, 100, 100])
+  })
+
+  it('上限を超える分は入れず、重複 ID は飛ばす。1 枚も入らなければ元のまま', () => {
+    const nine = withPhotos(9)
+    const p = addPhotos(nine, [
+      { itemId: 'p1', info: photoInfo(1) },
+      { itemId: 'p10', info: photoInfo(10) },
+      { itemId: 'p11', info: photoInfo(11) },
+    ])
+    expect(p.items).toHaveLength(10)
+    expect(p.items[9].itemId).toBe('p10')
+    const ten = withPhotos(10)
+    expect(addPhotos(ten, [{ itemId: 'p11', info: photoInfo(11) }])).toBe(ten)
   })
 })
 

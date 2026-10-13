@@ -5,32 +5,28 @@ import { Button } from './ui/Button'
 
 type Props = {
   preset: GroupPreset
-  /** 書き出し中などはボタンを押せなくする */
+  /** 再生中などはボタンを押せなくする */
   disabled: boolean
-  /** 診断の開始・終了を親に知らせる（診断中は書き出しを止めるため） */
-  onProbingChange: (probing: boolean) => void
 }
 
 /** M0 の診断: この端末で H.264 のどの設定が実際にエンコードできるかを一覧にする */
-export function EncodeProbePanel({ preset, disabled, onProbingChange }: Props) {
+export function EncodeProbePanel({ preset, disabled }: Props) {
   const [probes, setProbes] = useState<ProbeResult[] | null>(null)
   const [probing, setProbing] = useState(false)
 
   async function onProbe() {
     setProbing(true)
-    onProbingChange(true)
     setProbes(null)
     try {
       setProbes(await probeAll(preset.width, preset.height, preset.fps, EXPORT_BITRATE))
     } finally {
       setProbing(false)
-      onProbingChange(false)
     }
   }
 
   return (
     <section className="space-y-2">
-      <Button variant="secondary" disabled={disabled} onClick={onProbe}>
+      <Button variant="secondary" disabled={disabled || probing} onClick={onProbe}>
         {probing ? 'エンコードテスト中…' : 'エンコードテスト（診断）'}
       </Button>
       {probes && (
