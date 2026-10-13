@@ -85,11 +85,11 @@ export function PhotoPicker() {
         <span className="text-sm">
           写真を追加（{count} / {maxItems(preset.totalFrames)} 枚）
         </span>
-        {/* HEIC を明示すると、iOS が JPEG に変換せずそのまま渡すことがある（渡されれば Safari が直接デコードできる） */}
+        {/* iOS は accept に HEIC を書いても JPEG に変換して渡す（2026-10-13 に iOS 18.7 で確認）。image/* で十分 */}
         <input
           className="mt-1 block w-full text-sm"
           type="file"
-          accept="image/*,.heic,.heif,image/heic,image/heif"
+          accept="image/*"
           multiple
           disabled={importing}
           onChange={(e) => {
