@@ -4,17 +4,17 @@
 確認した端末と日付を記録する。
 
 ## 端末
-- iPhone（Safari、iOS バージョン: ）
-- Android（Chrome、機種: ）
+- iPhone（Safari、iOS バージョン: 18.7 / Safari 27.0、2026-10-08）
+- Android（Chrome、機種: Android 10 / Chrome 154、2026-10-09）
 - PC（Chrome / Safari）
 
 ## M0 成立検証（縦割り）
-- [ ] HTTPS（plugin-basic-ssl）の開発サーバーにスマホから接続できる
-- [ ] 写真 1 枚 + iPhone の縦 HEVC 動画 1 本から、1080x1920 / 30fps / 10 秒 / 無音の MP4 が書き出せる
+- [x] HTTPS（plugin-basic-ssl）の開発サーバーにスマホから接続できる（iPhone、2026-10-08）
+- [ ] 写真 1 枚 + iPhone の縦 HEVC 動画 1 本から、1080x1920 / 30fps / 10 秒 / 無音の MP4 が書き出せる（iPhone、H.264 の縦動画では成功。HEVC は未確認）
 - [ ] 縦撮り動画が正しい向きで出力される（回転の二重適用なし）
 - [ ] HDR 動画（iPhone 既定）の色が極端に変わらない。変わる場合は取り込み拒否の判断を記録する
-- [ ] iPhone: 共有ボタンから「ビデオを保存」で写真アプリに入る
-- [ ] Android: ダウンロードまたは共有でギャラリーに入る
+- [x] iPhone: 共有ボタンから「ビデオを保存」で写真アプリに入る（iPhone、2026-10-08）
+- [x] Android: ダウンロードまたは共有でギャラリーに入る（「フォト」で再生確認、2026-10-09）
 - [ ] PC: `scripts/verify-output.sh` で属性と冒頭・境界・末尾フレームを確認
 - [ ] CapCut に読み込んで並べられる
 - [ ] 結果（OS バージョン、機種、成否）を `docs/support-matrix.md` に記録

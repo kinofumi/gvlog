@@ -4,7 +4,7 @@ import type { ImportedVideo } from '../media/importVideo'
 import { compileSegments, segmentAt, type Segment } from '../timeline/compile'
 import { equalSplit } from '../timeline/durations'
 import { drawCover } from '../render/renderFrame'
-import { pickH264 } from './codec'
+import { describe, pickEncoder } from './codec'
 import { PhotoFrameSource, VideoFrameSource, type FrameSource } from './frameSource'
 
 /** M0 の入力: 写真 1 枚と動画 1 本（どちらか片方でもよい） */
@@ -22,6 +22,7 @@ export type ExportProgress = {
 export type ExportResult = {
   blob: Blob
   fullCodecString: string
+  latencyMode: string
   elapsedMs: number
 }
 
@@ -47,8 +48,8 @@ export async function exportVideo(
   const { preset } = input
   const startedAt = performance.now()
 
-  // 1. この端末で使える H.264 を実際のサイズと fps で判定する
-  const choice = await pickH264(preset.width, preset.height, preset.fps, BITRATE)
+  // 1. この端末で使える H.264 の設定を、実際に数フレームをエンコードして選ぶ
+  const choice = await pickEncoder(preset.width, preset.height, preset.fps, BITRATE)
   if (!choice) {
     throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
   }
@@ -71,13 +72,18 @@ export async function exportVideo(
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Canvas を作れませんでした。')
 
+  let usedCodecString = choice.fullCodecString ?? '(auto)'
   const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
   const canvasSource = new CanvasSource(canvas, {
     codec: 'avc',
     bitrate: BITRATE,
     keyFrameInterval: 1,
-    latencyMode: 'quality',
+    latencyMode: choice.latencyMode,
     fullCodecString: choice.fullCodecString,
+    // 実際に使われたエンコーダ設定を控えておく（失敗時の表示用）
+    onEncoderConfig: (config) => {
+      usedCodecString = config.codec
+    },
   })
   output.addVideoTrack(canvasSource, { frameRate: preset.fps })
 
@@ -118,13 +124,16 @@ export async function exportVideo(
 
     return {
       blob: new Blob([buffer as BlobPart], { type: 'video/mp4' }),
-      fullCodecString: choice.fullCodecString,
+      fullCodecString: usedCodecString,
+      latencyMode: choice.latencyMode,
       elapsedMs: performance.now() - startedAt,
     }
   } catch (error) {
     // 失敗・キャンセルのどちらでも Output は閉じる（finalize 済みなら何もしない）
     await output.cancel().catch(() => {})
-    throw error
+    if (error instanceof ExportCancelled) throw error
+    // どの設定で失敗したかを含めて投げ直す（iPhone での原因切り分け用）
+    throw new Error(`${describe(error)}（${usedCodecString} / ${choice.latencyMode}）`)
   } finally {
     // 失敗でも成功でも、デコーダは必ず解放し、解放が終わるまで待つ
     for (const source of sources.values()) await source.dispose()

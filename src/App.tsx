@@ -5,6 +5,7 @@ import { importVideo, type ImportedVideo } from './media/importVideo'
 import { MediaError } from './media/errors'
 import { ExportCancelled, exportVideo, type ExportProgress } from './export/exportVideo'
 import { buildFileName } from './export/naming'
+import { probeAll, type ProbeResult } from './export/codec'
 import { canShareFile, downloadFile, shareFile } from './export/share'
 
 // M0 の最小 UI: 写真 1 枚と動画 1 本を選び、10 秒の無音 MP4 を書き出して保存する。
@@ -13,7 +14,7 @@ import { canShareFile, downloadFile, shareFile } from './export/share'
 type Phase =
   | { kind: 'idle' }
   | { kind: 'exporting'; progress: ExportProgress }
-  | { kind: 'done'; file: File; fullCodecString: string; elapsedMs: number }
+  | { kind: 'done'; file: File; fullCodecString: string; latencyMode: string; elapsedMs: number }
   | { kind: 'error'; message: string }
 
 export default function App() {
@@ -26,7 +27,20 @@ export default function App() {
   const [importing, setImporting] = useState(false)
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' })
   const [shareMessage, setShareMessage] = useState('')
+  const [probes, setProbes] = useState<ProbeResult[] | null>(null)
+  const [probing, setProbing] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+
+  // M0 の診断: この端末で H.264 のどの設定が実際にエンコードできるかを一覧にする
+  async function onProbe() {
+    setProbing(true)
+    setProbes(null)
+    try {
+      setProbes(await probeAll(preset.width, preset.height, preset.fps, 8_000_000))
+    } finally {
+      setProbing(false)
+    }
+  }
 
   // 前の素材は、新しい素材が読み込めてから（または失敗が確定してから）解放する。
   // await の前に閉じると、読み込みが重なったときに違う素材を閉じてしまう。
@@ -52,7 +66,9 @@ export default function App() {
       replacePhoto(await importImage(file, preset.width, preset.height))
     } catch (error) {
       replacePhoto(null)
-      setMediaMessage(error instanceof MediaError ? error.message : '写真の読み込みに失敗しました。')
+      setMediaMessage(
+        error instanceof MediaError ? error.message : '写真の読み込みに失敗しました。',
+      )
     } finally {
       setImporting(false)
     }
@@ -66,7 +82,9 @@ export default function App() {
       replaceVideo(await importVideo(file))
     } catch (error) {
       replaceVideo(null)
-      setMediaMessage(error instanceof MediaError ? error.message : '動画の読み込みに失敗しました。')
+      setMediaMessage(
+        error instanceof MediaError ? error.message : '動画の読み込みに失敗しました。',
+      )
     } finally {
       setImporting(false)
     }
@@ -93,6 +111,7 @@ export default function App() {
         kind: 'done',
         file,
         fullCodecString: result.fullCodecString,
+        latencyMode: result.latencyMode,
         elapsedMs: result.elapsedMs,
       })
     } catch (error) {
@@ -110,7 +129,8 @@ export default function App() {
     const outcome = await shareFile(file)
     if (outcome === 'shared') setShareMessage('共有しました。')
     if (outcome === 'cancelled') setShareMessage('')
-    if (outcome === 'failed') setShareMessage('共有できませんでした。「ダウンロード」をお試しください。')
+    if (outcome === 'failed')
+      setShareMessage('共有できませんでした。「ダウンロード」をお試しください。')
   }
 
   // 書き出し中や取り込み中は、素材を差し替えられないようにする（使用中の資源を閉じてしまうため）
@@ -122,7 +142,8 @@ export default function App() {
       <header>
         <h1 className="text-xl font-bold">groupe-vlog（M0 検証版）</h1>
         <p className="text-sm text-stone-600">
-          {preset.width}x{preset.height} / {preset.fps}fps / {preset.totalFrames / preset.fps} 秒 / 無音 MP4
+          {preset.width}x{preset.height} / {preset.fps}fps / {preset.totalFrames / preset.fps} 秒 /
+          無音 MP4
         </p>
       </header>
 
@@ -160,7 +181,8 @@ export default function App() {
         </label>
         {photo && (
           <p className="text-xs text-stone-600">
-            読み込み済み: {photo.originalWidth}x{photo.originalHeight} → {photo.width}x{photo.height}
+            読み込み済み: {photo.originalWidth}x{photo.originalHeight} → {photo.width}x
+            {photo.height}
           </p>
         )}
 
@@ -226,7 +248,8 @@ export default function App() {
           <div className="space-y-2">
             <p className="text-sm">
               完了: {phase.file.name}（{(phase.file.size / 1024 / 1024).toFixed(1)} MB、
-              {(phase.elapsedMs / 1000).toFixed(1)} 秒、{phase.fullCodecString}）
+              {(phase.elapsedMs / 1000).toFixed(1)} 秒、{phase.fullCodecString} /{' '}
+              {phase.latencyMode}）
             </p>
             {canShareFile(phase.file) && (
               <button
@@ -244,6 +267,45 @@ export default function App() {
             </button>
             {shareMessage && <p className="text-sm">{shareMessage}</p>}
           </div>
+        )}
+      </section>
+
+      <section className="space-y-2">
+        <button
+          className="w-full rounded border border-stone-400 px-4 py-3 disabled:text-stone-400"
+          disabled={probing || busy}
+          onClick={onProbe}
+        >
+          {probing ? 'エンコードテスト中…' : 'エンコードテスト（診断）'}
+        </button>
+        {probes && (
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="text-left text-stone-500">
+                <th>コーデック</th>
+                <th>mode</th>
+                <th>判定</th>
+                <th>実際</th>
+                <th>ms</th>
+              </tr>
+            </thead>
+            <tbody>
+              {probes.map((p) => (
+                <tr
+                  key={`${p.fullCodecString}-${p.latencyMode}`}
+                  className="border-t border-stone-200"
+                >
+                  <td>{p.fullCodecString ?? '(auto)'}</td>
+                  <td>{p.latencyMode}</td>
+                  <td>{p.claimed ? '可' : '不可'}</td>
+                  <td className={p.encodeOk ? 'text-green-700' : 'text-red-700'}>
+                    {p.encodeOk ? '成功' : p.error}
+                  </td>
+                  <td>{p.ms}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </section>
 
