@@ -95,7 +95,7 @@ export function ExportPanel() {
     <section className="space-y-3">
       {!exporting && (
         <Button disabled={!canExport} onClick={onExport}>
-          書き出す
+          動画を生成
         </Button>
       )}
 
@@ -130,7 +130,7 @@ export function ExportPanel() {
             {(phase.elapsedMs / 1000).toFixed(1)} 秒、{phase.codecString}）
           </p>
           {canShareFile(phase.file) && (
-            <Button onClick={() => onShare(phase.file)}>共有（写真に保存）</Button>
+            <Button onClick={() => onShare(phase.file)}>保存・共有</Button>
           )}
           <Button variant="secondary" onClick={() => downloadFile(phase.file)}>
             ダウンロード
