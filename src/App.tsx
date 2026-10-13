@@ -4,9 +4,10 @@ import { ItemEditor } from './components/ItemEditor'
 import { MediaList } from './components/MediaList'
 import { MediaPicker } from './components/MediaPicker'
 import { PreviewCanvas } from './components/PreviewCanvas'
+import { Section } from './components/Section'
 import { useAppStore } from './state/store'
 
-// 写真と動画を複数入れて、尺・動き・開始位置・テロップを編集し、プレビューで確かめて、無音 MP4 に書き出す。
+// 写真と動画を複数入れて、尺・動き・開始位置・終了位置・テロップを編集し、プレビューで確かめて、無音 MP4 に書き出す。
 // 見た目の調整は M5。
 
 export default function App() {
@@ -45,11 +46,20 @@ export default function App() {
         </label>
       </section>
 
-      <PreviewCanvas />
+      {/* 上から順に作業する並び: 選ぶ → 素材 → 設定 → プレビュー → 生成 → 保存 */}
       <MediaPicker />
-      <MediaList />
-      <ItemEditor />
-      <ExportPanel />
+      <Section title="素材">
+        <MediaList />
+      </Section>
+      <Section title="素材の設定">
+        <ItemEditor />
+      </Section>
+      <Section title="動画のプレビュー">
+        <PreviewCanvas />
+      </Section>
+      <Section title="書き出し">
+        <ExportPanel />
+      </Section>
 
       <EncodeProbePanel preset={preset} />
 
