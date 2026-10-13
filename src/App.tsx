@@ -1,12 +1,13 @@
 import { EncodeProbePanel } from './components/EncodeProbePanel'
+import { ExportPanel } from './components/ExportPanel'
 import { ItemEditor } from './components/ItemEditor'
 import { MediaList } from './components/MediaList'
 import { PhotoPicker } from './components/PhotoPicker'
 import { PreviewCanvas } from './components/PreviewCanvas'
 import { useAppStore } from './state/store'
 
-// M2 の画面: 写真を複数入れて、尺・動き・テロップを編集し、プレビューで確かめる。
-// 書き出しは M3 でタイムラインにつなぎ直す（M0 の書き出しは src/export/ に残してある）。
+// 写真を複数入れて、尺・動き・テロップを編集し、プレビューで確かめて、無音 MP4 に書き出す。
+// 動画素材は M3(B) で足す。
 // 見た目の調整は M5。
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
   return (
     <main className="mx-auto max-w-md space-y-6 px-4 py-6">
       <header>
-        <h1 className="text-xl font-bold">gvlog（M2 プレビュー版）</h1>
+        <h1 className="text-xl font-bold">gvlog（M3 検証版）</h1>
         <p className="text-sm text-stone-600">
           {preset.width}x{preset.height} / {preset.fps}fps / {preset.totalFrames / preset.fps} 秒 /
           無音 MP4
@@ -50,6 +51,7 @@ export default function App() {
       <PhotoPicker />
       <MediaList />
       <ItemEditor />
+      <ExportPanel />
 
       {/* 診断はエンコーダを使うので、再生中は押せないようにする */}
       <EncodeProbePanel preset={preset} disabled={isPlaying} />
