@@ -2,28 +2,35 @@ import { useState } from 'react'
 import { EncodeProbePanel } from './components/EncodeProbePanel'
 import { EventGuide } from './components/EventGuide'
 import { ExportPanel } from './components/ExportPanel'
+import { JoinPanel } from './components/JoinPanel'
 import { MediaList } from './components/MediaList'
 import { MediaPicker } from './components/MediaPicker'
 import { PreviewCanvas } from './components/PreviewCanvas'
 import { Section } from './components/Section'
 import { TabBar } from './components/TabBar'
 import { TipsGuide } from './components/TipsGuide'
+import { TotalDuration } from './components/TotalDuration'
+import { buildFileName } from './export/naming'
 import { useAppStore } from './state/store'
 
-// 3 つのタブ: 「イベントの栞」（当日の予定と地図）、「おすすめポイント」（撮っておくとよい場面）、
+// 4 つのタブ: 「イベントの栞」（当日の予定と地図）、「おすすめポイント」（撮っておくとよい場面）、
 // 「動画編集」（写真と動画を複数入れて、尺・動き・開始位置・終了位置・テロップを編集し、プレビューで確かめて、
-// 無音 MP4 に書き出す）。見た目の調整は M5。
+// 無音 MP4 に書き出す）、「つなげる」（全員の MP4 を集めて白フェードでつなぎ 1 本にする。ADR 017）。見た目の調整は M5。
 
-type Tab = 'guide' | 'tips' | 'editor'
+type Tab = 'guide' | 'tips' | 'editor' | 'join'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'guide', label: 'イベントの栞' },
   { id: 'tips', label: 'おすすめ' },
   { id: 'editor', label: '動画編集' },
+  { id: 'join', label: 'つなげる' },
 ]
 
 export default function App() {
-  const preset = useAppStore((s) => s.project.preset)
-  const meta = useAppStore((s) => s.project.meta)
+  const project = useAppStore((s) => s.project)
+  const images = useAppStore((s) => s.images)
+  const videos = useAppStore((s) => s.videos)
+  const preset = project.preset
+  const meta = project.meta
   const setMeta = useAppStore((s) => s.setMeta)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const [tab, setTab] = useState<Tab>('guide')
@@ -85,10 +92,21 @@ export default function App() {
           <PreviewCanvas />
         </Section>
         <Section title="書き出し">
-          <ExportPanel />
+          {project.items.length > 0 && <TotalDuration />}
+          <ExportPanel
+            project={project}
+            images={images}
+            videos={videos}
+            fileName={buildFileName(preset.name, meta.memberName, meta.spot)}
+          />
         </Section>
 
         <EncodeProbePanel preset={preset} />
+      </div>
+
+      {/* つなげるタブも隠すだけ（集めた動画を捨てないため） */}
+      <div className={tab === 'join' ? '' : 'hidden'}>
+        <JoinPanel />
       </div>
 
       <footer className="text-xs text-stone-500">
