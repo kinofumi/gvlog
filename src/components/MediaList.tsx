@@ -33,19 +33,19 @@ export function MediaList() {
       <ul className="space-y-2">
         {items.map((item, index) => {
           const selected = item.itemId === selectedItemId
-          const { coreStart, coreEnd } = compiled[index]
-          // 上限を超えた部分の案内。全部はみ出すコマは薄く表示する
-          const cutNote =
-            coreStart >= maxFrames
-              ? '（上限を超えるので入りません）'
-              : coreEnd > maxFrames
-                ? `（${((maxFrames - coreStart) / fps).toFixed(1)} 秒で切れます）`
-                : ''
+          // 上限を超えた部分の案内。クロスフェードで早く見え始める分も含めた「見える区間」で判定する
+          const { visibleStart, visibleEnd } = compiled[index]
+          const outside = visibleStart >= maxFrames
+          const cutNote = outside
+            ? '（上限を超えるので入りません）'
+            : visibleEnd > maxFrames
+              ? `（${((maxFrames - visibleStart) / fps).toFixed(1)} 秒で切れます）`
+              : ''
           return (
             <li
               key={item.itemId}
               className={`rounded border p-2 ${selected ? 'border-stone-900' : 'border-stone-300'} ${
-                coreStart >= maxFrames ? 'opacity-50' : ''
+                outside ? 'opacity-50' : ''
               }`}
               onClick={() => select(item.itemId)}
             >

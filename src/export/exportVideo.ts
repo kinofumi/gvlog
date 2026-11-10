@@ -136,10 +136,12 @@ export async function exportProject(
   try {
     if (project.items.length === 0) throw new Error('素材がありません。')
     const compiled = compileTimeline(project.items)
+    const durations = project.items.map((i) => i.durationFrames)
     sources = await createVideoSources(
       compiled,
       project.items,
       videos,
+      outputFrames(durations, project.preset.maxFrames),
       (video, visibleStart, visibleEnd, trimStartFrames) =>
         new VideoFrameSource(video, visibleStart, visibleEnd, trimStartFrames, fps, width, height),
     )

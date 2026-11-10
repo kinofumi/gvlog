@@ -38,7 +38,7 @@ export type AppState = {
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
-  /** まとめて追加（均等割りは 1 回）。入らなかった素材の画像と動画は解放する */
+  /** まとめて追加（初期の尺は残りを追加分で均等に割る）。入らなかった素材の画像と動画は解放する */
   addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void
@@ -118,6 +118,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         selectedItemId: s.ui.selectedItemId === itemId ? null : s.ui.selectedItemId,
         // 素材が無くなったら再生も止める（止めるボタンが押せなくなるのを防ぐ）
         isPlaying: project.items.length === 0 ? false : s.ui.isPlaying,
+        playheadFrame: clampPlayhead(s.ui.playheadFrame, project),
       },
     }))
     image?.image.close()
@@ -127,7 +128,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   moveItem: (itemId, toIndex) =>
     set((s) => ({ project: actions.moveItem(s.project, itemId, toIndex) })),
   setItemDuration: (itemId, frames) =>
-    set((s) => ({ project: actions.setItemDuration(s.project, itemId, frames) })),
+    set((s) => withProject(s, actions.setItemDuration(s.project, itemId, frames))),
   setKenBurns: (itemId, presetId) =>
     set((s) => ({ project: actions.setKenBurns(s.project, itemId, presetId) })),
   setCaption: (itemId, caption) =>
@@ -137,7 +138,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTrimStart: (itemId, trimStartFrames) =>
     set((s) => ({ project: actions.setTrimStart(s.project, itemId, trimStartFrames) })),
   setTrimEnd: (itemId, trimEndFrames) =>
-    set((s) => ({ project: actions.setTrimEnd(s.project, itemId, trimEndFrames) })),
+    set((s) => withProject(s, actions.setTrimEnd(s.project, itemId, trimEndFrames))),
 
   select: (selectedItemId) => set((s) => ({ ui: { ...s.ui, selectedItemId } })),
   seek: (frame) => {
@@ -160,3 +161,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setExporting: (exporting) => set((s) => ({ ui: { ...s.ui, exporting } })),
   setProbing: (probing) => set((s) => ({ ui: { ...s.ui, probing } })),
 }))
+
+/** 再生位置を出力の長さ（0〜末尾）に収める。尺を縮めたり素材を外したりすると、今の位置が範囲の外に出るため */
+function clampPlayhead(playheadFrame: number, project: Project): number {
+  return Math.max(0, Math.min(playheadFrame, actions.outputFramesOf(project) - 1))
+}
+
+/** project を置き換え、再生位置も範囲に収める（尺が変わる操作で使う） */
+function withProject(s: AppState, project: Project): Pick<AppState, 'project' | 'ui'> {
+  if (project === s.project) return { project, ui: s.ui }
+  return { project, ui: { ...s.ui, playheadFrame: clampPlayhead(s.ui.playheadFrame, project) } }
+}

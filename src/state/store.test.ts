@@ -120,6 +120,18 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
     expect(useAppStore.getState().ui.playheadFrame).toBe(10)
   })
 
+  it('尺を縮めたり素材を外したりして再生位置が範囲の外に出たら、末尾に戻す（レビュー: Codex 1）', () => {
+    addPhoto('p1', fakeImage())
+    addPhoto('p2', fakeImage()) // 450 + 30
+    useAppStore.getState().seek(400)
+    useAppStore.getState().setItemDuration('p1', 90) // 出力 120 フレーム
+    expect(useAppStore.getState().ui.playheadFrame).toBe(119)
+    useAppStore.getState().removeItem('p1') // 出力 30 フレーム
+    expect(useAppStore.getState().ui.playheadFrame).toBe(29)
+    useAppStore.getState().removeItem('p2') // 素材なし
+    expect(useAppStore.getState().ui.playheadFrame).toBe(0)
+  })
+
   it('動画を追加するとポスター画像と動画が入り、外すと両方を解放する', () => {
     const img = fakeImage()
     const video = fakeVideo()

@@ -7,7 +7,6 @@ import {
   maxItems,
   outputFrames,
   overflowFrames,
-  splitProportionally,
   sumFrames,
 } from './durations'
 
@@ -102,36 +101,5 @@ describe('checkDurations（尺の規則）', () => {
 
   it('素材が 0 なら問題なし（空のタイムライン）', () => {
     expect(checkDurations([])).toEqual([])
-  })
-})
-
-describe('splitProportionally（整数の比例配分）', () => {
-  it('重みに比例して分け、合計は必ず指定量になる', () => {
-    expect(splitProportionally(60, [100, 200])).toEqual([20, 40])
-  })
-
-  it('端数は切り捨てで捨てた量が大きい順に 1 ずつ足す', () => {
-    // 10 を 1:1:1 に分けると 3.33 ずつ。端数が同じなら先頭から
-    expect(splitProportionally(10, [1, 1, 1])).toEqual([4, 3, 3])
-    // 7 を 1:2 に分けると 2.33 と 4.67。端数の大きい後ろが先に +1
-    expect(splitProportionally(7, [1, 2])).toEqual([2, 5])
-  })
-
-  it('量が 0 なら何も配らない（重みがすべて 0 でもよい）', () => {
-    expect(splitProportionally(0, [0, 0])).toEqual([0, 0])
-  })
-
-  it('正の量を配る先がない（重みがすべて 0）のはプログラムの誤りなので投げる', () => {
-    expect(() => splitProportionally(10, [0, 0])).toThrow()
-  })
-
-  it('量が負や非整数なのはプログラムの誤りなので投げる', () => {
-    expect(() => splitProportionally(-1, [1, 1])).toThrow()
-    expect(() => splitProportionally(0.5, [1, 1])).toThrow()
-  })
-
-  it('重みに負や NaN が混ざるのもプログラムの誤りなので投げる', () => {
-    expect(() => splitProportionally(10, [-1, 2])).toThrow()
-    expect(() => splitProportionally(10, [Number.NaN, 1])).toThrow()
   })
 })

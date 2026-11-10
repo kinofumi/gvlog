@@ -1,4 +1,3 @@
-import { outputFramesOf } from '../state/projectActions'
 import { useAppStore } from '../state/store'
 import { overflowFrames, sumFrames } from '../timeline/durations'
 
@@ -13,18 +12,19 @@ export function TotalDuration() {
   const total = sumFrames(durations)
   const overflow = overflowFrames(durations, preset.maxFrames)
   const sec = (frames: number) => (frames / preset.fps).toFixed(1)
+  // 超過分は切り上げる（1 フレームの超過を「0.0 秒」と出さない）
+  const overflowSec = (Math.ceil((overflow / preset.fps) * 10) / 10).toFixed(1)
   if (overflow > 0) {
     return (
       <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-        合計 {sec(total)} 秒。上限の {sec(preset.maxFrames)} 秒を超えた末尾 {sec(overflow)}{' '}
+        合計 {sec(total)} 秒。上限の {sec(preset.maxFrames)} 秒を超えた末尾 {overflowSec}{' '}
         秒は、生成する動画に入りません。コマの尺を短くしてください。
       </p>
     )
   }
   return (
     <p className="text-sm text-stone-600">
-      合計 {sec(total)} 秒（上限 {sec(preset.maxFrames)} 秒）。生成する動画は{' '}
-      {sec(outputFramesOf(useAppStore.getState().project))} 秒です。
+      合計 {sec(total)} 秒（上限 {sec(preset.maxFrames)} 秒）。生成する動画は {sec(total)} 秒です。
     </p>
   )
 }

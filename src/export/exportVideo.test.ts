@@ -2,7 +2,7 @@ import { createCanvas } from '@napi-rs/canvas'
 import { describe, expect, it, vi } from 'vitest'
 import { DEFAULT_PRESET } from '../model/defaults'
 import type { ProvidedImage } from '../render/renderFrame'
-import { addItems, createProject } from '../state/projectActions'
+import { addItems, createProject, setItemDuration } from '../state/projectActions'
 import type { PhotoInfo } from '../model/types'
 import type { FrameEncoder } from './encoder'
 import { compileTimeline } from '../timeline/compile'
@@ -90,6 +90,40 @@ describe('exportFrames（書き出しのループ）', () => {
     expect(encoder.added).toEqual(Array.from({ length: 30 }, (_, i) => i))
     expect(encoder.finalized).toBe(true)
     expect(provider.disposed).toBe(true)
+  })
+
+  it('合計が上限に満たなければ、その長さだけ書き出す（レビュー: Codex 4）', async () => {
+    // 上限 60 フレームのプリセットに 1 枚（60）を入れ、30 に縮める
+    const short = setItemDuration(
+      addItems(createProject({ ...preset, maxFrames: 60 }, { memberName: '', spot: '' }), [
+        { itemId: 'p1', info },
+      ]),
+      'p1',
+      30,
+    )
+    const encoder = fakeEncoder()
+    const progress = vi.fn()
+    await exportFrames(
+      short,
+      { compiled: compileTimeline(short.items), ctx: ctx(), provider: fakeProvider(), encoder },
+      progress,
+      signalOf(),
+    )
+    expect(encoder.added).toHaveLength(30)
+    expect(progress).toHaveBeenLastCalledWith({ frame: 30, totalFrames: 30 })
+  })
+
+  it('合計が上限を超えていたら、上限のフレーム数で止める（レビュー: Claude 8）', async () => {
+    // 2 枚で 30 のところ、1 枚目を 30 に伸ばして合計 45 > 上限 30
+    const over = setItemDuration(project, 'p1', 30)
+    const encoder = fakeEncoder()
+    await exportFrames(
+      over,
+      { compiled: compileTimeline(over.items), ctx: ctx(), provider: fakeProvider(), encoder },
+      () => {},
+      signalOf(),
+    )
+    expect(encoder.added).toHaveLength(30)
   })
 
   it('進捗は 10 フレームごとと最後に通知される', async () => {

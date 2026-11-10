@@ -14,7 +14,9 @@ export function maxItems(maxFrames: number): number {
  */
 export function equalSplit(n: number, frames: number): number[] {
   if (n <= 0) return []
-  return splitProportionally(frames, new Array<number>(n).fill(1))
+  const base = Math.floor(frames / n)
+  const extra = frames - base * n
+  return Array.from({ length: n }, (_, i) => (i < extra ? base + 1 : base))
 }
 
 /**
@@ -47,39 +49,6 @@ export function outputFrames(durations: number[], maxFrames: number): number {
 /** 上限を超えている分（0 なら収まっている）。利用者への注意表示に使う */
 export function overflowFrames(durations: number[], maxFrames: number): number {
   return Math.max(0, sumFrames(durations) - maxFrames)
-}
-
-/**
- * amount を weights に比例した整数に分ける。合計は必ず amount。
- * 端数は「切り捨てで捨てた量が大きい順」に 1 ずつ足す（最大剰余方式）。
- */
-export function splitProportionally(amount: number, weights: number[]): number[] {
-  // 量が負・非整数、または配る先がないのは呼び出し側の誤り。黙って変な値を返すより止める
-  if (!Number.isInteger(amount) || amount < 0) {
-    throw new Error(`配る量は 0 以上の整数にしてください: ${amount}`)
-  }
-  if (!weights.every((w) => Number.isFinite(w) && w >= 0)) {
-    throw new Error(`重みは 0 以上の数にしてください: ${weights.join(', ')}`)
-  }
-  const totalWeight = weights.reduce((sum, w) => sum + w, 0)
-  if (totalWeight === 0) {
-    if (amount === 0) return weights.map(() => 0)
-    throw new Error('重みがすべて 0 なので配れません。')
-  }
-
-  const exact = weights.map((w) => (amount * w) / totalWeight)
-  const parts = exact.map(Math.floor)
-  let leftover = amount - parts.reduce((sum, p) => sum + p, 0)
-
-  const order = exact
-    .map((value, i) => ({ i, fraction: value - Math.floor(value) }))
-    .sort((a, b) => b.fraction - a.fraction || a.i - b.i)
-  for (const { i } of order) {
-    if (leftover === 0) break
-    parts[i] += 1
-    leftover -= 1
-  }
-  return parts
 }
 
 /**
