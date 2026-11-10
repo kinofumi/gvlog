@@ -65,8 +65,8 @@ gvlog/
   src/
     main.tsx, App.tsx               # タブ 2 つ（イベントの栞 / 動画編集）を useState で切替（react-router 不使用）。編集タブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # TabBar, Section, EventGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel
-    **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, mapsLink.ts（Google マップの検索 URL）
+    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel
+    **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, tips.ts（おすすめポイントのデータ）, mapsLink.ts（Google マップの検索 URL）
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
