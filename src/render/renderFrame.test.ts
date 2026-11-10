@@ -97,6 +97,35 @@ describe('renderFrame（1 フレームの合成）', () => {
     expect(b).toBeLessThan(136)
   })
 
+  it('fadeWhite の中央は真っ白、始まりは前の色のまま、終わりの直前はほぼ後の色', () => {
+    const items = [
+      photo('a', 150, { transitionOut: { type: 'fadeWhite', durationFrames: 10 } }),
+      photo('b', 150),
+    ]
+    const images = { a: solid('#f00'), b: solid('#00f') }
+    // 区間 [145, 155)。145 は進行度 0、150 は 0.5、154 は 0.9
+    expect(render(items, images, 145)(45, 80)).toEqual([255, 0, 0, 255])
+    expect(render(items, images, 150)(45, 80)).toEqual([255, 255, 255, 255])
+    const [r, g, b] = render(items, images, 154)(45, 80)
+    expect(b).toBe(255)
+    expect(r).toBeGreaterThan(40)
+    expect(r).toBeLessThan(62)
+    expect(g).toBe(r)
+  })
+
+  it('fadeWhite の前半は前の色に白が混ざり、後の素材はまだ見えない', () => {
+    const items = [
+      photo('a', 150, { transitionOut: { type: 'fadeWhite', durationFrames: 10 } }),
+      photo('b', 150),
+    ]
+    // 147 は進行度 0.2 → 白の不透明度 0.4。赤 + 白 0.4 = (255, 102, 102)
+    const [r, g, b] = render(items, { a: solid('#f00'), b: solid('#00f') }, 147)(45, 80)
+    expect(r).toBe(255)
+    expect(g).toBeGreaterThan(94)
+    expect(g).toBeLessThan(110)
+    expect(b).toBe(g)
+  })
+
   it('Ken Burns の中心を左端にすると左側（赤）が、右端にすると右側（青）が見える', () => {
     const at = (cx: number) =>
       render(

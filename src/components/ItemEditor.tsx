@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { KenBurns, MediaItem } from '../model/types'
+import type { KenBurns, MediaItem, Transition } from '../model/types'
 import { useAppStore } from '../state/store'
 import { clampTransition } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
@@ -18,8 +18,15 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
   { id: 'panBT', label: '下→上' },
 ]
 
-/** クロスフェードを選んだときの最初の長さ（0.5 秒） */
-const DEFAULT_CROSSFADE_FRAMES = 15
+/** クロスフェード・白フェードを選んだときの最初の長さ（0.5 秒） */
+const DEFAULT_TRANSITION_FRAMES = 15
+
+/** つなぎの種類のチップ。cut 以外は長さのスライダーを出す */
+const TRANSITIONS: { id: Transition['type']; label: string }[] = [
+  { id: 'cut', label: 'カット' },
+  { id: 'crossfade', label: 'クロスフェード' },
+  { id: 'fadeWhite', label: '白フェード' },
+]
 
 type Props = {
   /** 編集する素材と、一覧での位置（MediaList が選択中の素材の下に置く） */
@@ -46,10 +53,9 @@ export function ItemEditor({ item, index }: Props) {
   const maxTransition = following
     ? clampTransition(Number.MAX_SAFE_INTEGER, item.durationFrames, following.durationFrames)
     : 0
-  // 長さ 0 のクロスフェードは描画上カットと同じなので、カットとして見せる
-  const crossfadeFrames =
-    item.transitionOut?.type === 'crossfade' ? item.transitionOut.durationFrames : 0
-  const isCrossfade = crossfadeFrames > 0
+  // 長さ 0 のつなぎは描画上カットと同じなので、カットとして見せる
+  const transition = item.transitionOut ?? { type: 'cut', durationFrames: 0 }
+  const transitionType = transition.durationFrames > 0 ? transition.type : 'cut'
 
   return (
     <div className="space-y-4">
@@ -79,31 +85,30 @@ export function ItemEditor({ item, index }: Props) {
       <div className="space-y-1">
         <p className="text-sm">次へのつなぎ{!following && '（最後の素材には付けられません）'}</p>
         <div className="flex flex-wrap gap-2">
-          <Chip
-            label="カット"
-            active={!isCrossfade}
-            onClick={() => setTransition(item.itemId, { type: 'cut', durationFrames: 0 })}
-          />
-          <Chip
-            label="クロスフェード"
-            active={isCrossfade}
-            disabled={!following}
-            onClick={() =>
-              setTransition(item.itemId, {
-                type: 'crossfade',
-                durationFrames: Math.min(DEFAULT_CROSSFADE_FRAMES, maxTransition),
-              })
-            }
-          />
+          {TRANSITIONS.map((t) => (
+            <Chip
+              key={t.id}
+              label={t.label}
+              active={transitionType === t.id}
+              disabled={t.id !== 'cut' && !following}
+              onClick={() =>
+                setTransition(item.itemId, {
+                  type: t.id,
+                  durationFrames:
+                    t.id === 'cut' ? 0 : Math.min(DEFAULT_TRANSITION_FRAMES, maxTransition),
+                })
+              }
+            />
+          ))}
         </div>
-        {isCrossfade && following && (
+        {transitionType !== 'cut' && following && (
           <FrameSlider
             min={0}
             max={maxTransition}
-            value={crossfadeFrames}
+            value={transition.durationFrames}
             fps={fps}
             onChange={(frames) =>
-              setTransition(item.itemId, { type: 'crossfade', durationFrames: frames })
+              setTransition(item.itemId, { type: transitionType, durationFrames: frames })
             }
           />
         )}

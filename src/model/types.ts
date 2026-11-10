@@ -13,9 +13,9 @@ export type GroupPreset = {
   maxFrames: number
 }
 
-/** 次の素材へのつなぎ。v1 は cut と crossfade だけ（ADR 005、009） */
+/** 次の素材へのつなぎ。cut、crossfade、fadeWhite（白を経由して切り替わる。ADR 005、016） */
 export type Transition = {
-  type: 'cut' | 'crossfade'
+  type: 'cut' | 'crossfade' | 'fadeWhite'
   durationFrames: number
 }
 
