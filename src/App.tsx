@@ -7,14 +7,17 @@ import { MediaPicker } from './components/MediaPicker'
 import { PreviewCanvas } from './components/PreviewCanvas'
 import { Section } from './components/Section'
 import { TabBar } from './components/TabBar'
+import { TipsGuide } from './components/TipsGuide'
 import { useAppStore } from './state/store'
 
-// 2 つのタブ: 「イベントの栞」（当日の予定と地図）と「動画編集」（写真と動画を複数入れて、尺・動き・開始位置・
-// 終了位置・テロップを編集し、プレビューで確かめて、無音 MP4 に書き出す）。見た目の調整は M5。
+// 3 つのタブ: 「イベントの栞」（当日の予定と地図）、「おすすめポイント」（撮っておくとよい場面）、
+// 「動画編集」（写真と動画を複数入れて、尺・動き・開始位置・終了位置・テロップを編集し、プレビューで確かめて、
+// 無音 MP4 に書き出す）。見た目の調整は M5。
 
-type Tab = 'guide' | 'editor'
+type Tab = 'guide' | 'tips' | 'editor'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'guide', label: 'イベントの栞' },
+  { id: 'tips', label: 'おすすめ' },
   { id: 'editor', label: '動画編集' },
 ]
 
@@ -45,6 +48,9 @@ export default function App() {
 
       <div className={tab === 'guide' ? '' : 'hidden'}>
         <EventGuide />
+      </div>
+      <div className={tab === 'tips' ? '' : 'hidden'}>
+        <TipsGuide />
       </div>
 
       {/* 編集タブは隠すだけで外さない（取り込んだ画像や <video> を作り直さないため） */}
