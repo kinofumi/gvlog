@@ -3,6 +3,7 @@ import { exportProject, ExportCancelled, type ExportProgress } from '../export/e
 import { buildFileName } from '../export/naming'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
 import { useAppStore } from '../state/store'
+import { TotalDuration } from './TotalDuration'
 import { Button } from './ui/Button'
 
 type Phase =
@@ -93,6 +94,7 @@ export function ExportPanel() {
 
   return (
     <section className="space-y-3">
+      {project.items.length > 0 && <TotalDuration />}
       {!exporting && (
         <Button disabled={!canExport} onClick={onExport}>
           動画を生成

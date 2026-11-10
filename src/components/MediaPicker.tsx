@@ -41,7 +41,7 @@ export function MediaPicker() {
     const notes: string[] = []
     setMessages([])
     setImporting(true)
-    const limit = maxItems(preset.totalFrames)
+    const limit = maxItems(preset.maxFrames)
     const room = limit - useAppStore.getState().project.items.length
     const picked = Array.from(files)
     if (picked.length > room)
@@ -84,7 +84,7 @@ export function MediaPicker() {
         <>
           写真・動画を追加{' '}
           <span className="text-sm font-normal text-stone-500">
-            （{count} / {maxItems(preset.totalFrames)} 個）
+            （{count} / {maxItems(preset.maxFrames)} 個）
           </span>
         </>
       }

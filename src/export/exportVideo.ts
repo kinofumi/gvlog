@@ -3,6 +3,7 @@ import type { Project } from '../model/types'
 import type { Ctx } from '../render/ctx'
 import { renderFrame, type ProvidedImage } from '../render/renderFrame'
 import { compileTimeline, type CompiledItem } from '../timeline/compile'
+import { outputFrames } from '../timeline/durations'
 import { pickEncoder, EXPORT_BITRATE } from './codec'
 import { createMp4Encoder, type FrameEncoder } from './encoder'
 import { formatError } from './formatError'
@@ -50,7 +51,12 @@ export async function exportFrames(
   onProgress: (p: ExportProgress) => void,
   signal: AbortSignal,
 ): Promise<Blob> {
-  const { fps, totalFrames } = project.preset
+  const { fps, maxFrames } = project.preset
+  // 出力の長さ。合計が上限を超えた分は先頭から maxFrames で切る（ADR 015）
+  const totalFrames = outputFrames(
+    project.items.map((i) => i.durationFrames),
+    maxFrames,
+  )
   const { compiled, ctx, provider, encoder } = deps
   let result: Blob | null = null
   let failure: unknown = null

@@ -36,8 +36,8 @@ export default function App() {
       <header>
         <h1 className="text-xl font-bold">gvlog（M3 検証版）</h1>
         <p className="text-sm text-stone-600">
-          {preset.width}x{preset.height} / {preset.fps}fps / {preset.totalFrames / preset.fps} 秒 /
-          無音 MP4
+          {preset.width}x{preset.height} / {preset.fps}fps / 最長 {preset.maxFrames / preset.fps} 秒
+          / 無音 MP4
         </p>
       </header>
 

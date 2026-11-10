@@ -13,12 +13,18 @@ import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
-import { adjustDurations, equalSplit, maxItemFrames, maxItems } from '../timeline/durations'
+import {
+  clampDuration,
+  defaultDurations,
+  maxItems,
+  outputFrames,
+  sumFrames,
+} from '../timeline/durations'
 import { clampTrims, trimEndRange } from '../timeline/trim'
 
 // プロジェクトを変える操作。すべて純粋関数で、新しい Project を返す（元は変えない）。
 // 変えられないときは元の Project をそのまま返す（呼び出し側は同一性で判定できる）。
-// 不変条件「尺の合計 = totalFrames」は、素材の増減のたびに均等割りをやり直すことで守る。
+// 各素材の尺は独立で、1 つを変えても他は動かない。合計が preset.maxFrames を超えた分は出力で切る（ADR 015）。
 
 export function createProject(
   preset: GroupPreset,
@@ -42,46 +48,50 @@ export function setMeta(project: Project, meta: { memberName: string; spot: stri
   return { ...project, meta: { ...meta }, updatedAt: new Date().toISOString() }
 }
 
-/**
- * 写真を 1 枚末尾に追加する。尺は全素材で均等に割り直す。
- * v1 の割り切り: 追加・削除のたびに手動調整した尺は失われる（plan §2.2）。
- * 「素材を全部入れてから尺を調整する」流れを想定している。
- */
+/** 写真を 1 枚末尾に追加する（addItems の薄い包み） */
 export function addPhoto(project: Project, itemId: string, info: PhotoInfo): Project {
   return addItems(project, [{ itemId, info }])
 }
 
 /**
- * 写真と動画を複数まとめて末尾に追加する。均等割りは 1 回だけ行う（1 つずつ足すと毎回割り直す）。
- * 上限を超える分と重複 ID は入れない。1 つも入らなければ元のまま。
- * 動画は開始位置 0 で始める。
+ * 写真と動画を複数まとめて末尾に追加する。既存の素材の尺は変えない。
+ * 新しい素材の尺は「上限までの残りを均等に割った値」（defaultDurations）。
+ * 個数の上限を超える分と重複 ID は入れない。1 つも入らなければ元のまま。動画は開始位置 0 で始める。
  */
 export function addItems(
   project: Project,
   entries: { itemId: string; info: MediaInfo }[],
 ): Project {
-  const limit = maxItems(project.preset.totalFrames)
+  const limit = maxItems(project.preset.maxFrames)
   const items: MediaItem[] = [...project.items]
-  for (const { itemId, info } of entries) {
-    if (items.length >= limit) break
-    if (items.some((i) => i.itemId === itemId)) continue
+  const accepted: { itemId: string; info: MediaInfo }[] = []
+  for (const entry of entries) {
+    if (items.length + accepted.length >= limit) break
+    if (items.some((i) => i.itemId === entry.itemId)) continue
+    if (accepted.some((a) => a.itemId === entry.itemId)) continue
+    accepted.push(entry)
+  }
+  if (accepted.length === 0) return project
+
+  const used = sumFrames(items.map((i) => i.durationFrames))
+  const durations = defaultDurations(used, accepted.length, project.preset.maxFrames)
+  accepted.forEach(({ itemId, info }, k) => {
     const transitionOut: Transition = { type: 'cut', durationFrames: 0 }
-    const base = { itemId, durationFrames: 0, transitionOut }
+    const base = { itemId, durationFrames: durations[k], transitionOut }
     if (info.kind === 'photo') {
       items.push({ ...base, ...info, kenBurns: kenBurnsPreset('none') })
     } else {
       items.push({ ...base, ...info, trimStartFrames: 0 })
     }
-  }
-  if (items.length === project.items.length) return project
-  return withItems(project, resplit(items, project.preset.totalFrames))
+  })
+  return withItems(project, clampAfterResize(items))
 }
 
-/** 素材を外す。残りで均等に割り直す */
+/** 素材を外す。残りの尺は変えない（前後のトランジションだけ整える） */
 export function removeItem(project: Project, itemId: string): Project {
   if (!project.items.some((i) => i.itemId === itemId)) return project
   const rest = project.items.filter((i) => i.itemId !== itemId)
-  return withItems(project, resplit(rest, project.preset.totalFrames))
+  return withItems(project, clampAfterResize(rest))
 }
 
 /** 素材を toIndex の位置へ動かす。尺は素材についていく */
@@ -95,15 +105,24 @@ export function moveItem(project: Project, itemId: string, toIndex: number): Pro
   return withItems(project, clampAfterResize(items))
 }
 
-/** 1 つの尺を変え、差分を他へ比例配分する。変えられないときは元のまま */
+/** 1 つの尺を変える。他の素材は動かない。規則外（最小尺未満、上限超え）は規則内に止め、数でない値や同じ値なら元のまま */
 export function setItemDuration(project: Project, itemId: string, frames: number): Project {
   const index = indexOf(project, itemId)
   if (index < 0) return project
-  const before = project.items.map((i) => i.durationFrames)
-  const after = adjustDurations(before, index, frames)
-  if (after === before) return project
-  const items = project.items.map((item, i) => ({ ...item, durationFrames: after[i] }))
+  const durationFrames = clampDuration(frames, project.preset.maxFrames)
+  if (durationFrames === null || durationFrames === project.items[index].durationFrames) {
+    return project
+  }
+  const items = project.items.map((item, i) => (i === index ? { ...item, durationFrames } : item))
   return withItems(project, clampAfterResize(items))
+}
+
+/** 出力の長さ（フレーム数）。合計が上限を超えた分は切る。素材が無ければ 0 */
+export function outputFramesOf(project: Project): number {
+  return outputFrames(
+    project.items.map((i) => i.durationFrames),
+    project.preset.maxFrames,
+  )
 }
 
 export function setKenBurns(
@@ -166,8 +185,7 @@ export function setTrimStart(project: Project, itemId: string, trimStartFrames: 
 
 /**
  * 動画の終了位置（元動画のどこまで使うか）を設定する。開始位置は変えず、尺を「終了位置 − 開始位置」にする（ADR 014）。
- * 尺の変更は setItemDuration と同じ規則（最小尺、他の素材の最小尺、差分の比例配分）に従う。
- * 素材が 1 つのときは尺が総尺で固定なので変えられない（元のまま）。
+ * 尺の変更は setItemDuration と同じ規則（最小尺、上限）に従い、他の素材は動かない。
  */
 export function setTrimEnd(project: Project, itemId: string, trimEndFrames: number): Project {
   const index = indexOf(project, itemId)
@@ -178,11 +196,7 @@ export function setTrimEnd(project: Project, itemId: string, trimEndFrames: numb
   // withItems（clampTrims）が開始位置を手前に戻してしまうので、先に上限に止める
   const compiled = compileTimeline(project.items)
   const visibleLength = compiled[index].visibleEnd - compiled[index].visibleStart
-  const range = trimEndRange(
-    item,
-    visibleLength,
-    maxItemFrames(project.items.length, project.preset.totalFrames),
-  )
+  const range = trimEndRange(item, visibleLength, project.preset.maxFrames)
   const end = Math.min(trimEndFrames, range.max)
   return setItemDuration(project, itemId, end - item.trimStartFrames)
 }
@@ -191,12 +205,6 @@ export function setTrimEnd(project: Project, itemId: string, trimEndFrames: numb
 
 function indexOf(project: Project, itemId: string): number {
   return project.items.findIndex((i) => i.itemId === itemId)
-}
-
-/** 尺を均等に割り直し、トランジションとキャプションを整える */
-function resplit(items: MediaItem[], totalFrames: number): MediaItem[] {
-  const durations = equalSplit(items.length, totalFrames)
-  return clampAfterResize(items.map((item, i) => ({ ...item, durationFrames: durations[i] })))
 }
 
 function updateItem(

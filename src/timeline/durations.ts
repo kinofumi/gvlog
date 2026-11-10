@@ -1,80 +1,52 @@
+// 尺の規則（plan §2.2、ADR 015）。各素材の尺は独立で、合計が上限（preset.maxFrames）を超えた分は出力で切り捨てる。
+
 /** 1 素材の最小尺（1 秒） */
 export const MIN_ITEM_FRAMES = 30
 
-/** 総尺に入る素材数の上限（全員が最小尺のとき） */
-export function maxItems(totalFrames: number): number {
-  return Math.floor(totalFrames / MIN_ITEM_FRAMES)
+/** 上限に入る素材数（全員が最小尺のとき） */
+export function maxItems(maxFrames: number): number {
+  return Math.floor(maxFrames / MIN_ITEM_FRAMES)
 }
 
 /**
- * 総フレーム数を n 個の素材に均等に割る。
- * 端数は先頭から 1 フレームずつ配るので、合計は常に totalFrames と一致する。
+ * frames を n 個の素材に均等に割る。
+ * 端数は先頭から 1 フレームずつ配るので、合計は常に frames と一致する。
  */
-export function equalSplit(n: number, totalFrames: number): number[] {
+export function equalSplit(n: number, frames: number): number[] {
   if (n <= 0) return []
-  return splitProportionally(totalFrames, new Array<number>(n).fill(1))
-}
-
-/** 1 つの素材が取れる尺の上限。他の素材が全員最小尺のときの残り */
-export function maxItemFrames(count: number, totalFrames: number): number {
-  return totalFrames - MIN_ITEM_FRAMES * (count - 1)
+  return splitProportionally(frames, new Array<number>(n).fill(1))
 }
 
 /**
- * index 番目の尺を newFrames にし、差分を他の素材へ尺に比例して配る。合計は変わらない。
- * 比例配分で最小尺を下回る素材は最小尺で止め、残りの差分をさらに他へ回す。
- * 変更できないとき（素材が 1 つ、他が全員最小尺）は元の配列をそのまま返す。
+ * 追加する n 個の素材の初期の尺。上限までの残り（maxFrames − usedFrames）を均等に割る。
+ * 残りが n 個に最小尺ずつ配れないときは全員最小尺にする（合計が上限を超えることは呼び出し側が利用者に知らせる）。
  */
-export function adjustDurations(durations: number[], index: number, newFrames: number): number[] {
-  const n = durations.length
-  if (n <= 1) return durations
-  if (index < 0 || index >= n) return durations
-  // 入力欄が空のときなど、数にならない値は無視する
-  if (!Number.isFinite(newFrames)) return durations
-  // 元の尺が規則を満たしていなければ、ここで直そうとせずそのまま返す（不変条件は checkDurations で見る）
-  if (!durations.every(isValidDuration)) return durations
+export function defaultDurations(usedFrames: number, n: number, maxFrames: number): number[] {
+  if (n <= 0) return []
+  const remaining = Math.max(0, maxFrames - usedFrames)
+  if (remaining < MIN_ITEM_FRAMES * n) return new Array<number>(n).fill(MIN_ITEM_FRAMES)
+  return equalSplit(n, remaining)
+}
 
-  const total = durations.reduce((sum, d) => sum + d, 0)
-  // 他の素材が全員最小尺のときの、この素材の上限
-  const upper = maxItemFrames(n, total)
-  const target = Math.min(Math.max(Math.floor(newFrames), MIN_ITEM_FRAMES), upper)
-  if (target === durations[index]) return durations
+/** 1 つの尺を規則内に整える: 整数に切り捨て、最小尺以上・上限以下。数でない値は null（呼び出し側は無視する） */
+export function clampDuration(frames: number, maxFrames: number): number | null {
+  if (!Number.isFinite(frames)) return null
+  return Math.max(MIN_ITEM_FRAMES, Math.min(Math.floor(frames), maxFrames))
+}
 
-  const result = [...durations]
-  result[index] = target
-  const others = result.map((_, i) => i).filter((i) => i !== index)
-  const delta = target - durations[index]
+/** 尺の合計（タイムラインの長さ） */
+export function sumFrames(durations: number[]): number {
+  return durations.reduce((sum, d) => sum + d, 0)
+}
 
-  if (delta < 0) {
-    // 減らした分を他へ配る。配る側に上限はないので 1 回で終わる
-    const parts = splitProportionally(
-      -delta,
-      others.map((i) => result[i]),
-    )
-    others.forEach((i, k) => {
-      result[i] += parts[k]
-    })
-    return result
-  }
+/** 出力の長さ。合計が上限を超えた分は先頭から maxFrames で切る */
+export function outputFrames(durations: number[], maxFrames: number): number {
+  return Math.min(sumFrames(durations), maxFrames)
+}
 
-  // 増やした分を他から取る。最小尺で止まった素材は候補から外し、残りを次の周で他から取る
-  let remaining = delta
-  let candidates = others
-  while (remaining > 0 && candidates.length > 0) {
-    const parts = splitProportionally(
-      remaining,
-      candidates.map((i) => result[i]),
-    )
-    const next: number[] = []
-    candidates.forEach((i, k) => {
-      const take = Math.min(parts[k], result[i] - MIN_ITEM_FRAMES)
-      result[i] -= take
-      remaining -= take
-      if (result[i] > MIN_ITEM_FRAMES) next.push(i)
-    })
-    candidates = next
-  }
-  return remaining === 0 ? result : durations
+/** 上限を超えている分（0 なら収まっている）。利用者への注意表示に使う */
+export function overflowFrames(durations: number[], maxFrames: number): number {
+  return Math.max(0, sumFrames(durations) - maxFrames)
 }
 
 /**
@@ -110,18 +82,12 @@ export function splitProportionally(amount: number, weights: number[]): number[]
   return parts
 }
 
-function isValidDuration(d: number): boolean {
-  return Number.isInteger(d) && d >= MIN_ITEM_FRAMES
-}
-
 /**
- * 尺の不変条件を確かめ、問題を日本語の文で返す（なければ空）。
- * 合計 = totalFrames、各尺は最小尺以上の整数。素材が 0 のときは空のタイムラインとして問題なし。
+ * 尺の規則を確かめ、問題を日本語の文で返す（なければ空）。各尺は最小尺以上の整数。
+ * 合計には規則がない（上限を超えた分は出力で切る）。
  */
-export function checkDurations(durations: number[], totalFrames: number): string[] {
+export function checkDurations(durations: number[]): string[] {
   const errors: string[] = []
-  if (durations.length === 0) return errors
-
   durations.forEach((d, i) => {
     if (!Number.isInteger(d)) {
       errors.push(`素材 ${i + 1} の尺（${d}）が整数ではありません。`)
@@ -129,9 +95,5 @@ export function checkDurations(durations: number[], totalFrames: number): string
       errors.push(`素材 ${i + 1} の尺（${d}）が最小尺（${MIN_ITEM_FRAMES}）未満です。`)
     }
   })
-  const total = durations.reduce((sum, d) => sum + d, 0)
-  if (total !== totalFrames) {
-    errors.push(`尺の合計（${total}）が総尺（${totalFrames}）と一致しません。`)
-  }
   return errors
 }

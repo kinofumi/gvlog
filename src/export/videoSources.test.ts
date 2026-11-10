@@ -55,8 +55,8 @@ describe('createVideoSources（動画素材ごとにデコーダを組み立て�
       fakeSource(args),
     )
     expect([...sources.keys()]).toEqual(['v1'])
-    // 動画は 150 から始まるが、クロスフェードで 15 フレーム早く見え始める
-    expect((sources.get('v1') as ReturnType<typeof fakeSource>).args).toEqual([v1, 135, 300, 60])
+    // 動画は 225 から始まるが、クロスフェードで 15 フレーム早く見え始める
+    expect((sources.get('v1') as ReturnType<typeof fakeSource>).args).toEqual([v1, 210, 450, 60])
   })
 
   it('動画の実体が無ければ分かるエラーで止め、先に作った分は解放する', async () => {

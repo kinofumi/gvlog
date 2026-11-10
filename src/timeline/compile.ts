@@ -95,11 +95,8 @@ export function transitionAt(
  * タイムライン全体の不変条件を確かめ、問題を日本語の文で返す（なければ空）。
  * compileTimeline は入力を信用して計算するだけなので、状態を変えた側はこれで確認してから渡す。
  */
-export function checkTimeline(items: TimelineItem[], totalFrames: number): string[] {
-  const errors = checkDurations(
-    items.map((item) => item.durationFrames),
-    totalFrames,
-  )
+export function checkTimeline(items: TimelineItem[]): string[] {
+  const errors = checkDurations(items.map((item) => item.durationFrames))
   const seen = new Set<string>()
   items.forEach((item, i) => {
     if (seen.has(item.itemId)) errors.push(`素材 ID「${item.itemId}」が重複しています。`)

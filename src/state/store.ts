@@ -29,7 +29,7 @@ export type AppState = {
     selectedItemId: string | null
     playheadFrame: number
     isPlaying: boolean
-    /** 写真の取り込み中。追加のたびに尺を割り直すので、その間は編集を止める */
+    /** 素材の取り込み中。素材が増える途中なので、その間は編集を止める */
     importing: boolean
     /** 書き出し中。使用中の画像を閉じないよう、素材の削除や差し替えを止める */
     exporting: boolean
@@ -143,7 +143,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   seek: (frame) => {
     // 数でない値（空の入力など）は無視し、整数フレームに丸めて範囲に収める
     if (!Number.isFinite(frame)) return
-    const next = Math.max(0, Math.min(Math.floor(frame), get().project.preset.totalFrames - 1))
+    // 上限は出力の長さ − 1（素材が無ければ 0）
+    const last = Math.max(0, actions.outputFramesOf(get().project) - 1)
+    const next = Math.max(0, Math.min(Math.floor(frame), last))
     // 同じフレームなら通知しない（rAF は表示フレームより高い頻度で呼ばれる）
     if (next === get().ui.playheadFrame) return
     set((s) => ({

@@ -9,8 +9,8 @@ export type GroupPreset = {
   height: number
   /** v1 は 30 固定 */
   fps: 30
-  /** 合計の尺（フレーム数）。300 = 10 秒。許容 150〜900 */
-  totalFrames: number
+  /** 出力の上限（フレーム数）。450 = 15 秒。許容 150〜900。合計がこれを超えた分は切り捨てる（ADR 015） */
+  maxFrames: number
 }
 
 /** 次の素材へのつなぎ。v1 は cut と crossfade だけ（ADR 005、009） */
@@ -46,7 +46,7 @@ export type KenBurns = {
  */
 export type TimelineItem = {
   itemId: string
-  /** タイムライン上の尺。全素材の合計 = preset.totalFrames が不変条件 */
+  /** タイムライン上の尺。素材ごとに独立で、合計が preset.maxFrames を超えた分は出力で切る */
   durationFrames: number
   /** 次の素材へのつなぎ。最後の素材では無視する */
   transitionOut?: Transition

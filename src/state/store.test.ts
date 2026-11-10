@@ -53,10 +53,10 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
   })
 
   it('上限で追加できなかったときは、受け取った画像を閉じる', () => {
-    for (let i = 1; i <= 10; i++) addPhoto(`p${i}`, fakeImage())
+    for (let i = 1; i <= 15; i++) addPhoto(`p${i}`, fakeImage())
     const extra = fakeImage()
-    addPhoto('p11', extra)
-    expect(useAppStore.getState().project.items).toHaveLength(10)
+    addPhoto('p16', extra)
+    expect(useAppStore.getState().project.items).toHaveLength(15)
     expect(extra.image.close).toHaveBeenCalledTimes(1)
   })
 
@@ -108,11 +108,12 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
     expect(useAppStore.getState().ui).toBe(ui)
   })
 
-  it('seek は 0〜totalFrames−1 の整数に収め、数でない値は無視する', () => {
+  it('seek は 0〜（出力の長さ − 1）の整数に収め、数でない値は無視する', () => {
+    addPhoto('p1', fakeImage()) // 1 枚なら上限いっぱいの 450 フレーム
     useAppStore.getState().seek(-5)
     expect(useAppStore.getState().ui.playheadFrame).toBe(0)
     useAppStore.getState().seek(1000)
-    expect(useAppStore.getState().ui.playheadFrame).toBe(299)
+    expect(useAppStore.getState().ui.playheadFrame).toBe(449)
     useAppStore.getState().seek(10.7)
     expect(useAppStore.getState().ui.playheadFrame).toBe(10)
     useAppStore.getState().seek(Number.NaN)
@@ -134,7 +135,7 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
   })
 
   it('入らなかった動画は、その場で解放する', () => {
-    for (let i = 1; i <= 10; i++) addPhoto(`p${i}`, fakeImage())
+    for (let i = 1; i <= 15; i++) addPhoto(`p${i}`, fakeImage())
     const img = fakeImage()
     const video = fakeVideo()
     useAppStore.getState().addItems([{ itemId: 'v1', info: videoInfo, image: img, video }])

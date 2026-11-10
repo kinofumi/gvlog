@@ -34,15 +34,15 @@ describe('validatePreset（プリセットの検証）', () => {
     if (!result.ok) expect(result.errors).toContain('fps は 30 だけです。')
   })
 
-  it('合計尺は 150〜900 フレーム（5〜30 秒）の整数', () => {
-    for (const totalFrames of [100, 1000, 300.5]) {
-      const result = validatePreset({ ...DEFAULT_PRESET, totalFrames })
+  it('上限の尺は 150〜900 フレーム（5〜30 秒）の整数', () => {
+    for (const maxFrames of [100, 1000, 300.5]) {
+      const result = validatePreset({ ...DEFAULT_PRESET, maxFrames })
       expect(result.ok).toBe(false)
       if (!result.ok)
-        expect(result.errors).toContain('合計の尺は 5〜30 秒（150〜900 フレーム）です。')
+        expect(result.errors).toContain('上限の尺は 5〜30 秒（150〜900 フレーム）です。')
     }
-    expect(validatePreset({ ...DEFAULT_PRESET, totalFrames: 150 }).ok).toBe(true)
-    expect(validatePreset({ ...DEFAULT_PRESET, totalFrames: 900 }).ok).toBe(true)
+    expect(validatePreset({ ...DEFAULT_PRESET, maxFrames: 150 }).ok).toBe(true)
+    expect(validatePreset({ ...DEFAULT_PRESET, maxFrames: 900 }).ok).toBe(true)
   })
 
   it('名前が空ならエラー', () => {
@@ -52,7 +52,7 @@ describe('validatePreset（プリセットの検証）', () => {
   })
 
   it('複数の問題はすべて集める', () => {
-    const result = validatePreset({ ...DEFAULT_PRESET, fps: 60, totalFrames: 10 })
+    const result = validatePreset({ ...DEFAULT_PRESET, fps: 60, maxFrames: 10 })
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.errors).toHaveLength(2)
   })

@@ -8,7 +8,7 @@
 ## Context（背景と目的）
 
 グループで Vlog を制作するにあたり、各メンバーが自分のスマホ（iPhone / Android）または PC で、複数の写真・動画から
-「固定尺（既定 10 秒）の短尺 MP4 素材」を作れるブラウザ完結型アプリを作る。サーバー不要・無料運用・ログイン不要で、
+「最長 15 秒の短尺 MP4 素材」を作れるブラウザ完結型アプリを作る。サーバー不要・無料運用・ログイン不要で、
 URL を共有するだけで全員が使える。仕上げ担当者は各自の MP4 を CapCut / Vrew に並べて BGM・読み上げ・全体編集を行う。
 
 このリポジトリは完成後に「AI との開発の教科書」にする（§13）。
@@ -21,8 +21,8 @@ URL を共有するだけで全員が使える。仕上げ担当者は各自の 
 | 技術基盤       | Vite + React + TypeScript、静的サイト。状態管理 zustand、永続化 idb-keyval                                                             |
 | ホスティング   | GitHub Pages（GitHub Actions で自動デプロイ）                                                                                          |
 | 素材           | 1 プロジェクトに複数の写真・動画（上限は §2）。写真はケン・バーンズ効果、動画は開始位置・終了位置のトリム（終了位置で尺が決まる）        |
-| 時間配分       | 固定尺を素材数で自動均等割り（端数はフレーム単位で先頭から配る）。素材ごとにスライダーで手動調整可                                     |
-| 固定モード     | グループプリセットで「縦横比」「合計尺」「解像度」をロック。fps は v1 では 30 固定。既定値 9:16 / 1080x1920 / 10 秒                    |
+| 時間配分       | 各コマの尺は独立（1 つを変えても他は動かない）。追加時は上限までの残りを均等に割る。合計が上限を超えた分は先頭から切る（ADR 015） |
+| 固定モード     | グループプリセットで「縦横比」「上限の尺」「解像度」をロック。fps は v1 では 30 固定。既定値 9:16 / 1080x1920 / 最長 15 秒            |
 | テロップ       | プリセット 3 種（帯 / 縁取り / 半透明ボックス）＋ 文字色・背景色・フォント個別調整。位置 上中下、サイズ 大中小                         |
 | フォント       | OFL の日本語 Web フォントを同梱。v1 は 1 書体（Noto Sans JP Bold）、M5 で 2〜3 書体に増やす                                            |
 | トランジション | v1 は cut と crossfade。fadeBlack / fadeWhite / slide は後の章（M6）                                                                   |
@@ -65,7 +65,7 @@ gvlog/
   src/
     main.tsx, App.tsx               # タブ 2 つ（イベントの栞 / 動画編集）を useState で切替（react-router 不使用）。編集タブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # TabBar, Section, EventGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, PreviewCanvas, ExportPanel
+    components/                     # TabBar, Section, EventGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel
     **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, mapsLink.ts（Google マップの検索 URL）
     components/ui/                  # shadcn/ui のコピー
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
@@ -98,7 +98,7 @@ interface GroupPreset {
   width: number
   height: number // 1080x1920 または 1920x1080（v1 はこの 2 つ）
   fps: 30 // v1 は 30 固定
-  totalFrames: number // 既定 300（10 秒）。許容 150〜900（5〜30 秒）
+  maxFrames: number // 出力の上限。既定 450（15 秒）。許容 150〜900（5〜30 秒）。合計がこれを超えた分は切る（ADR 015）
 }
 
 interface Project {
@@ -121,7 +121,7 @@ interface ItemBase {
   fileName: string
   width: number
   height: number // 回転適用後の表示サイズ
-  durationFrames: number // タイムライン上の尺。合計 = totalFrames が不変条件
+  durationFrames: number // タイムライン上の尺。コマごとに独立。合計が maxFrames を超えた分は出力で切る
   caption?: Caption
   transitionOut?: Transition // 次の素材へのつなぎ。最後の素材では無視する
 }
@@ -157,19 +157,17 @@ interface Transition {
 } // v1
 ```
 
-### 2.2 尺の配分（`timeline/durations.ts`）
+### 2.2 尺の規則（`timeline/durations.ts`、ADR 015）
 
-- `MIN_ITEM_FRAMES = 30`（1 秒）。`MAX_ITEMS = floor(totalFrames / MIN_ITEM_FRAMES)`（10 秒なら 10 個）。
-  上限を超える追加は UI で拒否する。
-- `equalSplit(n, totalFrames)`: `floor(total / n)` を全員に、余りを先頭から 1 フレームずつ配る。合計は常に `totalFrames`。
-- `adjustDurations(durations, index, newFrames)`: 尺の数値配列を受け取り、対象を `newFrames` にして差分を他の素材へ
-  比例配分する（ADR 013: timeline/ の関数は素材ではなく必要な値だけを受け取る）。比例配分で最小尺を下回る素材は最小尺で
-  止め、残りの差分をさらに他へ回す。全員が最小尺なら変更を拒否して元の値を返す。元の尺や index が不正なときも元の値。
-- `checkDurations(durations, totalFrames)` / `checkTimeline(items, totalFrames)`: 不変条件（合計、最小尺、整数、ID の一意性、
-  トランジション上限、キャプションの最低表示長）を確かめて問題を文で返す。状態を変えた側はこれで確認する。
-- 素材が 1 つのときは尺を変更できない（常に `totalFrames`）。素材が 0 のときはタイムラインは空。
-- **素材の追加・削除では均等割りをやり直す**（v1 の割り切り。手動調整した尺は失われる）。「写真を全部入れてから尺を調整する」流れを想定。
-  調整を保つ配分は、必要になったら後の章で足す。
+- 各コマの尺は独立。1 つを変えても他のコマは動かない（フィールドテストの要望）。`MIN_ITEM_FRAMES = 30`（1 秒）、上限は `preset.maxFrames`（既定 450 = 15 秒）。
+- `clampDuration(frames, maxFrames)`: 整数に切り捨て、最小尺以上・上限以下に収める。数でない値は null（無視）。
+- 追加した素材の初期の尺は `defaultDurations(usedFrames, n, maxFrames)`: 上限までの残りを均等に割る（`equalSplit`）。
+  残りが n 個に 1 秒ずつ配れないときは全員 1 秒（合計が上限を超えることは注意表示で知らせる）。削除しても残りの尺は変えない。
+- 出力の長さは `outputFrames(durations, maxFrames) = min(合計, maxFrames)`。合計が上限を超えた分（`overflowFrames`）は先頭から切り捨てる。
+  プレビューの終わり、シークの範囲、書き出すフレーム数はこの値に揃える（`projectActions.outputFramesOf`）。
+- 合計が上限を超えたら `TotalDuration` が赤い注意を出し、一覧では上限をまたぐコマに「x 秒で切れます」、全部はみ出すコマに「入りません」と印を付ける。
+- 個数の上限 `maxItems(maxFrames) = floor(maxFrames / MIN_ITEM_FRAMES)`（15 秒なら 15 個）。超える追加は UI で拒否する。
+- `checkDurations(durations)` / `checkTimeline(items)`: 規則（最小尺、整数、ID の一意性、トランジション上限、キャプションの最低表示長）を確かめて問題を文で返す。
 - 尺を変えたあとは、隣接するトランジション長を `min(d, floor(min(前, 後) / 2))` に切り詰め、キャプションのオフセットも
   コア区間に収まるよう切り詰める（`clampAfterResize`）。キャプションは最低 `MIN_CAPTION_FRAMES = 16`（フェード 8 × 2）を
   表示に残す。末尾素材の `transitionOut` は消さずに残す（compile が無視する）。cut の長さは 0 に揃える。
@@ -197,7 +195,7 @@ interface Transition {
 ### 2.4 検証（`model/validate.ts`）
 
 プリセットリンク（§6）と保存データ（§5）は同じ関数で検証する。許容値: `aspect` は 2 種、`width/height` はそれに対応する
-1 組、`fps` は 30、`totalFrames` は 150〜900。範囲外は既定値に置き換えず、エラーとして表示する。
+1 組、`fps` は 30、`maxFrames` は 150〜900。範囲外は既定値に置き換えず、エラーとして表示する。
 
 ## 3. レンダリング（`src/render/`、`src/export/frameSource.ts`）
 
@@ -387,7 +385,7 @@ CapCut に入るところまでを最初に通す。ここで通らなければ�
 | `timeline/`（均等割り、端数、再配分、上限、区間、切り詰め）                                   | **TDD 必須**                                                                                                                               | Vitest                                                        |
 | `render/` の計算部（Ken Burns 矩形、進行度、折り返し、位置・サイズ）                          | **TDD 必須**                                                                                                                               | Vitest                                                        |
 | `render/` の合成（crossfade 式、キャプションが合成後に描かれること）                          | テストは書く。同色合成で輝度不変、境界フレームの色をサンプリング                                                                           | Vitest + `@napi-rs/canvas`（Safari の描画の証明にはならない） |
-| `model/validate.ts`、`export/naming.ts`、`state/` の更新（合計尺の不変条件、saveStatus 遷移） | TDD                                                                                                                                        | Vitest                                                        |
+| `model/validate.ts`、`export/naming.ts`、`state/` の更新（尺の規則、saveStatus 遷移） | TDD                                                                                                                                        | Vitest                                                        |
 | `export/` のループ・進捗・キャンセル・解放                                                    | `FrameSource` と encoder のフェイクでテスト。release が必ず呼ばれること                                                                    | Vitest                                                        |
 | 保存失敗、キャンセル、短い実動画の書き出し                                                    | **ブラウザ結合テスト**                                                                                                                     | Playwright（desktop Chrome）                                  |
 | 出力 MP4                                                                                      | 属性（`ffprobe`: h264 / 解像度 / 30fps / 尺 / 音声なし）に加え、**冒頭・境界・末尾のフレームを `ffmpeg` で画像に取り出し、期待色と比べる** | スクリプト `scripts/verify-output.sh`                         |

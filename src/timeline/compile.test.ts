@@ -123,53 +123,40 @@ describe('itemsAt / transitionAt（そのフレームで見える素材と進行
 describe('checkTimeline（タイムライン全体の不変条件）', () => {
   it('問題がなければ空', () => {
     expect(
-      checkTimeline(
-        [
-          { itemId: 'a', durationFrames: 150 },
-          { itemId: 'b', durationFrames: 150 },
-        ],
-        300,
-      ),
+      checkTimeline([
+        { itemId: 'a', durationFrames: 150 },
+        { itemId: 'b', durationFrames: 150 },
+      ]),
     ).toEqual([])
   })
 
   it('itemId が重複していればエラー', () => {
     expect(
-      checkTimeline(
-        [
-          { itemId: 'a', durationFrames: 150 },
-          { itemId: 'a', durationFrames: 150 },
-        ],
-        300,
-      ),
+      checkTimeline([
+        { itemId: 'a', durationFrames: 150 },
+        { itemId: 'a', durationFrames: 150 },
+      ]),
     ).toContain('素材 ID「a」が重複しています。')
   })
 
-  it('尺の問題（合計不一致、最小尺未満）も含める', () => {
-    const errors = checkTimeline(
-      [
-        { itemId: 'a', durationFrames: 10 },
-        { itemId: 'b', durationFrames: 150 },
-      ],
-      300,
-    )
-    expect(errors).toContain('尺の合計（160）が総尺（300）と一致しません。')
+  it('尺の問題（最小尺未満）も含める', () => {
+    const errors = checkTimeline([
+      { itemId: 'a', durationFrames: 10 },
+      { itemId: 'b', durationFrames: 150 },
+    ])
     expect(errors).toContain('素材 1 の尺（10）が最小尺（30）未満です。')
   })
 
   it('トランジションが長すぎる、キャプションの表示区間が足りない、もエラーにする（compile は黙って切り詰めるため）', () => {
-    const errors = checkTimeline(
-      [
-        {
-          itemId: 'a',
-          durationFrames: 60,
-          transitionOut: { type: 'crossfade', durationFrames: 100 },
-          caption: { inOffsetFrames: 50, outOffsetFrames: 50 },
-        },
-        { itemId: 'b', durationFrames: 240 },
-      ],
-      300,
-    )
+    const errors = checkTimeline([
+      {
+        itemId: 'a',
+        durationFrames: 60,
+        transitionOut: { type: 'crossfade', durationFrames: 100 },
+        caption: { inOffsetFrames: 50, outOffsetFrames: 50 },
+      },
+      { itemId: 'b', durationFrames: 240 },
+    ])
     expect(errors).toContain('素材 1 のトランジション（100）が上限（30）を超えています。')
     expect(errors).toContain('素材 1 のキャプションの表示区間が足りません（16 フレーム以上必要）。')
   })

@@ -37,14 +37,14 @@ export function validatePreset(value: unknown): ValidationResult {
 
   if (p.fps !== 30) errors.push('fps は 30 だけです。')
 
-  const totalFrames = p.totalFrames
+  const maxFrames = p.maxFrames
   if (
-    typeof totalFrames !== 'number' ||
-    !Number.isInteger(totalFrames) ||
-    totalFrames < MIN_TOTAL_FRAMES ||
-    totalFrames > MAX_TOTAL_FRAMES
+    typeof maxFrames !== 'number' ||
+    !Number.isInteger(maxFrames) ||
+    maxFrames < MIN_TOTAL_FRAMES ||
+    maxFrames > MAX_TOTAL_FRAMES
   ) {
-    errors.push('合計の尺は 5〜30 秒（150〜900 フレーム）です。')
+    errors.push('上限の尺は 5〜30 秒（150〜900 フレーム）です。')
   }
 
   if (errors.length > 0) return { ok: false, errors }
@@ -57,7 +57,7 @@ export function validatePreset(value: unknown): ValidationResult {
       width: p.width as number,
       height: p.height as number,
       fps: 30,
-      totalFrames: totalFrames as number,
+      maxFrames: maxFrames as number,
     },
   }
 }

@@ -10,7 +10,7 @@ import { ExportCancelled, exportFrames } from './exportVideo'
 import type { ExportFrameProvider } from './frameProvider'
 
 // 30 フレーム（1 秒）の短いプリセットでループを確かめる
-const preset = { ...DEFAULT_PRESET, totalFrames: 30 }
+const preset = { ...DEFAULT_PRESET, maxFrames: 30 }
 const info: PhotoInfo = {
   kind: 'photo',
   blobKey: 'b',
@@ -127,7 +127,7 @@ describe('exportFrames（書き出しのループ）', () => {
       await new Promise((res) => setTimeout(res, 1))
       events.push(`added ${frame}`)
     }
-    const two = { ...project, preset: { ...preset, totalFrames: 2 } }
+    const two = { ...project, preset: { ...preset, maxFrames: 2 } }
     await exportFrames(
       two,
       { compiled: compileTimeline(two.items), ctx: context, provider, encoder },
