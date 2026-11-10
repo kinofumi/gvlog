@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportProject, ExportCancelled, type ExportProgress } from '../export/exportVideo'
-import { buildFileName } from '../export/naming'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
+import type { ImportedVideo } from '../media/importVideo'
+import type { Project } from '../model/types'
+import type { ProvidedImage } from '../render/renderFrame'
 import { useAppStore } from '../state/store'
-import { TotalDuration } from './TotalDuration'
 import { Button } from './ui/Button'
 
 type Phase =
@@ -13,11 +14,17 @@ type Phase =
   | { kind: 'done'; file: File; codecString: string; elapsedMs: number }
   | { kind: 'error'; message: string }
 
-/** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード */
-export function ExportPanel() {
-  const project = useAppStore((s) => s.project)
-  const images = useAppStore((s) => s.images)
-  const videos = useAppStore((s) => s.videos)
+type Props = {
+  /** 書き出すプロジェクトと、その素材の画像・動画。編集タブは store のもの、つなげるタブは集めた動画から組み立てたもの */
+  project: Project
+  images: Record<string, ProvidedImage>
+  videos: Record<string, ImportedVideo>
+  /** できた MP4 のファイル名 */
+  fileName: string
+}
+
+/** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード。エンコーダは端末に 1 本なので、どのタブから始めても store の exporting で排他する */
+export function ExportPanel({ project, images, videos, fileName }: Props) {
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
   const probing = useAppStore((s) => s.ui.probing)
@@ -57,8 +64,7 @@ export function ExportPanel() {
         (progress) => setPhase({ kind: 'exporting', progress }),
         controller.signal,
       )
-      const name = buildFileName(project.preset.name, project.meta.memberName, project.meta.spot)
-      const file = new File([result.blob], name, { type: 'video/mp4' })
+      const file = new File([result.blob], fileName, { type: 'video/mp4' })
       if (import.meta.env.DEV) {
         // 自動テストが書き出し結果を取り出すためのフック（開発モードだけ）
         ;(window as unknown as { __lastExport?: File }).__lastExport = file
@@ -94,7 +100,6 @@ export function ExportPanel() {
 
   return (
     <section className="space-y-3">
-      {project.items.length > 0 && <TotalDuration />}
       {!exporting && (
         <Button disabled={!canExport} onClick={onExport}>
           動画を生成

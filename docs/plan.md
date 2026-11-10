@@ -63,11 +63,12 @@ gvlog/
   public/fonts/*.woff2              # テロップ用サブセットフォント（v1 は 1 書体）
   docs/                             # plan, adr, devlog, reviews, testing-checklist
   src/
-    main.tsx, App.tsx               # タブ 2 つ（イベントの栞 / 動画編集）を useState で切替（react-router 不使用）。編集タブは隠すだけで外さない
+    main.tsx, App.tsx               # タブ 4 つ（イベントの栞 / おすすめ / 動画編集 / つなげる）を useState で切替（react-router 不使用）。編集とつなげるのタブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel
+    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project を受ける）, JoinPanel
+    **join/**                       # joinProject.ts（集めた動画を白フェードで並べた Project を組み立てる純粋関数。ADR 017）
     **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, tips.ts（おすすめポイントのデータ）, mapsLink.ts（Google マップの検索 URL）
-    components/ui/                  # shadcn/ui のコピー
+    components/ui/                  # Button, Chip, SmallButton（shadcn/ui 相当の小さな部品）
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
     **render/**                     # renderFrame.ts, drawCaption.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）,
@@ -346,7 +347,7 @@ CapCut に入るところまでを最初に通す。ここで通らなければ�
 | **M3 動画と書き出し** | `FrameSource`（prepare / get / release）、トリム UI、キャンセル、中断処理、共有・ダウンロード                                                                                                                                                     | iPhone HEVC 縦 / Android H.264 / 2 分超の動画。出力フレーム内容の検証。シークと尺調整の操作感を確認                                                                                                                                           |
 | **M4 保存と配布**     | 保存順序、saveStatus、復元、プロジェクト一覧、プリセットリンクと検証                                                                                                                                                                              | iPhone でタブ強制終了 → 復元。容量不足の模擬。リンクの不正値でエラー表示                                                                                                                                                                      |
 | **M5 仕上げ**         | フォント 2〜3 書体、キャプションプリセット、エラーメッセージ、UI の見た目調整、README                                                                                                                                                             | 3 名でエンドツーエンド。Playwright スモーク（desktop Chrome）                                                                                                                                                                                 |
-| **M6（後の章）**      | Worker 書き出し、fade / slide トランジション、複数タブ検知、PWA、ドラッグ並べ替え                                                                                                                                                                 | —                                                                                                                                                                                                                                             |
+| **M6（後の章）**      | Worker 書き出し、fadeBlack / slide トランジション、複数タブ検知、PWA、ドラッグ並べ替え                                                                                                                                                                 | —                                                                                                                                                                                                                                             |
 
 各マイルストーンの完了時に git タグ（`m0` ...）を打つ。
 

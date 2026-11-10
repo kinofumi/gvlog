@@ -6,6 +6,7 @@ import { FrameSlider } from './FrameSlider'
 import { ItemEditor } from './ItemEditor'
 import { Thumbnail } from './Thumbnail'
 import { TotalDuration } from './TotalDuration'
+import { SmallButton } from './ui/SmallButton'
 
 /** 素材の一覧: 選択、並べ替え、削除、尺の調整、合計と上限。選んだ素材のすぐ下に設定（ItemEditor）を出す */
 export function MediaList() {
@@ -101,28 +102,5 @@ export function MediaList() {
         <p className="text-sm text-stone-600">素材をタップすると、その下に設定が出ます。</p>
       )}
     </div>
-  )
-}
-
-function SmallButton({
-  label,
-  disabled,
-  onClick,
-}: {
-  label: string
-  disabled?: boolean
-  onClick: () => void
-}) {
-  return (
-    <button
-      className="min-h-11 min-w-11 rounded border border-stone-400 px-2 text-xs disabled:text-stone-300"
-      disabled={disabled}
-      onClick={(e) => {
-        e.stopPropagation()
-        onClick()
-      }}
-    >
-      {label}
-    </button>
   )
 }

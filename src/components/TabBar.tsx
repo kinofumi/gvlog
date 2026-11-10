@@ -13,7 +13,7 @@ export function TabBar<T extends string>({ tabs, value, onChange }: Props<T>) {
         return (
           <button
             key={tab.id}
-            className={`min-h-11 flex-1 border-b-2 px-1 text-sm ${
+            className={`min-h-11 flex-1 border-b-2 px-1 text-xs sm:text-sm ${
               active ? 'border-stone-900 font-bold' : 'border-transparent text-stone-500'
             }`}
             role="tab"
