@@ -21,7 +21,7 @@ const POSTER_SCALE = 0.5
 
 /**
  * 写真と動画を複数選んで取り込む。取り込みは直列（スマホのメモリを一度に使わないため）、
- * store への追加は全部そろってから 1 回（尺の割り直しを 1 回にする）。
+ * store への追加は全部そろってから 1 回（初期の尺は、上限までの残りを追加分で均等に割る）。
  */
 export function MediaPicker() {
   const preset = useAppStore((s) => s.project.preset)
@@ -41,7 +41,7 @@ export function MediaPicker() {
     const notes: string[] = []
     setMessages([])
     setImporting(true)
-    const limit = maxItems(preset.totalFrames)
+    const limit = maxItems(preset.maxFrames)
     const room = limit - useAppStore.getState().project.items.length
     const picked = Array.from(files)
     if (picked.length > room)
@@ -84,7 +84,7 @@ export function MediaPicker() {
         <>
           写真・動画を追加{' '}
           <span className="text-sm font-normal text-stone-500">
-            （{count} / {maxItems(preset.totalFrames)} 個）
+            （{count} / {maxItems(preset.maxFrames)} 個）
           </span>
         </>
       }

@@ -29,7 +29,7 @@ export type AppState = {
     selectedItemId: string | null
     playheadFrame: number
     isPlaying: boolean
-    /** 写真の取り込み中。追加のたびに尺を割り直すので、その間は編集を止める */
+    /** 素材の取り込み中。素材が増える途中なので、その間は編集を止める */
     importing: boolean
     /** 書き出し中。使用中の画像を閉じないよう、素材の削除や差し替えを止める */
     exporting: boolean
@@ -38,7 +38,7 @@ export type AppState = {
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
-  /** まとめて追加（均等割りは 1 回）。入らなかった素材の画像と動画は解放する */
+  /** まとめて追加（初期の尺は残りを追加分で均等に割る）。入らなかった素材の画像と動画は解放する */
   addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void
@@ -118,6 +118,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         selectedItemId: s.ui.selectedItemId === itemId ? null : s.ui.selectedItemId,
         // 素材が無くなったら再生も止める（止めるボタンが押せなくなるのを防ぐ）
         isPlaying: project.items.length === 0 ? false : s.ui.isPlaying,
+        playheadFrame: clampPlayhead(s.ui.playheadFrame, project),
       },
     }))
     image?.image.close()
@@ -127,7 +128,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   moveItem: (itemId, toIndex) =>
     set((s) => ({ project: actions.moveItem(s.project, itemId, toIndex) })),
   setItemDuration: (itemId, frames) =>
-    set((s) => ({ project: actions.setItemDuration(s.project, itemId, frames) })),
+    set((s) => withProject(s, actions.setItemDuration(s.project, itemId, frames))),
   setKenBurns: (itemId, presetId) =>
     set((s) => ({ project: actions.setKenBurns(s.project, itemId, presetId) })),
   setCaption: (itemId, caption) =>
@@ -137,13 +138,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTrimStart: (itemId, trimStartFrames) =>
     set((s) => ({ project: actions.setTrimStart(s.project, itemId, trimStartFrames) })),
   setTrimEnd: (itemId, trimEndFrames) =>
-    set((s) => ({ project: actions.setTrimEnd(s.project, itemId, trimEndFrames) })),
+    set((s) => withProject(s, actions.setTrimEnd(s.project, itemId, trimEndFrames))),
 
   select: (selectedItemId) => set((s) => ({ ui: { ...s.ui, selectedItemId } })),
   seek: (frame) => {
     // 数でない値（空の入力など）は無視し、整数フレームに丸めて範囲に収める
     if (!Number.isFinite(frame)) return
-    const next = Math.max(0, Math.min(Math.floor(frame), get().project.preset.totalFrames - 1))
+    // 上限は出力の長さ − 1（素材が無ければ 0）
+    const last = Math.max(0, actions.outputFramesOf(get().project) - 1)
+    const next = Math.max(0, Math.min(Math.floor(frame), last))
     // 同じフレームなら通知しない（rAF は表示フレームより高い頻度で呼ばれる）
     if (next === get().ui.playheadFrame) return
     set((s) => ({
@@ -158,3 +161,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setExporting: (exporting) => set((s) => ({ ui: { ...s.ui, exporting } })),
   setProbing: (probing) => set((s) => ({ ui: { ...s.ui, probing } })),
 }))
+
+/** 再生位置を出力の長さ（0〜末尾）に収める。尺を縮めたり素材を外したりすると、今の位置が範囲の外に出るため */
+function clampPlayhead(playheadFrame: number, project: Project): number {
+  return Math.max(0, Math.min(playheadFrame, actions.outputFramesOf(project) - 1))
+}
+
+/** project を置き換え、再生位置も範囲に収める（尺が変わる操作で使う） */
+function withProject(s: AppState, project: Project): Pick<AppState, 'project' | 'ui'> {
+  if (project === s.project) return { project, ui: s.ui }
+  return { project, ui: { ...s.ui, playheadFrame: clampPlayhead(s.ui.playheadFrame, project) } }
+}

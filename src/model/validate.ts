@@ -1,7 +1,8 @@
 import type { GroupPreset } from './types'
 
-export const MIN_TOTAL_FRAMES = 150
-export const MAX_TOTAL_FRAMES = 900
+/** 上限の尺（maxFrames）として許す範囲: 5〜30 秒 */
+export const MIN_LIMIT_FRAMES = 150
+export const MAX_LIMIT_FRAMES = 900
 
 /** 縦横比ごとに許す解像度（v1 はこの 1 組ずつ） */
 const SIZE_BY_ASPECT = {
@@ -37,14 +38,14 @@ export function validatePreset(value: unknown): ValidationResult {
 
   if (p.fps !== 30) errors.push('fps は 30 だけです。')
 
-  const totalFrames = p.totalFrames
+  const maxFrames = p.maxFrames
   if (
-    typeof totalFrames !== 'number' ||
-    !Number.isInteger(totalFrames) ||
-    totalFrames < MIN_TOTAL_FRAMES ||
-    totalFrames > MAX_TOTAL_FRAMES
+    typeof maxFrames !== 'number' ||
+    !Number.isInteger(maxFrames) ||
+    maxFrames < MIN_LIMIT_FRAMES ||
+    maxFrames > MAX_LIMIT_FRAMES
   ) {
-    errors.push('合計の尺は 5〜30 秒（150〜900 フレーム）です。')
+    errors.push('上限の尺は 5〜30 秒（150〜900 フレーム）です。')
   }
 
   if (errors.length > 0) return { ok: false, errors }
@@ -57,7 +58,7 @@ export function validatePreset(value: unknown): ValidationResult {
       width: p.width as number,
       height: p.height as number,
       fps: 30,
-      totalFrames: totalFrames as number,
+      maxFrames: maxFrames as number,
     },
   }
 }

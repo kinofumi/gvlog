@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { usePreview } from '../preview/usePreview'
+import { outputFramesOf } from '../state/projectActions'
 import { useAppStore } from '../state/store'
 import { Button } from './ui/Button'
 
@@ -13,6 +14,8 @@ export function PreviewCanvas() {
   const seek = useAppStore((s) => s.seek)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const hasItems = useAppStore((s) => s.project.items.length > 0)
+  // 出力の長さ（合計、上限で切った値）。シークの範囲と表示に使う
+  const totalFrames = useAppStore((s) => outputFramesOf(s.project))
   // 書き出し中は CPU を取り合わないよう再生しない
   const exporting = useAppStore((s) => s.ui.exporting)
 
@@ -37,17 +40,17 @@ export function PreviewCanvas() {
           className="flex-1"
           type="range"
           min={0}
-          max={preset.totalFrames - 1}
+          max={Math.max(0, totalFrames - 1)}
           step={1}
           value={playheadFrame}
-          disabled={exporting}
+          disabled={exporting || totalFrames === 0}
           onChange={(e) => {
             setPlaying(false)
             seek(Number(e.target.value))
           }}
         />
         <span className="w-20 text-right text-sm tabular-nums">
-          {(playheadFrame / preset.fps).toFixed(1)} / {preset.totalFrames / preset.fps} 秒
+          {(playheadFrame / preset.fps).toFixed(1)} / {(totalFrames / preset.fps).toFixed(1)} 秒
         </span>
       </div>
     </section>

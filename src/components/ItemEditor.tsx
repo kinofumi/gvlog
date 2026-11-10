@@ -3,7 +3,6 @@ import type { KenBurns, MediaItem } from '../model/types'
 import { useAppStore } from '../state/store'
 import { clampTransition } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
-import { maxItemFrames } from '../timeline/durations'
 import { CaptionEditor } from './CaptionEditor'
 import { Chip, ChipGroup } from './Chip'
 import { FrameSlider } from './FrameSlider'
@@ -32,7 +31,7 @@ type Props = {
 export function ItemEditor({ item, index }: Props) {
   const items = useAppStore((s) => s.project.items)
   const fps = useAppStore((s) => s.project.preset.fps)
-  const totalFrames = useAppStore((s) => s.project.preset.totalFrames)
+  const maxFrames = useAppStore((s) => s.project.preset.maxFrames)
   const setKenBurns = useAppStore((s) => s.setKenBurns)
   const setTrimStart = useAppStore((s) => s.setTrimStart)
   const setTrimEnd = useAppStore((s) => s.setTrimEnd)
@@ -69,8 +68,7 @@ export function ItemEditor({ item, index }: Props) {
         <TrimEditor
           item={item}
           visibleLength={compiled[index].visibleEnd - compiled[index].visibleStart}
-          maxDurationFrames={maxItemFrames(items.length, totalFrames)}
-          canChangeDuration={items.length > 1}
+          maxDurationFrames={maxFrames}
           fps={fps}
           disabled={exporting}
           onChangeStart={(frames) => setTrimStart(item.itemId, frames)}

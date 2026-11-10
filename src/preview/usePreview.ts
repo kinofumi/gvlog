@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type RefObject } from 'react'
 import { renderFrame, type ProvidedImage } from '../render/renderFrame'
 import { compileTimeline, itemsAt } from '../timeline/compile'
 import { sourceFrameAt } from '../timeline/trim'
+import { outputFramesOf } from '../state/projectActions'
 import { useAppStore } from '../state/store'
 import { frameAtElapsed } from './clock'
 import { PreviewVideos } from './previewVideos'
@@ -26,6 +27,8 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
   const exporting = useAppStore((s) => s.ui.exporting)
   const seek = useAppStore((s) => s.seek)
   const setPlaying = useAppStore((s) => s.setPlaying)
+  // 再生の終わり = 出力の長さ（合計、上限で切った値）
+  const totalFrames = useAppStore((s) => outputFramesOf(s.project))
 
   const compiled = useMemo(() => compileTimeline(items), [items])
   // キャンバスの内部解像度。変わったら再描画する（サイズ変更で描画内容が消えるため）
@@ -111,8 +114,8 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
 
   // 再生: 開始時刻からの経過時間でフレームを決める。末尾で止まる
   useEffect(() => {
-    if (!isPlaying) return
-    const { fps, totalFrames } = preset
+    if (!isPlaying || totalFrames === 0) return
+    const { fps } = preset
     // 再生開始時の位置だけ使うので、store から直接読む（playheadFrame を依存に入れると毎フレーム再起動する）
     const current = useAppStore.getState().ui.playheadFrame
     // 末尾で止まっているときに再生したら先頭から
@@ -127,7 +130,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
     }
     handle = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(handle)
-  }, [isPlaying, preset, seek, setPlaying])
+  }, [isPlaying, preset, totalFrames, seek, setPlaying])
 }
 
 /** 画像がまだ無い素材の代わり（M4 の復元中など）。黒い 1x1 */
