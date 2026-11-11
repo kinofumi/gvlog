@@ -6,6 +6,7 @@ import type { Project } from '../model/types'
 import type { ProvidedImage } from '../render/renderFrame'
 import { useAppStore } from '../state/store'
 import { Button } from './ui/Button'
+import { Dialog } from './ui/Dialog'
 
 type Phase =
   | { kind: 'idle' }
@@ -92,9 +93,10 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
     }
   }
 
+  // 共有シートが閉じたらポップアップで知らせる（iOS の「ビデオを保存」は進み具合が見えないので、終わったことを明示する）
   async function onShare(file: File) {
     const outcome = await shareFile(file)
-    if (outcome === 'shared') setShareMessage('共有しました。')
+    if (outcome === 'shared') setShareMessage('保存・共有が完了しました。')
     if (outcome === 'cancelled') setShareMessage('')
     if (outcome === 'failed')
       setShareMessage('共有できませんでした。「ダウンロード」をお試しください。')
@@ -144,7 +146,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
           <Button variant="secondary" onClick={() => downloadFile(phase.file)}>
             ダウンロード
           </Button>
-          {shareMessage && <p className="text-sm">{shareMessage}</p>}
+          {shareMessage && <Dialog onClose={() => setShareMessage('')}>{shareMessage}</Dialog>}
         </div>
       )}
     </section>
