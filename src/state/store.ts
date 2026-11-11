@@ -38,7 +38,7 @@ export type AppState = {
   }
 
   setMeta(meta: { memberName: string; spot: string }): void
-  /** まとめて追加（初期の尺は残りを追加分で均等に割る）。入らなかった素材の画像と動画は解放する */
+  /** まとめて追加（初期の尺は 5 秒）。入らなかった素材の画像と動画は解放する */
   addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void

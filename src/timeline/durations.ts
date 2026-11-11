@@ -3,31 +3,20 @@
 /** 1 素材の最小尺（1 秒） */
 export const MIN_ITEM_FRAMES = 30
 
+/** 追加した素材の初期の尺（5 秒）。フィールドテストで決めた固定値（ADR 018） */
+export const DEFAULT_ITEM_FRAMES = 150
+
 /** 上限に入る素材数（全員が最小尺のとき） */
 export function maxItems(maxFrames: number): number {
   return Math.floor(maxFrames / MIN_ITEM_FRAMES)
 }
 
 /**
- * frames を n 個の素材に均等に割る。
- * 端数は先頭から 1 フレームずつ配るので、合計は常に frames と一致する。
+ * 追加する素材の初期の尺。すでに使っている長さに関係なく 5 秒（上限がそれより短ければ上限）。
+ * 合計が上限を超えることは呼び出し側（TotalDuration）が利用者に知らせる。
  */
-export function equalSplit(n: number, frames: number): number[] {
-  if (n <= 0) return []
-  const base = Math.floor(frames / n)
-  const extra = frames - base * n
-  return Array.from({ length: n }, (_, i) => (i < extra ? base + 1 : base))
-}
-
-/**
- * 追加する n 個の素材の初期の尺。上限までの残り（maxFrames − usedFrames）を均等に割る。
- * 残りが n 個に最小尺ずつ配れないときは全員最小尺にする（合計が上限を超えることは呼び出し側が利用者に知らせる）。
- */
-export function defaultDurations(usedFrames: number, n: number, maxFrames: number): number[] {
-  if (n <= 0) return []
-  const remaining = Math.max(0, maxFrames - usedFrames)
-  if (remaining < MIN_ITEM_FRAMES * n) return new Array<number>(n).fill(MIN_ITEM_FRAMES)
-  return equalSplit(n, remaining)
+export function defaultDuration(maxFrames: number): number {
+  return Math.min(DEFAULT_ITEM_FRAMES, maxFrames)
 }
 
 /** 1 つの尺を規則内に整える: 整数に切り捨て、最小尺以上・上限以下。数でない値は null（呼び出し側は無視する） */

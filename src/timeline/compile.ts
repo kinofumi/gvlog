@@ -12,7 +12,7 @@ export type TransitionWindow = {
 /** トランジション込みの区間。すべてフレーム番号。end 側は含まない */
 export type CompiledItem = {
   itemId: string
-  /** 均等割りの区間（この素材が主役の時間） */
+  /** 尺の区間（この素材が主役の時間） */
   coreStart: number
   coreEnd: number
   /** 画面に見えている区間（crossfade の分だけ前後に広がる。fadeWhite は白を挟むので広がらない） */

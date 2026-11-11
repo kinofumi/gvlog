@@ -9,7 +9,7 @@ import { compileTimeline } from '../timeline/compile'
 import { ExportCancelled, exportFrames } from './exportVideo'
 import type { ExportFrameProvider } from './frameProvider'
 
-// 30 フレーム（1 秒）の短いプリセットでループを確かめる
+// 上限 30 フレーム（1 秒）の短いプリセットでループを確かめる。素材 2 つはそれぞれ 30（上限まで）なので、出力は上限の 30 で切れる
 const preset = { ...DEFAULT_PRESET, maxFrames: 30 }
 const info: PhotoInfo = {
   kind: 'photo',
@@ -114,8 +114,14 @@ describe('exportFrames（書き出しのループ）', () => {
   })
 
   it('合計が上限を超えていたら、上限のフレーム数で止める（レビュー: Claude 8）', async () => {
-    // 2 枚で 30 のところ、1 枚目を 30 に伸ばして合計 45 > 上限 30
-    const over = setItemDuration(project, 'p1', 30)
+    // 上限 60 のプリセットに 2 枚（60 ずつ）を入れると合計 120 > 上限 60
+    const over = addItems(
+      createProject({ ...preset, maxFrames: 60 }, { memberName: '', spot: '' }),
+      [
+        { itemId: 'p1', info },
+        { itemId: 'p2', info },
+      ],
+    )
     const encoder = fakeEncoder()
     await exportFrames(
       over,
@@ -123,7 +129,7 @@ describe('exportFrames（書き出しのループ）', () => {
       () => {},
       signalOf(),
     )
-    expect(encoder.added).toHaveLength(30)
+    expect(encoder.added).toHaveLength(60)
   })
 
   it('進捗は 10 フレームごとと最後に通知される', async () => {

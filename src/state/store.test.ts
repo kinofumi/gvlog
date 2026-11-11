@@ -109,11 +109,11 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
   })
 
   it('seek は 0〜（出力の長さ − 1）の整数に収め、数でない値は無視する', () => {
-    addPhoto('p1', fakeImage()) // 1 枚なら上限いっぱいの 450 フレーム
+    addPhoto('p1', fakeImage()) // 1 枚なら初期の尺の 150 フレーム（5 秒）
     useAppStore.getState().seek(-5)
     expect(useAppStore.getState().ui.playheadFrame).toBe(0)
     useAppStore.getState().seek(1000)
-    expect(useAppStore.getState().ui.playheadFrame).toBe(449)
+    expect(useAppStore.getState().ui.playheadFrame).toBe(149)
     useAppStore.getState().seek(10.7)
     expect(useAppStore.getState().ui.playheadFrame).toBe(10)
     useAppStore.getState().seek(Number.NaN)
@@ -122,12 +122,12 @@ describe('useAppStore（画像の所有と UI 状態）', () => {
 
   it('尺を縮めたり素材を外したりして再生位置が範囲の外に出たら、末尾に戻す（レビュー: Codex 1）', () => {
     addPhoto('p1', fakeImage())
-    addPhoto('p2', fakeImage()) // 450 + 30
-    useAppStore.getState().seek(400)
-    useAppStore.getState().setItemDuration('p1', 90) // 出力 120 フレーム
-    expect(useAppStore.getState().ui.playheadFrame).toBe(119)
-    useAppStore.getState().removeItem('p1') // 出力 30 フレーム
-    expect(useAppStore.getState().ui.playheadFrame).toBe(29)
+    addPhoto('p2', fakeImage()) // 150 + 150
+    useAppStore.getState().seek(250)
+    useAppStore.getState().setItemDuration('p1', 90) // 出力 240 フレーム
+    expect(useAppStore.getState().ui.playheadFrame).toBe(239)
+    useAppStore.getState().removeItem('p1') // 出力 150 フレーム
+    expect(useAppStore.getState().ui.playheadFrame).toBe(149)
     useAppStore.getState().removeItem('p2') // 素材なし
     expect(useAppStore.getState().ui.playheadFrame).toBe(0)
   })

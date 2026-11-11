@@ -12,7 +12,7 @@ type Props = {
 export function FrameSlider({ min, max, value, fps, disabled, onChange }: Props) {
   return (
     <label className="flex items-center gap-2 text-xs">
-      {/* step は 1 フレーム。3（0.1 秒）にすると均等割りの値が格子に乗らず、つまみと表示がずれる */}
+      {/* step は 1 フレーム。3（0.1 秒）にすると動画の尺など 3 の倍数でない値が格子に乗らず、つまみと表示がずれる */}
       <input
         className="flex-1"
         type="range"
