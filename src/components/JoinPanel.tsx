@@ -5,7 +5,7 @@ import { MediaError } from '../media/errors'
 import { isVideoFile } from '../media/fileTypes'
 import { importOneVideo } from '../media/importEntries'
 import { useAppStore, type NewVideo } from '../state/store'
-import { sumFrames } from '../timeline/durations'
+import { overflowFrames, sumFrames } from '../timeline/durations'
 import { ExportPanel } from './ExportPanel'
 import { Section } from './Section'
 import { Thumbnail } from './Thumbnail'
@@ -16,11 +16,14 @@ import { SmallButton } from './ui/SmallButton'
  * つなげる: 全員が作った MP4 を集めて順に並べ、白フェードでつないで 1 本にする（ADR 017）。
  * 集めた動画はこの画面が持つ（編集タブの素材とは別）。プロジェクトは buildJoinProject で組み立て、書き出しは編集と同じ ExportPanel。
  * プレビューは無し（編集済みの動画を並べるだけなので、順番とサムネイルで足りる）。
+ * 取り込み中・書き出し中の印は store のもの（ui.importing / ui.exporting）を使う。タブをまたいで 1 つずつにするため。
+ * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
  */
 export function JoinPanel() {
   const exporting = useAppStore((s) => s.ui.exporting)
+  const importing = useAppStore((s) => s.ui.importing)
+  const setImporting = useAppStore((s) => s.setImporting)
   const [clips, setClips] = useState<NewVideo[]>([])
-  const [importing, setImporting] = useState(false)
   const [progress, setProgress] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -28,8 +31,11 @@ export function JoinPanel() {
   const project = useMemo(() => buildJoinProject(clips), [clips])
   const images = useMemo(() => Object.fromEntries(clips.map((c) => [c.itemId, c.image])), [clips])
   const videos = useMemo(() => Object.fromEntries(clips.map((c) => [c.itemId, c.video])), [clips])
-  const { fps } = JOIN_PRESET
-  const totalSec = sumFrames(project.items.map((i) => i.durationFrames)) / fps
+  const { fps, maxFrames } = JOIN_PRESET
+  const durations = project.items.map((i) => i.durationFrames)
+  const totalSec = sumFrames(durations) / fps
+  // 上限（10 分）を超えた分は出力に入らない（ADR 015 と同じ切り捨て）
+  const overflowSec = overflowFrames(durations, maxFrames) / fps
 
   async function onPick(files: FileList | null) {
     if (!files || files.length === 0) return
@@ -43,8 +49,7 @@ export function JoinPanel() {
         setProgress(`${i + 1} / ${targets.length} 本目を読み込み中…`)
         try {
           if (!isVideoFile(file)) throw new MediaError(`${file.name} は動画ではありません。`)
-          const entry = await importOneVideo(file, JOIN_PRESET, notes)
-          if ('video' in entry) added.push(entry)
+          added.push(await importOneVideo(file, JOIN_PRESET, notes))
         } catch (error) {
           notes.push(
             error instanceof MediaError ? error.message : `${file.name} を読み込めませんでした。`,
@@ -144,6 +149,12 @@ export function JoinPanel() {
         {clips.length > 0 && (
           <p className="text-sm text-stone-600">
             全部で {totalSec.toFixed(1)} 秒（{clips.length} 本）
+          </p>
+        )}
+        {overflowSec > 0 && (
+          <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+            上限の {maxFrames / fps / 60} 分を超えた末尾 {overflowSec.toFixed(1)}{' '}
+            秒は、生成する動画に入りません。本数を減らしてください。
           </p>
         )}
       </Section>

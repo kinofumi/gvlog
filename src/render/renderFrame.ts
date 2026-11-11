@@ -32,7 +32,7 @@ export type ImageProvider = {
 /**
  * 1 フレームを描く。決定論的（同じ入力なら同じ絵）。プレビューと書き出しで同じ関数を使う。
  * 順序: 黒で塗る → 見えている素材（0〜2 個）を描く → crossfade は後の素材を進行度の不透明度で重ねる →
- * fadeWhite は前半は前の素材、後半は後の素材を描き、その上に白を「中央で不透明」になる濃さで重ねる → キャプション。
+ * fadeWhite は見える素材は 1 つ（前半は前、後半は後。compile がそう区切る）で、その上に白を「中央で不透明」になる濃さで重ねる → キャプション。
  * キャプションは合成のあとに描くので、素材のフェードに巻き込まれない。
  * 呼び出し側の描画状態（不透明度、合成モード）には左右されず、終わったら元に戻す。
  */
@@ -56,9 +56,7 @@ export function renderFrame(
     const transition = transitionAt(compiled, frame)
 
     visible.forEach(({ c, item }, i) => {
-      // 2 つ見えているときの後の素材だけ扱いが違う。crossfade は進行度の不透明度で重ね、
-      // fadeWhite は前半（白くなる途中）はまだ描かず、後半から不透明で描く。前の素材はどちらも不透明のまま
-      if (i === 1 && transition?.type === 'fadeWhite' && transition.progress < 0.5) return
+      // 2 つ見えているとき（crossfade）の後の素材だけ、進行度の不透明度で重ねる（前は不透明のまま）
       ctx.globalAlpha = i === 1 && transition?.type === 'crossfade' ? transition.progress : 1
       drawItem(ctx, item, images.get(item.itemId), itemProgress(c, frame))
     })

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { EncodeProbePanel } from './components/EncodeProbePanel'
 import { EventGuide } from './components/EventGuide'
-import { ExportPanel } from './components/ExportPanel'
+import { EditorExport } from './components/EditorExport'
 import { JoinPanel } from './components/JoinPanel'
 import { MediaList } from './components/MediaList'
 import { MediaPicker } from './components/MediaPicker'
@@ -9,8 +9,6 @@ import { PreviewCanvas } from './components/PreviewCanvas'
 import { Section } from './components/Section'
 import { TabBar } from './components/TabBar'
 import { TipsGuide } from './components/TipsGuide'
-import { TotalDuration } from './components/TotalDuration'
-import { buildFileName } from './export/naming'
 import { useAppStore } from './state/store'
 
 // 4 つのタブ: 「イベントの栞」（当日の予定と地図）、「おすすめポイント」（撮っておくとよい場面）、
@@ -26,11 +24,9 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function App() {
-  const project = useAppStore((s) => s.project)
-  const images = useAppStore((s) => s.images)
-  const videos = useAppStore((s) => s.videos)
-  const preset = project.preset
-  const meta = project.meta
+  // App は preset と meta だけ購読する（素材や尺が変わるたびに全タブを再描画しないため）
+  const preset = useAppStore((s) => s.project.preset)
+  const meta = useAppStore((s) => s.project.meta)
   const setMeta = useAppStore((s) => s.setMeta)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const [tab, setTab] = useState<Tab>('guide')
@@ -92,13 +88,7 @@ export default function App() {
           <PreviewCanvas />
         </Section>
         <Section title="書き出し">
-          {project.items.length > 0 && <TotalDuration />}
-          <ExportPanel
-            project={project}
-            images={images}
-            videos={videos}
-            fileName={buildFileName(preset.name, meta.memberName, meta.spot)}
-          />
+          <EditorExport />
         </Section>
 
         <EncodeProbePanel preset={preset} />

@@ -52,6 +52,29 @@ describe('compileTimeline（トランジション込みの区間）', () => {
     })
   })
 
+  it('fadeWhite は区間を持つが、見える区間はコア区間のまま（前後が同時に見えることはない）', () => {
+    const compiled = compileTimeline([
+      {
+        itemId: 'a',
+        durationFrames: 150,
+        transitionOut: { type: 'fadeWhite', durationFrames: 16 },
+      },
+      { itemId: 'b', durationFrames: 150 },
+    ])
+    expect(compiled[0]).toEqual({
+      itemId: 'a',
+      coreStart: 0,
+      coreEnd: 150,
+      visibleStart: 0,
+      visibleEnd: 150,
+      transitionOut: { type: 'fadeWhite', start: 142, end: 158 },
+    })
+    expect(compiled[1]).toMatchObject({ visibleStart: 150, visibleEnd: 300 })
+    expect(itemsAt(compiled, 149).map((c) => c.itemId)).toEqual(['a'])
+    expect(itemsAt(compiled, 150).map((c) => c.itemId)).toEqual(['b'])
+    expect(transitionAt(compiled, 150)).toEqual({ type: 'fadeWhite', progress: 0.5 })
+  })
+
   it('奇数のトランジション長は、前に ceil、後に floor を割り当てる', () => {
     const compiled = compileTimeline([
       { itemId: 'a', durationFrames: 150, transitionOut: { type: 'crossfade', durationFrames: 9 } },

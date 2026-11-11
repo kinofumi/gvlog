@@ -113,6 +113,18 @@ describe('renderFrame（1 フレームの合成）', () => {
     expect(g).toBe(r)
   })
 
+  it('fadeWhite の既定の長さ（16、偶数）では、境界のフレームが真っ白になる', () => {
+    const items = [
+      photo('a', 150, { transitionOut: { type: 'fadeWhite', durationFrames: 16 } }),
+      photo('b', 150),
+    ]
+    const images = { a: solid('#f00'), b: solid('#00f') }
+    // 区間 [142, 158)。150 は進行度 0.5 で、後の素材の最初のフレーム
+    expect(render(items, images, 150)(45, 80)).toEqual([255, 255, 255, 255])
+    expect(render(items, images, 141)(45, 80)).toEqual([255, 0, 0, 255])
+    expect(render(items, images, 158)(45, 80)).toEqual([0, 0, 255, 255])
+  })
+
   it('fadeWhite の前半は前の色に白が混ざり、後の素材はまだ見えない', () => {
     const items = [
       photo('a', 150, { transitionOut: { type: 'fadeWhite', durationFrames: 10 } }),
