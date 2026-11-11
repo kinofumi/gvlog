@@ -66,9 +66,9 @@ gvlog/
     main.tsx, App.tsx               # タブ 4 つ（イベントの栞 / おすすめ / 動画編集 / つなげる）を useState で切替（react-router 不使用）。編集とつなげるのタブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
     components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project を受ける）, JoinPanel
-    **join/**                       # joinProject.ts（集めた動画を白フェードで並べた Project を組み立てる純粋関数。ADR 017）
+    **join/**                       # joinProject.ts（表紙 → 集めた動画 → 白い終わり、を白フェードで並べた Project を組み立てる純粋関数。ADR 017）、cards.ts（表紙と終わりの 1 色の絵）
     **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, tips.ts（おすすめポイントのデータ）, mapsLink.ts（Google マップの検索 URL）
-    components/ui/                  # Button, Chip, SmallButton（shadcn/ui 相当の小さな部品）
+    components/ui/                  # Button, Chip, SmallButton, Dialog（<dialog> のポップアップ。共有完了の知らせ）（shadcn/ui 相当の小さな部品）
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
     **timeline/**                   # compile.ts, durations.ts, clamp.ts, trim.ts  ← 純粋関数・Vitest 対象
     **render/**                     # renderFrame.ts, drawCaption.ts, kenBurns.ts, easing.ts, progress.ts, caption.ts（折り返し・配置・フェード）,

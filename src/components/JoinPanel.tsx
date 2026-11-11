@@ -1,6 +1,15 @@
 import { useMemo, useRef, useState } from 'react'
 import { buildFileName } from '../export/naming'
-import { JOIN_FADE_FRAMES, JOIN_PRESET, buildJoinProject } from '../join/joinProject'
+import { NAKAMINATO } from '../guide/nakaminato'
+import { COVER_COLOR, END_COLOR, makeSolidImage } from '../join/cards'
+import {
+  JOIN_COVER_FRAMES,
+  JOIN_COVER_ID,
+  JOIN_END_ID,
+  JOIN_FADE_FRAMES,
+  JOIN_PRESET,
+  buildJoinProject,
+} from '../join/joinProject'
 import { MediaError } from '../media/errors'
 import { isVideoFile } from '../media/fileTypes'
 import { importOneVideo } from '../media/importEntries'
@@ -18,18 +27,30 @@ import { SmallButton } from './ui/SmallButton'
  * プレビューは無し（編集済みの動画を並べるだけなので、順番とサムネイルで足りる）。
  * 取り込み中・書き出し中の印は store のもの（ui.importing / ui.exporting）を使う。タブをまたいで 1 つずつにするため。
  * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
+ * 先頭に表紙（文字は入力欄で変えられる）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
  */
 export function JoinPanel() {
   const exporting = useAppStore((s) => s.ui.exporting)
   const importing = useAppStore((s) => s.ui.importing)
   const setImporting = useAppStore((s) => s.setImporting)
   const [clips, setClips] = useState<NewVideo[]>([])
+  const [coverText, setCoverText] = useState(NAKAMINATO.title)
   const [progress, setProgress] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const project = useMemo(() => buildJoinProject(clips), [clips])
-  const images = useMemo(() => Object.fromEntries(clips.map((c) => [c.itemId, c.image])), [clips])
+  const project = useMemo(() => buildJoinProject(clips, coverText), [clips, coverText])
+  const cards = useMemo(
+    () => ({
+      [JOIN_COVER_ID]: makeSolidImage(JOIN_PRESET.width, JOIN_PRESET.height, COVER_COLOR),
+      [JOIN_END_ID]: makeSolidImage(JOIN_PRESET.width, JOIN_PRESET.height, END_COLOR),
+    }),
+    [],
+  )
+  const images = useMemo(
+    () => ({ ...cards, ...Object.fromEntries(clips.map((c) => [c.itemId, c.image])) }),
+    [cards, clips],
+  )
   const videos = useMemo(() => Object.fromEntries(clips.map((c) => [c.itemId, c.video])), [clips])
   const { fps, maxFrames } = JOIN_PRESET
   const durations = project.items.map((i) => i.durationFrames)
@@ -85,7 +106,9 @@ export function JoinPanel() {
       <Section title="みんなの動画を集める">
         <p className="text-sm text-stone-600">
           それぞれが生成した MP4 を選びます。順番を並べ替えて「つなげて生成」を押すと、
-          {JOIN_FADE_FRAMES / fps} 秒の白フェードでつないだ 1 本の動画になります。
+          {(JOIN_FADE_FRAMES / fps).toFixed(1)} 秒の白フェードでつないだ 1
+          本の動画になります。先頭に {JOIN_COVER_FRAMES / fps}{' '}
+          秒の表紙が付き、最後は白くフェードアウトして終わります。
         </p>
         <input
           ref={inputRef}
@@ -148,7 +171,7 @@ export function JoinPanel() {
         )}
         {clips.length > 0 && (
           <p className="text-sm text-stone-600">
-            全部で {totalSec.toFixed(1)} 秒（{clips.length} 本）
+            全部で {totalSec.toFixed(1)} 秒（{clips.length} 本。表紙と終わりを含む）
           </p>
         )}
         {overflowSec > 0 && (
@@ -157,6 +180,19 @@ export function JoinPanel() {
             秒は、生成する動画に入りません。本数を減らしてください。
           </p>
         )}
+      </Section>
+
+      <Section title="表紙">
+        <label className="block space-y-1 text-sm">
+          <span>表紙の文字（改行できます。空にすると表紙なし）</span>
+          <textarea
+            className="w-full rounded border border-stone-300 px-2 py-1 text-base"
+            rows={2}
+            value={coverText}
+            disabled={exporting}
+            onChange={(e) => setCoverText(e.target.value)}
+          />
+        </label>
       </Section>
 
       <Section title="つなげて生成">
