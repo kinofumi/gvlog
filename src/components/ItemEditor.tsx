@@ -18,8 +18,8 @@ const KEN_BURNS: { id: KenBurns['presetId']; label: string }[] = [
   { id: 'panBT', label: '下→上' },
 ]
 
-/** クロスフェード・白フェードを選んだときの最初の長さ（0.5 秒） */
-const DEFAULT_TRANSITION_FRAMES = 15
+/** クロスフェード・白フェードを選んだときの最初の長さ（約 0.5 秒）。偶数にすると白フェードの境界のフレームが真っ白になる */
+const DEFAULT_TRANSITION_FRAMES = 16
 
 /** つなぎの種類のチップ。cut 以外は長さのスライダーを出す */
 const TRANSITIONS: { id: Transition['type']; label: string }[] = [

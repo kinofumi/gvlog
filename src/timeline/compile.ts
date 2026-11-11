@@ -2,7 +2,7 @@ import type { TimelineItem, Transition } from '../model/types'
 import { MIN_CAPTION_FRAMES, clampTransition } from './clamp'
 import { checkDurations } from './durations'
 
-/** 次の素材へのトランジション区間。start は含み、end は含まない。前後の素材が同時に見える */
+/** 次の素材へのトランジション区間。start は含み、end は含まない。crossfade では前後の素材が同時に見える */
 export type TransitionWindow = {
   type: Transition['type']
   start: number
@@ -15,7 +15,7 @@ export type CompiledItem = {
   /** 均等割りの区間（この素材が主役の時間） */
   coreStart: number
   coreEnd: number
-  /** 画面に見えている区間（前後のトランジション分だけ広がる） */
+  /** 画面に見えている区間（crossfade の分だけ前後に広がる。fadeWhite は白を挟むので広がらない） */
   visibleStart: number
   visibleEnd: number
   transitionOut: TransitionWindow | null
@@ -25,6 +25,8 @@ export type CompiledItem = {
  * 各素材のコア区間と見える区間を計算する。
  * トランジション d は境界をまたいで、前の素材に ceil(d/2)、後の素材に floor(d/2) を割り当てる。
  * 長すぎる d は前後の短い方の尺の半分に切り詰める。末尾の素材の transitionOut は無視する。
+ * 見える区間が広がる（前後が同時に見える）のは crossfade だけ。fadeWhite は前半が前の素材、後半が後の素材で、
+ * 見える区間はコア区間のまま（ADR 016。動画の先頭が飛ばず、余分なデコードもしない）。
  */
 export function compileTimeline(items: TimelineItem[]): CompiledItem[] {
   const compiled: CompiledItem[] = []
@@ -57,17 +59,18 @@ export function compileTimeline(items: TimelineItem[]): CompiledItem[] {
       }
     }
 
+    const overlaps = transitionOut?.type === 'crossfade'
     compiled.push({
       itemId: item.itemId,
       coreStart,
       coreEnd,
       visibleStart: coreStart - leadIn,
-      visibleEnd: coreEnd + tailOut,
+      visibleEnd: coreEnd + (overlaps ? tailOut : 0),
       transitionOut,
     })
 
     cursor = coreEnd
-    leadIn = transitionOut ? coreEnd - transitionOut.start : 0
+    leadIn = overlaps && transitionOut ? coreEnd - transitionOut.start : 0
   }
   return compiled
 }

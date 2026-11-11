@@ -190,7 +190,7 @@ interface Transition {
     `trimEndRange`）。開始位置を動かしても尺は変わらない（使う範囲が前後に滑る）。
   - Ken Burns: 進行度 `p = (t − visibleStart) / (visibleEnd − visibleStart − 1)`。
   - キャプション: 表示区間は `coreStart + inOffsetFrames` から `coreEnd − outOffsetFrames`。フェードは 8 フレーム固定。
-- トランジション区間 `[coreEnd − floor(d/2), coreEnd + ceil(d/2))` では 2 つの素材が同時に見える。
+- トランジション区間 `[coreEnd − floor(d/2), coreEnd + ceil(d/2))` では、crossfade なら 2 つの素材が同時に見える。fadeWhite では見える区間を広げず、前半は前・後半は後の素材だけが見える（ADR 016）。
   crossfade の進行度は `q = (t − 区間開始) / d`。
 
 ### 2.4 検証（`model/validate.ts`）
@@ -234,7 +234,7 @@ renderFrame(compiled: CompiledItem[], items: RenderItem[], frame: number,
 - `t` で見える素材（0〜2 個）を求め、素材を描く → crossfade 合成 → キャプションの順。
 - 座標は正規化座標 × canvas サイズで解像度非依存。プレビュー（縮小キャンバス）と export（出力解像度）で同じ関数を使う。
 - **crossfade の合成式**: 前の素材を `globalAlpha = 1` で描き、その上に次の素材を `globalAlpha = q` で描く（source-over）。
-- **fadeWhite の合成式**: `q < 0.5` は前の素材だけ、`q ≥ 0.5` は次の素材だけを不透明で描き、その上に白を `1 − |2q − 1|` の不透明度で塗る（ADR 016）。
+- **fadeWhite の合成式**: 見えている素材（前半は前、後半は次。compile がそう区切る）を不透明で描き、その上に白を `1 − |2q − 1|` の不透明度で塗る（ADR 016）。
   両方を減衰させない。同じ画像同士を合成しても輝度が変わらないことをテストで確認する（Codex 指摘 8）。
 - **キャプションは合成後に別描画**する。素材のフェードに巻き込まれない。
 - Ken Burns は `from/to` を easeInOut で補間してソース矩形を算出 → `drawImage(src, sx, sy, sw, sh, 0, 0, W, H)`。

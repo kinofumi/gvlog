@@ -1,6 +1,6 @@
 import type { GroupPreset } from '../model/types'
 import { newId } from '../model/ids'
-import type { NewEntry } from '../state/store'
+import type { NewPhoto, NewVideo } from '../state/store'
 import { importImage } from './importImage'
 import { importVideo } from './importVideo'
 import { makeVideoPoster } from './videoPoster'
@@ -9,7 +9,7 @@ import { makeVideoPoster } from './videoPoster'
 const POSTER_SCALE = 0.5
 
 /** 写真 1 枚を取り込んで、store に渡す形にする（編集タブとつなげるタブで共用） */
-export async function importOnePhoto(file: File, preset: GroupPreset): Promise<NewEntry> {
+export async function importOnePhoto(file: File, preset: GroupPreset): Promise<NewPhoto> {
   const imported = await importImage(file, preset.width, preset.height)
   const itemId = newId()
   return {
@@ -32,7 +32,7 @@ export async function importOneVideo(
   file: File,
   preset: GroupPreset,
   notes: string[],
-): Promise<NewEntry> {
+): Promise<NewVideo> {
   const video = await importVideo(file)
   const width = Math.round(preset.width * POSTER_SCALE)
   const height = Math.round(preset.height * POSTER_SCALE)
