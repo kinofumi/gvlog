@@ -2,33 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   checkDurations,
   clampDuration,
-  defaultDurations,
-  equalSplit,
+  defaultDuration,
   maxItems,
   outputFrames,
   overflowFrames,
   sumFrames,
 } from './durations'
-
-describe('equalSplit（均等割り）', () => {
-  it('割り切れるときは全員同じ尺になる', () => {
-    expect(equalSplit(2, 300)).toEqual([150, 150])
-  })
-
-  it('端数は先頭から 1 フレームずつ配り、合計は常に指定したフレーム数と一致する', () => {
-    const result = equalSplit(7, 300) // 300 / 7 = 42 余り 6
-    expect(result).toEqual([43, 43, 43, 43, 43, 43, 42])
-    expect(result.reduce((a, b) => a + b, 0)).toBe(300)
-  })
-
-  it('素材が 1 つなら指定したフレーム数そのものになる', () => {
-    expect(equalSplit(1, 300)).toEqual([300])
-  })
-
-  it('素材が 0 なら空配列を返す', () => {
-    expect(equalSplit(0, 300)).toEqual([])
-  })
-})
 
 describe('maxItems（素材数の上限）', () => {
   it('15 秒（450 フレーム）なら最小尺 1 秒で 15 個まで', () => {
@@ -40,22 +19,19 @@ describe('maxItems（素材数の上限）', () => {
   })
 })
 
-describe('defaultDurations（追加した素材の初期の尺 = 上限までの残りを均等に割る）', () => {
-  it('何も無いところに 5 個入れると 15 秒を 3 秒ずつ', () => {
-    expect(defaultDurations(0, 5, 450)).toEqual([90, 90, 90, 90, 90])
+describe('defaultDuration（追加した素材の初期の尺 = 5 秒。動画は元の長さまで）', () => {
+  it('写真は 5 秒（150 フレーム）。すでに使っている長さや上限の大きさには関係しない', () => {
+    expect(defaultDuration(450)).toBe(150)
+    expect(defaultDuration(900)).toBe(150)
   })
 
-  it('すでに 12 秒使っていれば、残り 3 秒を新しい素材で分ける', () => {
-    expect(defaultDurations(360, 2, 450)).toEqual([45, 45])
+  it('動画は 5 秒と元の長さの短い方。3 秒の動画なら 3 秒、10 秒の動画なら 5 秒', () => {
+    expect(defaultDuration(450, 90)).toBe(90)
+    expect(defaultDuration(450, 300)).toBe(150)
   })
 
-  it('残りが足りなければ最小尺（1 秒）ずつ。上限を超えるかどうかは呼び出し側が知らせる', () => {
-    expect(defaultDurations(450, 2, 450)).toEqual([30, 30])
-    expect(defaultDurations(420, 2, 450)).toEqual([30, 30]) // 残り 30 では 2 個に 1 秒ずつ配れない
-  })
-
-  it('0 個なら空', () => {
-    expect(defaultDurations(0, 0, 450)).toEqual([])
+  it('1 秒未満の動画でも最小尺の 1 秒（足りない分は末尾のフレームで止まる）', () => {
+    expect(defaultDuration(450, 10)).toBe(30)
   })
 })
 

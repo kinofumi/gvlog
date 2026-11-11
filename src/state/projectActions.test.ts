@@ -59,27 +59,27 @@ describe('createProject', () => {
   })
 })
 
-describe('addPhoto / addItems（末尾に追加。新しい素材の尺は上限までの残りを均等に割る。既存の尺は変えない）', () => {
-  it('まとめて 3 枚入れると 15 秒を 3 等分、1 枚ずつ足すと残りが無いので 1 秒ずつ', () => {
+describe('addPhoto / addItems（末尾に追加。新しい素材の尺は 5 秒。既存の尺は変えない）', () => {
+  it('まとめて入れても 1 枚ずつ足しても、新しい素材は 5 秒ずつ。合計が上限を超えても同じ（注意は UI が出す）', () => {
     const three = addItems(empty(), [
       { itemId: 'p1', info: photoInfo(1) },
       { itemId: 'p2', info: photoInfo(2) },
       { itemId: 'p3', info: photoInfo(3) },
     ])
     expect(durations(three)).toEqual([150, 150, 150])
-    expect(durations(withPhotos(1))).toEqual([450])
-    expect(durations(withPhotos(3))).toEqual([450, 30, 30])
+    expect(durations(withPhotos(1))).toEqual([150])
+    expect(durations(withPhotos(4))).toEqual([150, 150, 150, 150])
+    expect(outputFramesOf(withPhotos(4))).toBe(450)
   })
 
-  it('途中で尺を変えても、あとから足した素材は残りを使うだけで既存の尺は動かない', () => {
+  it('途中で尺を変えても、あとから足した素材は 5 秒で、既存の尺は動かない', () => {
     let p = addItems(empty(), [
       { itemId: 'p1', info: photoInfo(1) },
       { itemId: 'p2', info: photoInfo(2) },
     ])
-    expect(durations(p)).toEqual([225, 225])
     p = setItemDuration(p, 'p1', 90)
-    p = addPhoto(p, 'p3', photoInfo(3)) // 残り 450 − 315 = 135
-    expect(durations(p)).toEqual([90, 225, 135])
+    p = addPhoto(p, 'p3', photoInfo(3))
+    expect(durations(p)).toEqual([90, 150, 150])
   })
 
   it('追加した写真は Ken Burns が none、キャプション無し、cut でつなぐ', () => {
@@ -116,9 +116,9 @@ describe('addPhoto / addItems（末尾に追加。新しい素材の尺は上限
 
 describe('removeItem', () => {
   it('削除しても残りの尺は変わらない', () => {
-    const p = removeItem(withPhotos(3), 'p2')
+    const p = removeItem(setItemDuration(withPhotos(3), 'p3', 60), 'p2')
     expect(p.items.map((i) => i.itemId)).toEqual(['p1', 'p3'])
-    expect(durations(p)).toEqual([450, 30])
+    expect(durations(p)).toEqual([150, 60])
   })
 
   it('無い ID なら元のまま', () => {
@@ -129,11 +129,11 @@ describe('removeItem', () => {
 
 describe('moveItem（並べ替え。尺は素材についていく）', () => {
   it('前へ・後ろへ動かせる', () => {
-    const p = setItemDuration(withPhotos(3), 'p1', 150)
-    expect(durations(p)).toEqual([150, 30, 30])
+    const p = setItemDuration(withPhotos(3), 'p1', 60)
+    expect(durations(p)).toEqual([60, 150, 150])
     const moved = moveItem(p, 'p1', 2)
     expect(moved.items.map((i) => i.itemId)).toEqual(['p2', 'p3', 'p1'])
-    expect(durations(moved)).toEqual([30, 30, 150])
+    expect(durations(moved)).toEqual([150, 150, 60])
   })
 
   it('範囲外の位置や無い ID、同じ位置への移動なら元のまま', () => {
@@ -161,9 +161,9 @@ describe('setItemDuration（尺の調整。他の素材は動かない）', () =
 
   it('最小尺未満は最小尺、上限超えは上限に止め、非整数は切り捨てる', () => {
     const p = withPhotos(2)
-    expect(durations(setItemDuration(p, 'p2', 5))).toEqual([450, 30])
-    expect(durations(setItemDuration(p, 'p2', 9999))).toEqual([450, 450])
-    expect(durations(setItemDuration(p, 'p2', 100.9))).toEqual([450, 100])
+    expect(durations(setItemDuration(p, 'p2', 5))).toEqual([150, 30])
+    expect(durations(setItemDuration(p, 'p2', 9999))).toEqual([150, 450])
+    expect(durations(setItemDuration(p, 'p2', 100.9))).toEqual([150, 100])
   })
 
   it('素材が 1 つでも変えられる', () => {
@@ -192,7 +192,7 @@ describe('setItemDuration（尺の調整。他の素材は動かない）', () =
 
   it('同じ値、数でない値、無い ID なら元のまま', () => {
     const p = withPhotos(1)
-    expect(setItemDuration(p, 'p1', 450)).toBe(p)
+    expect(setItemDuration(p, 'p1', 150)).toBe(p)
     expect(setItemDuration(p, 'p1', Number.NaN)).toBe(p)
     expect(setItemDuration(p, 'nope', 100)).toBe(p)
   })
@@ -229,9 +229,9 @@ describe('setKenBurns / setCaption / setTransition', () => {
     const two = addItems(empty(), [
       { itemId: 'p1', info: photoInfo(1) },
       { itemId: 'p2', info: photoInfo(2) },
-    ]) // 225 と 225
+    ]) // 150 と 150
     const p = setTransition(two, 'p1', { type: 'crossfade', durationFrames: 500 })
-    expect(p.items[0].transitionOut).toEqual({ type: 'crossfade', durationFrames: 112 })
+    expect(p.items[0].transitionOut).toEqual({ type: 'crossfade', durationFrames: 75 })
   })
 
   it('末尾の素材でも、長さは 0 以上の整数に整えて保存する（次に素材を足したとき上限で切り詰められる）', () => {
@@ -280,7 +280,7 @@ describe('setKenBurns / setCaption / setTransition', () => {
   })
 })
 
-/** 写真 1 枚と動画 1 本（元動画の尺を指定）。尺は 225 ずつ */
+/** 写真 1 枚と動画 1 本（元動画の尺を指定）。尺は 150 ずつ */
 const photoAndVideo = (sourceDurationFrames: number) =>
   addItems(empty(), [
     { itemId: 'p1', info: photoInfo(1) },
@@ -295,27 +295,36 @@ describe('動画の追加と開始位置（トリム）', () => {
     expect(video.trimStartFrames).toBe(0)
     expect(video.sourceDurationFrames).toBe(600)
     expect(video.transitionOut).toEqual({ type: 'cut', durationFrames: 0 })
-    expect(durations(p)).toEqual([225, 225])
+    expect(durations(p)).toEqual([150, 150])
+  })
+
+  it('5 秒より短い動画は元の長さで入る。1 秒未満でも最小尺の 1 秒（レビュー: Claude 1）', () => {
+    const p = addItems(empty(), [
+      { itemId: 'v1', info: videoInfo(1, 90) },
+      { itemId: 'v2', info: videoInfo(2, 10) },
+    ])
+    expect(durations(p)).toEqual([90, 30])
+    expect(p.items.map((i) => (i as VideoItem).trimStartFrames)).toEqual([0, 0])
   })
 
   it('開始位置は 0〜（元動画の尺 − 見える長さ）に収めて保存する', () => {
     let p = photoAndVideo(600)
-    // 見える長さ 225 なので上限は 375
+    // 見える長さ 150 なので上限は 450
     p = setTrimStart(p, 'v1', 100)
     expect((p.items[1] as VideoItem).trimStartFrames).toBe(100)
     p = setTrimStart(p, 'v1', 1000)
-    expect((p.items[1] as VideoItem).trimStartFrames).toBe(375)
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(450)
     p = setTrimStart(p, 'v1', -10)
     expect((p.items[1] as VideoItem).trimStartFrames).toBe(0)
   })
 
   it('クロスフェードで見える長さが延びると、上限も縮む', () => {
-    let p = photoAndVideo(400)
-    p = setTrimStart(p, 'v1', 175) // 上限ちょうど（400 − 225）
-    expect((p.items[1] as VideoItem).trimStartFrames).toBe(175)
-    // 30 フレームのクロスフェードで動画は 15 フレーム早く見え始める → 見える長さ 240、上限 160
+    let p = photoAndVideo(300)
+    p = setTrimStart(p, 'v1', 150) // 上限ちょうど（300 − 150）
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(150)
+    // 30 フレームのクロスフェードで動画は 15 フレーム早く見え始める → 見える長さ 165、上限 135
     p = setTransition(p, 'p1', { type: 'crossfade', durationFrames: 30 })
-    expect((p.items[1] as VideoItem).trimStartFrames).toBe(160)
+    expect((p.items[1] as VideoItem).trimStartFrames).toBe(135)
   })
 
   it('尺を伸ばして元動画より長くなったら、開始位置は 0 に戻る', () => {
@@ -339,23 +348,23 @@ describe('setTrimEnd（動画の終了位置。尺 = 終了位置 − 開始位�
     p = setTrimStart(p, 'v1', 90)
     p = setTrimEnd(p, 'v1', 300)
     expect((p.items[1] as VideoItem).trimStartFrames).toBe(90)
-    expect(durations(p)).toEqual([225, 210])
+    expect(durations(p)).toEqual([150, 210])
   })
 
   it('尺の規則（最小尺、上限）で収まらない終了位置は、収まる値に止まる', () => {
     let p = photoAndVideo(600)
     p = setTrimEnd(p, 'v1', 5) // 最小尺 30 まで
-    expect(durations(p)).toEqual([225, 30])
+    expect(durations(p)).toEqual([150, 30])
     p = setTrimEnd(p, 'v1', 1000) // 尺の上限 450 まで（合計は 15 秒を超えるが、他の素材は動かない）
-    expect(durations(p)).toEqual([225, 450])
+    expect(durations(p)).toEqual([150, 450])
   })
 
   it('元動画の末尾を超える終了位置は末尾に止め、開始位置は動かない（レビュー: Codex 3 / Claude 2）', () => {
     let p = photoAndVideo(700)
-    p = setTrimStart(p, 'v1', 400) // 尺 225、見える長さ 225 → 上限 475 の内側
+    p = setTrimStart(p, 'v1', 400) // 尺 150、見える長さ 150 → 上限 550 の内側
     p = setTrimEnd(p, 'v1', 900) // 末尾 700 まで → 尺 300
     expect((p.items[1] as VideoItem).trimStartFrames).toBe(400)
-    expect(durations(p)).toEqual([225, 300])
+    expect(durations(p)).toEqual([150, 300])
   })
 
   it('クロスフェードで見える長さが延びる分は終了位置の上限から引き、開始位置は動かない', () => {
@@ -364,7 +373,7 @@ describe('setTrimEnd（動画の終了位置。尺 = 終了位置 − 開始位�
     p = setTrimStart(p, 'v1', 100)
     p = setTrimEnd(p, 'v1', 500) // 上限は 500 − 15 = 485 → 尺 385
     expect((p.items[1] as VideoItem).trimStartFrames).toBe(100)
-    expect(durations(p)).toEqual([225, 385])
+    expect(durations(p)).toEqual([150, 385])
   })
 
   it('素材が 1 つでも終了位置で尺を変えられる', () => {
@@ -376,7 +385,7 @@ describe('setTrimEnd（動画の終了位置。尺 = 終了位置 − 開始位�
     const p = photoAndVideo(600)
     expect(setTrimEnd(p, 'p1', 100)).toBe(p)
     expect(setTrimEnd(p, 'nope', 100)).toBe(p)
-    expect(setTrimEnd(p, 'v1', 225)).toBe(p)
+    expect(setTrimEnd(p, 'v1', 150)).toBe(p)
     expect(setTrimEnd(p, 'v1', Number.NaN)).toBe(p)
   })
 })

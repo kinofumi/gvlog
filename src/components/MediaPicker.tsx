@@ -14,7 +14,7 @@ const IS_IOS =
 
 /**
  * 写真と動画を複数選んで取り込む。取り込みは直列（スマホのメモリを一度に使わないため）、
- * store への追加は全部そろってから 1 回（初期の尺は、上限までの残りを追加分で均等に割る）。
+ * store への追加は全部そろってから 1 回（初期の尺は 1 つ 5 秒、動画は元の長さまで）。
  */
 export function MediaPicker() {
   const preset = useAppStore((s) => s.project.preset)

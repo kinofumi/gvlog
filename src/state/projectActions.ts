@@ -13,13 +13,7 @@ import { newId } from '../model/ids'
 import { kenBurnsPreset } from '../render/kenBurns'
 import { clampAfterResize } from '../timeline/clamp'
 import { compileTimeline } from '../timeline/compile'
-import {
-  clampDuration,
-  defaultDurations,
-  maxItems,
-  outputFrames,
-  sumFrames,
-} from '../timeline/durations'
+import { clampDuration, defaultDuration, maxItems, outputFrames } from '../timeline/durations'
 import { clampTrims, trimEndRange } from '../timeline/trim'
 
 // プロジェクトを変える操作。すべて純粋関数で、新しい Project を返す（元は変えない）。
@@ -55,7 +49,7 @@ export function addPhoto(project: Project, itemId: string, info: PhotoInfo): Pro
 
 /**
  * 写真と動画を複数まとめて末尾に追加する。既存の素材の尺は変えない。
- * 新しい素材の尺は「上限までの残りを均等に割った値」（defaultDurations）。
+ * 新しい素材の尺は 5 秒、動画は元の長さまで（defaultDuration）。合計が上限を超えても入れる（注意は UI が出す）。
  * 個数の上限を超える分と重複 ID は入れない。1 つも入らなければ元のまま。動画は開始位置 0 で始める。
  */
 export function addItems(
@@ -73,17 +67,23 @@ export function addItems(
   }
   if (accepted.length === 0) return project
 
-  const used = sumFrames(items.map((i) => i.durationFrames))
-  const durations = defaultDurations(used, accepted.length, project.preset.maxFrames)
-  accepted.forEach(({ itemId, info }, k) => {
+  const { maxFrames } = project.preset
+  for (const { itemId, info } of accepted) {
     const transitionOut: Transition = { type: 'cut', durationFrames: 0 }
-    const base = { itemId, durationFrames: durations[k], transitionOut }
     if (info.kind === 'photo') {
-      items.push({ ...base, ...info, kenBurns: kenBurnsPreset('none') })
+      const durationFrames = defaultDuration(maxFrames)
+      items.push({
+        itemId,
+        durationFrames,
+        transitionOut,
+        ...info,
+        kenBurns: kenBurnsPreset('none'),
+      })
     } else {
-      items.push({ ...base, ...info, trimStartFrames: 0 })
+      const durationFrames = defaultDuration(maxFrames, info.sourceDurationFrames)
+      items.push({ itemId, durationFrames, transitionOut, ...info, trimStartFrames: 0 })
     }
-  })
+  }
   return withItems(project, clampAfterResize(items))
 }
 
