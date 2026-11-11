@@ -6,16 +6,17 @@ export const COVER_COLOR = '#292524'
 export const END_COLOR = '#ffffff'
 
 /**
- * 1 色で塗った出力サイズの絵を作る（表紙と終わり用）。
+ * 1 色の絵を作る（表紙と終わり用）。
+ * 1 色なので 1×1 の canvas で足りる（描画は cover で画面いっぱいに引き伸ばす）。出力サイズで作ると 1 枚 8 MB を持ち続けることになる。
  * canvas をそのまま描画元にするので、ImageBitmap と違って閉じる必要がない。
  */
-export function makeSolidImage(width: number, height: number, color: string): ProvidedImage {
+export function makeSolidImage(color: string): ProvidedImage {
   const canvas = document.createElement('canvas')
-  canvas.width = width
-  canvas.height = height
+  canvas.width = 1
+  canvas.height = 1
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('表紙を描くためのキャンバスを作れませんでした。')
   ctx.fillStyle = color
-  ctx.fillRect(0, 0, width, height)
-  return { image: canvas, width, height }
+  ctx.fillRect(0, 0, 1, 1)
+  return { image: canvas, width: 1, height: 1 }
 }

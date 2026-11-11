@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
 import { buildFileName } from '../export/naming'
-import { NAKAMINATO } from '../guide/nakaminato'
 import { COVER_COLOR, END_COLOR, makeSolidImage } from '../join/cards'
 import {
   JOIN_COVER_FRAMES,
@@ -27,14 +26,14 @@ import { SmallButton } from './ui/SmallButton'
  * プレビューは無し（編集済みの動画を並べるだけなので、順番とサムネイルで足りる）。
  * 取り込み中・書き出し中の印は store のもの（ui.importing / ui.exporting）を使う。タブをまたいで 1 つずつにするため。
  * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
- * 先頭に表紙（文字は入力欄で変えられる）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
+ * 先頭に表紙（文字は入力欄で変えられる。初期値は App が渡す）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
  */
-export function JoinPanel() {
+export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
   const exporting = useAppStore((s) => s.ui.exporting)
   const importing = useAppStore((s) => s.ui.importing)
   const setImporting = useAppStore((s) => s.setImporting)
   const [clips, setClips] = useState<NewVideo[]>([])
-  const [coverText, setCoverText] = useState(NAKAMINATO.title)
+  const [coverText, setCoverText] = useState(defaultCoverText)
   const [progress, setProgress] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -42,8 +41,8 @@ export function JoinPanel() {
   const project = useMemo(() => buildJoinProject(clips, coverText), [clips, coverText])
   const cards = useMemo(
     () => ({
-      [JOIN_COVER_ID]: makeSolidImage(JOIN_PRESET.width, JOIN_PRESET.height, COVER_COLOR),
-      [JOIN_END_ID]: makeSolidImage(JOIN_PRESET.width, JOIN_PRESET.height, END_COLOR),
+      [JOIN_COVER_ID]: makeSolidImage(COVER_COLOR),
+      [JOIN_END_ID]: makeSolidImage(END_COLOR),
     }),
     [],
   )
@@ -53,6 +52,7 @@ export function JoinPanel() {
   )
   const videos = useMemo(() => Object.fromEntries(clips.map((c) => [c.itemId, c.video])), [clips])
   const { fps, maxFrames } = JOIN_PRESET
+  const hasCover = project.items.some((i) => i.itemId === JOIN_COVER_ID)
   const durations = project.items.map((i) => i.durationFrames)
   const totalSec = sumFrames(durations) / fps
   // 上限（10 分）を超えた分は出力に入らない（ADR 015 と同じ切り捨て）
@@ -107,7 +107,7 @@ export function JoinPanel() {
         <p className="text-sm text-stone-600">
           それぞれが生成した MP4 を選びます。順番を並べ替えて「つなげて生成」を押すと、
           {(JOIN_FADE_FRAMES / fps).toFixed(1)} 秒の白フェードでつないだ 1
-          本の動画になります。先頭に {JOIN_COVER_FRAMES / fps}{' '}
+          本の動画になります。表紙の文字を入れると先頭に {JOIN_COVER_FRAMES / fps}{' '}
           秒の表紙が付き、最後は白くフェードアウトして終わります。
         </p>
         <input
@@ -171,13 +171,14 @@ export function JoinPanel() {
         )}
         {clips.length > 0 && (
           <p className="text-sm text-stone-600">
-            全部で {totalSec.toFixed(1)} 秒（{clips.length} 本。表紙と終わりを含む）
+            全部で {totalSec.toFixed(1)} 秒（{clips.length} 本。{hasCover ? '表紙と' : ''}
+            終わりを含む）
           </p>
         )}
         {overflowSec > 0 && (
           <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
             上限の {maxFrames / fps / 60} 分を超えた末尾 {overflowSec.toFixed(1)}{' '}
-            秒は、生成する動画に入りません。本数を減らしてください。
+            秒は、生成する動画に入りません（最後の白フェードアウトも入りません）。本数を減らしてください。
           </p>
         )}
       </Section>

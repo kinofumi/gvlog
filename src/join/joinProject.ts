@@ -29,21 +29,14 @@ export type JoinClip = {
   info: VideoInfo
 }
 
-/** 表紙と終わりは出力と同じ大きさの 1 枚の絵（JoinPanel が canvas で作る） */
+/** 表紙と終わりは 1 色の絵（join/cards.ts が 1×1 の canvas で作る。描画が画面いっぱいに引き伸ばす） */
 function cardInfo(fileName: string): PhotoInfo {
-  return {
-    kind: 'photo',
-    blobKey: fileName,
-    thumbKey: fileName,
-    fileName,
-    width: JOIN_PRESET.width,
-    height: JOIN_PRESET.height,
-  }
+  return { kind: 'photo', blobKey: fileName, thumbKey: fileName, fileName, width: 1, height: 1 }
 }
 
 /**
  * 全員の動画を順に並べたプロジェクトを作る（ADR 017）。
- * - 表紙の文字があれば先頭に 3 秒の表紙（文字はテロップ、位置は中央）。空白だけなら表紙は無し。
+ * - 表紙の文字があれば先頭に 3 秒の表紙（文字はテロップ、位置は中央。前後の空白と改行は除く）。空白だけなら表紙は無し。
  * - 各クリップの尺は元の動画の長さ（1 秒未満なら 1 秒にして最後のフレームで止める。編集で作る動画は 1 秒以上なので実際には起きない）。
  * - 間はすべて白フェード。最後は白い 1 秒の「終わり」につなぐので、白フェードアウトして終わる。
  * クリップが無ければ空のまま。できたプロジェクトは編集と同じ exportProject で書き出せる。
@@ -52,7 +45,8 @@ function cardInfo(fileName: string): PhotoInfo {
 export function buildJoinProject(clips: JoinClip[], coverText = ''): Project {
   const empty = createProject(JOIN_PRESET, { memberName: '', spot: '' })
   if (clips.length === 0) return empty
-  const hasCover = coverText.trim() !== ''
+  const title = coverText.trim()
+  const hasCover = title !== ''
   const entries = [
     ...(hasCover ? [{ itemId: JOIN_COVER_ID, info: cardInfo('表紙') }] : []),
     ...clips,
@@ -62,7 +56,7 @@ export function buildJoinProject(clips: JoinClip[], coverText = ''): Project {
   if (hasCover) {
     project = setItemDuration(project, JOIN_COVER_ID, JOIN_COVER_FRAMES)
     project = setCaption(project, JOIN_COVER_ID, {
-      text: coverText,
+      text: title,
       presetId: 'outline',
       position: 'middle',
       size: 'L',

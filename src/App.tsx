@@ -9,6 +9,7 @@ import { PreviewCanvas } from './components/PreviewCanvas'
 import { Section } from './components/Section'
 import { TabBar } from './components/TabBar'
 import { TipsGuide } from './components/TipsGuide'
+import { NAKAMINATO } from './guide/nakaminato'
 import { useAppStore } from './state/store'
 
 // 4 つのタブ: 「イベントの栞」（当日の予定と地図）、「おすすめポイント」（撮っておくとよい場面）、
@@ -96,7 +97,7 @@ export default function App() {
 
       {/* つなげるタブも隠すだけ（集めた動画を捨てないため） */}
       <div className={tab === 'join' ? '' : 'hidden'}>
-        <JoinPanel />
+        <JoinPanel defaultCoverText={NAKAMINATO.title} />
       </div>
 
       <footer className="text-xs text-stone-500">

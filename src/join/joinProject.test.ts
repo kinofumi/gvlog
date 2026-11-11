@@ -45,9 +45,10 @@ describe('buildJoinProject（全員の動画を順に並べて 1 本にするプ
     expect(JOIN_MAX_FRAMES).toBeGreaterThanOrEqual(900)
   })
 
-  it('1 秒に満たない動画でも尺は最小の 1 秒になる（足りない分は最後のフレームで止まる）', () => {
+  it('1 秒に満たない動画でも尺は最小の 1 秒になる（足りない分は最後のフレームで止まる）。短いので白フェードは半分に切り詰められる', () => {
     const p = buildJoinProject([{ itemId: 'a', info: video('a.mp4', 10) }])
     expect(p.items[0].durationFrames).toBe(30)
+    expect(p.items[0].transitionOut).toEqual({ type: 'fadeWhite', durationFrames: 15 })
   })
 
   it('クリップが無ければ素材も無い（表紙の文字があっても）', () => {
@@ -63,7 +64,8 @@ describe('buildJoinProject の表紙と終わり', () => {
   ]
 
   it('表紙の文字があれば、先頭に 3 秒の表紙（文字はテロップ）を置き、白フェードで 1 本目につなぐ', () => {
-    const p = buildJoinProject(clips, '那珂湊散策\n2026.11.11')
+    // 前後の改行は除く（textarea では末尾に改行が付きやすく、空行が中央配置をずらす）
+    const p = buildJoinProject(clips, '\n那珂湊散策\n2026.11.11\n')
     const cover = p.items[0]
     expect(cover.itemId).toBe(JOIN_COVER_ID)
     expect(cover.kind).toBe('photo')

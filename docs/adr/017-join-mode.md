@@ -45,5 +45,6 @@
 - 表紙は 1 色（濃い灰色）の写真素材 `join-cover` に、入力欄の文字を中央のテロップ（縁取り）で載せる。文字が空白だけなら表紙は置かない。
 - 終わりは白 1 色の写真素材 `join-end`（尺は白フェードの 2 倍 = 32 フレーム。これより短いと白フェードが切り詰められる）。
   最後のクリップから `fadeWhite` でつなぐので、既存の描画と区間計算のまま「白フェードアウトして終わる」になる。
-- 表紙と終わりの絵は `join/cards.ts` が canvas で作る（ImageBitmap でないので閉じる必要がない）。`buildJoinProject(clips, coverText)` は素材 ID を固定値で持つ。
+- 表紙と終わりの絵は `join/cards.ts` が 1×1 の canvas で作る（1 色なので描画の cover で引き伸ばせば足りる。出力サイズで作ると 1 枚 8 MB を持ち続ける）。
+  `buildJoinProject(clips, coverText)` は素材 ID を固定値で持ち、文字は前後の空白と改行を除いてテロップにする。
 - 別案「最後のクリップの transitionOut を『次が無くても白へ』と解釈する」は、compile と render に終端の特例が増えるのでやめた。
