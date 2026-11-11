@@ -298,6 +298,15 @@ describe('動画の追加と開始位置（トリム）', () => {
     expect(durations(p)).toEqual([150, 150])
   })
 
+  it('5 秒より短い動画は元の長さで入る。1 秒未満でも最小尺の 1 秒（レビュー: Claude 1）', () => {
+    const p = addItems(empty(), [
+      { itemId: 'v1', info: videoInfo(1, 90) },
+      { itemId: 'v2', info: videoInfo(2, 10) },
+    ])
+    expect(durations(p)).toEqual([90, 30])
+    expect(p.items.map((i) => (i as VideoItem).trimStartFrames)).toEqual([0, 0])
+  })
+
   it('開始位置は 0〜（元動画の尺 − 見える長さ）に収めて保存する', () => {
     let p = photoAndVideo(600)
     // 見える長さ 150 なので上限は 450

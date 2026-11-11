@@ -19,13 +19,19 @@ describe('maxItems（素材数の上限）', () => {
   })
 })
 
-describe('defaultDuration（追加した素材の初期の尺 = 5 秒固定）', () => {
-  it('上限が 15 秒なら 5 秒（150 フレーム）。すでに使っている長さには関係しない', () => {
+describe('defaultDuration（追加した素材の初期の尺 = 5 秒。動画は元の長さまで）', () => {
+  it('写真は 5 秒（150 フレーム）。すでに使っている長さや上限の大きさには関係しない', () => {
     expect(defaultDuration(450)).toBe(150)
+    expect(defaultDuration(900)).toBe(150)
   })
 
-  it('上限が 5 秒より短いプリセットなら上限まで', () => {
-    expect(defaultDuration(60)).toBe(60)
+  it('動画は 5 秒と元の長さの短い方。3 秒の動画なら 3 秒、10 秒の動画なら 5 秒', () => {
+    expect(defaultDuration(450, 90)).toBe(90)
+    expect(defaultDuration(450, 300)).toBe(150)
+  })
+
+  it('1 秒未満の動画でも最小尺の 1 秒（足りない分は末尾のフレームで止まる）', () => {
+    expect(defaultDuration(450, 10)).toBe(30)
   })
 })
 

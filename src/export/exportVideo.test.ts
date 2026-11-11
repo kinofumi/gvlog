@@ -9,7 +9,7 @@ import { compileTimeline } from '../timeline/compile'
 import { ExportCancelled, exportFrames } from './exportVideo'
 import type { ExportFrameProvider } from './frameProvider'
 
-// 上限 30 フレーム（1 秒）の短いプリセットでループを確かめる。素材 2 つはそれぞれ 30（上限まで）なので、出力は上限の 30 で切れる
+// 上限 30 フレーム（1 秒）の短いプリセットでループを確かめる。個数の上限も 1 なので p2 は入らず、素材は p1（30 フレーム）だけ
 const preset = { ...DEFAULT_PRESET, maxFrames: 30 }
 const info: PhotoInfo = {
   kind: 'photo',

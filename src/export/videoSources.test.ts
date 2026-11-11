@@ -70,12 +70,12 @@ describe('createVideoSources（動画素材ごとにデコーダを組み立て�
   })
 
   it('出力の長さより後ろの動画は作らず、またぐ動画は区間を出力の長さで切る（レビュー: Claude 3）', async () => {
-    // v1: 0〜450、v2: 450〜480（上限 450 の外）、v3 は無し。v1 を 480 まで伸ばすと v2 が 480〜 になる
+    // v1 を上限いっぱいの 450 に伸ばす → v1: 0〜450、v2: 450〜600（出力 450 の外）
     let p = addItems(empty(), [
       { itemId: 'v1', info: video },
       { itemId: 'v2', info: video },
     ])
-    p = setItemDuration(p, 'v1', 480)
+    p = setItemDuration(p, 'v1', 450)
     const make = vi.fn((...args: unknown[]) => fakeSource(args))
     const sources = await createVideoSources(
       compileTimeline(p.items),

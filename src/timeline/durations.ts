@@ -12,11 +12,13 @@ export function maxItems(maxFrames: number): number {
 }
 
 /**
- * 追加する素材の初期の尺。すでに使っている長さに関係なく 5 秒（上限がそれより短ければ上限）。
- * 合計が上限を超えることは呼び出し側（TotalDuration）が利用者に知らせる。
+ * 追加する素材の初期の尺。すでに使っている長さに関係なく 5 秒。
+ * 動画（sourceDurationFrames あり）は元の長さまで（短い動画の末尾が止まった状態で入らないように）。
+ * 最小尺と上限の中に収めるのは clampDuration と同じ規則。合計が上限を超えることは呼び出し側（TotalDuration）が利用者に知らせる。
  */
-export function defaultDuration(maxFrames: number): number {
-  return Math.min(DEFAULT_ITEM_FRAMES, maxFrames)
+export function defaultDuration(maxFrames: number, sourceDurationFrames?: number): number {
+  const limit = Math.min(maxFrames, sourceDurationFrames ?? maxFrames)
+  return Math.max(MIN_ITEM_FRAMES, Math.min(DEFAULT_ITEM_FRAMES, limit))
 }
 
 /** 1 つの尺を規則内に整える: 整数に切り捨て、最小尺以上・上限以下。数でない値は null（呼び出し側は無視する） */
