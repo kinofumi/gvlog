@@ -1,3 +1,5 @@
+import { canEncodeBgm, createBgmProvider, type BgmProvider } from '../bgm/bgmAudio'
+import { totalSamplesFor } from '../bgm/loop'
 import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
 import type { Ctx } from '../render/ctx'
@@ -36,7 +38,12 @@ export type ExportDeps = {
   ctx: Ctx
   provider: ExportFrameProvider
   encoder: FrameEncoder
+  /** BGM（無ければ無音）。映像を全部エンコードしたあとに 1 秒ずつ足す */
+  bgm?: BgmProvider
 }
+
+/** BGM を 1 回に足す長さ（サンプル数）。1 秒ずつにして、メモリに全体を持たない */
+const BGM_CHUNK_SEC = 1
 
 /**
  * 書き出しのループ。1 フレームごとに「非同期で用意 → 同期で描く（renderFrame）→ エンコードを待つ」を繰り返す。
@@ -44,6 +51,7 @@ export type ExportDeps = {
  * 失敗・キャンセルのどちらでもエンコーダを止め、デコーダは必ず解放する。
  * 失敗時は、どの設定で失敗したかを文に含める（実機での原因切り分け用）。後始末の失敗は元の失敗に併記する。
  * 成功したあとで解放に失敗したときは、できた MP4 を捨てず、警告だけ出して返す。
+ * BGM があれば、映像のあとに出力と同じ長さだけ 1 秒ずつ足す（ループとフェードアウトは BgmProvider の中）。
  */
 export async function exportFrames(
   project: Project,
@@ -57,7 +65,7 @@ export async function exportFrames(
     project.items.map((i) => i.durationFrames),
     maxFrames,
   )
-  const { compiled, ctx, provider, encoder } = deps
+  const { compiled, ctx, provider, encoder, bgm } = deps
   let result: Blob | null = null
   let failure: unknown = null
 
@@ -70,6 +78,14 @@ export async function exportFrames(
       renderFrame(compiled, project.items, frame, ctx, provider)
       await encoder.add(frame / fps, 1 / fps)
       if (frame % 10 === 0) onProgress({ frame, totalFrames })
+    }
+    if (bgm) {
+      const totalSamples = totalSamplesFor(totalFrames, fps, bgm.sampleRate)
+      const step = bgm.sampleRate * BGM_CHUNK_SEC
+      for (let start = 0; start < totalSamples; start += step) {
+        if (signal.aborted) throw new ExportCancelled()
+        await encoder.addAudio(bgm.chunk(start, Math.min(step, totalSamples - start)))
+      }
     }
     // 最後のフレームや finalize を待っている間にキャンセルされた場合も、成功として返さない
     if (signal.aborted) throw new ExportCancelled()
@@ -115,8 +131,13 @@ function withCleanupError(original: unknown, cleanup: unknown): unknown {
   return new Error(`${message} 後始末にも失敗: ${formatError(cleanup)}`, { cause: original })
 }
 
+export type ExportOptions = {
+  /** 付ける BGM（デコード済みの曲）。無ければ無音の MP4 */
+  bgm?: AudioBuffer | null
+}
+
 /**
- * プロジェクトを無音 MP4 に書き出す（実物の組み立て）。
+ * プロジェクトを MP4 に書き出す（実物の組み立て）。BGM が無ければ無音。
  * 1. 動画のデコーダを用意する（データの欠けはここで分かる。遅いエンコーダ診断の前に止める）
  * 2. 使える H.264 の設定を選ぶ（2 回目以降は覚えた値）。この間は進捗が出ない
  * 3. 出力サイズの Canvas、画像の供給役、エンコーダを用意して exportFrames を回す
@@ -128,6 +149,7 @@ export async function exportProject(
   videos: Record<string, ImportedVideo>,
   onProgress: (p: ExportProgress) => void,
   signal: AbortSignal,
+  options: ExportOptions = {},
 ): Promise<ExportResult> {
   const startedAt = performance.now()
   const { width, height, fps } = project.preset
@@ -149,6 +171,11 @@ export async function exportProject(
     if (signal.aborted) throw new ExportCancelled()
     if (!choice)
       throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
+    const song = options.bgm ?? null
+    if (song && !(await canEncodeBgm()))
+      throw new Error(
+        'この端末では BGM 付きの MP4 を作れません（iPhone は iOS 26 以降）。BGM を「なし」にしてください。',
+      )
 
     const canvas = document.createElement('canvas')
     canvas.width = width
@@ -156,12 +183,21 @@ export async function exportProject(
     const ctx = canvas.getContext('2d')
     if (!ctx) throw new Error('Canvas を作れませんでした。')
 
-    const encoder = createMp4Encoder(canvas, fps, choice)
+    const encoder = createMp4Encoder(
+      canvas,
+      fps,
+      choice,
+      song ? { sampleRate: song.sampleRate, numberOfChannels: song.numberOfChannels } : null,
+    )
     const provider = createFrameProvider(compiled, photos, sources)
+    const totalFrames = outputFrames(durations, project.preset.maxFrames)
+    const bgm = song
+      ? createBgmProvider(song, totalSamplesFor(totalFrames, fps, song.sampleRate))
+      : undefined
     handedOver = true
     const blob = await exportFrames(
       project,
-      { compiled, ctx, provider, encoder },
+      { compiled, ctx, provider, encoder, bgm },
       onProgress,
       signal,
     )

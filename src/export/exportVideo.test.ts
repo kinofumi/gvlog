@@ -63,6 +63,7 @@ function fakeEncoder() {
       this.finalized = true
       return new Blob(['mp4'], { type: 'video/mp4' })
     },
+    async addAudio() {},
     async cancel() {
       this.cancelled = true
     },
@@ -130,6 +131,49 @@ describe('exportFrames（書き出しのループ）', () => {
       signalOf(),
     )
     expect(encoder.added).toHaveLength(60)
+  })
+
+  it('BGM があれば、映像のあとに出力と同じ長さの音を 1 秒ずつ足す（最後は端数）', async () => {
+    // 1 秒（30 フレーム）の出力に、サンプルレート 100 の BGM → 100 サンプル
+    const encoder = fakeEncoder()
+    const chunks: [number, number][] = []
+    encoder.addAudio = async (buffer) => {
+      chunks.push([(buffer as unknown as { start: number }).start, buffer.length])
+    }
+    const bgm = {
+      sampleRate: 100,
+      numberOfChannels: 1,
+      chunk: (start: number, length: number) => ({ start, length }) as unknown as AudioBuffer,
+    }
+    await exportFrames(
+      project,
+      { compiled, ctx: ctx(), provider: fakeProvider(), encoder, bgm },
+      () => {},
+      signalOf(),
+    )
+    expect(chunks).toEqual([[0, 100]])
+    chunks.length = 0
+    // 上限 45 のプリセットに 1 枚（45 フレーム = 1.5 秒）→ 150 サンプルを 100 + 50 で
+    const longer = addItems(
+      createProject({ ...preset, maxFrames: 45 }, { memberName: '', spot: '' }),
+      [{ itemId: 'p1', info }],
+    )
+    await exportFrames(
+      longer,
+      {
+        compiled: compileTimeline(longer.items),
+        ctx: ctx(),
+        provider: fakeProvider(),
+        encoder,
+        bgm,
+      },
+      () => {},
+      signalOf(),
+    )
+    expect(chunks).toEqual([
+      [0, 100],
+      [100, 50],
+    ])
   })
 
   it('進捗は 10 フレームごとと最後に通知される', async () => {

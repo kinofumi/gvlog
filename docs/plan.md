@@ -26,7 +26,7 @@ URL を共有するだけで全員が使える。仕上げ担当者は各自の 
 | テロップ       | プリセット 3 種（帯 / 縁取り / 半透明ボックス）＋ 文字色・背景色・フォント個別調整。位置 上中下、サイズ 大中小                                  |
 | フォント       | OFL の日本語 Web フォントを同梱。v1 は 1 書体（Noto Sans JP Bold）、M5 で 2〜3 書体に増やす                                                     |
 | トランジション | cut、crossfade、fadeWhite（白を経由。つなげるモードの既定、ADR 016）。fadeBlack / slide は後の章（M6）                                          |
-| 音声           | 出力に音声を含めない（無音 MP4）。入力動画の音声は破棄                                                                                          |
+| 音声           | 編集の出力は無音 MP4。入力動画の音声は破棄。「つなげる」では BGM（AAC、ループと末尾フェードアウト）を選べる（ADR 019）                          |
 | 保存           | IndexedDB に自動保存。保証するのは「保存済みと表示された状態からの復元」                                                                        |
 | 出力           | MP4 (H.264) のみ。端末が H.264 をエンコードできない場合は非対応として止める（WebM への切替はしない）                                            |
 | ドキュメント   | 本プラン、ADR、devlog、レビュー記録を `docs/` に残す                                                                                            |
@@ -65,7 +65,8 @@ gvlog/
   src/
     main.tsx, App.tsx               # タブ 4 つ（イベントの栞 / おすすめ / 動画編集 / つなげる）を useState で切替（react-router 不使用）。編集とつなげるのタブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project を受ける）, JoinPanel
+    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project と bgm を受ける）, JoinPanel, BgmPicker
+    **bgm/**                        # loop.ts（ループとフェードアウト、純粋）、bgmAudio.ts（デコードと AudioBuffer）、tracks.ts（曲一覧。実体は public/bgm/）、useBgm.ts（ADR 019）
     **join/**                       # joinProject.ts（表紙 → 集めた動画 → 白い終わり、を白フェードで並べた Project を組み立てる純粋関数。ADR 017）、cards.ts（表紙と終わりの 1 色の絵）
     **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, tips.ts（おすすめポイントのデータ）, mapsLink.ts（Google マップの検索 URL）
     components/ui/                  # Button, Chip, SmallButton, Dialog（<dialog> のポップアップ。共有完了の知らせ）（shadcn/ui 相当の小さな部品）

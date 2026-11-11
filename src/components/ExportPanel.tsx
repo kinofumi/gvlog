@@ -22,10 +22,14 @@ type Props = {
   videos: Record<string, ImportedVideo>
   /** できた MP4 のファイル名 */
   fileName: string
+  /** 付ける BGM（デコード済み）。無ければ無音 */
+  bgm?: AudioBuffer | null
+  /** まだ始められない理由（BGM の読み込み中など）。あればボタンを無効にして表示する */
+  waiting?: string
 }
 
 /** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード。エンコーダは端末に 1 本なので、どのタブから始めても store の exporting で排他する */
-export function ExportPanel({ project, images, videos, fileName }: Props) {
+export function ExportPanel({ project, images, videos, fileName, bgm = null, waiting }: Props) {
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
   const probing = useAppStore((s) => s.ui.probing)
@@ -38,7 +42,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
 
   const exporting = phase.kind === 'exporting'
   // 取り込み中（素材が増える途中）、診断中（エンコーダが使用中）、別のタブの書き出し中は始めない
-  const canExport = project.items.length > 0 && !busy && !importing && !probing
+  const canExport = project.items.length > 0 && !busy && !importing && !probing && !waiting
 
   // 画面を離れたら書き出しを中断する（続けても結果を受け取る相手がいない）
   useEffect(() => () => abortRef.current?.abort(), [])
@@ -66,6 +70,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
         videos,
         (progress) => setPhase({ kind: 'exporting', progress }),
         controller.signal,
+        { bgm },
       )
       const file = new File([result.blob], fileName, { type: 'video/mp4' })
       if (import.meta.env.DEV) {
@@ -109,6 +114,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
           動画を生成
         </Button>
       )}
+      {waiting && !exporting && <p className="text-sm text-stone-600">{waiting}</p>}
 
       {phase.kind === 'exporting' && (
         <div className="space-y-2">
