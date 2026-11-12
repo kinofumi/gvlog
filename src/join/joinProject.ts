@@ -62,6 +62,8 @@ export function buildJoinProject(clips: JoinClip[], coverText = ''): Project {
       size: 'L',
       inOffsetFrames: 0,
       outOffsetFrames: 0,
+      // 白い表紙に黒い文字。縁取りは下地と同じ白にして見えなくする（縁取り以外のプリセットは帯やボックスが出る）
+      overrides: { textColor: '#1c1917', bgColor: '#ffffff' },
     })
   }
   for (const clip of clips) {

@@ -1,7 +1,7 @@
 import type { ProvidedImage } from '../render/renderFrame'
 
-/** 表紙の下地の色（濃い灰色。文字は白の縁取りテロップで描く） */
-export const COVER_COLOR = '#292524'
+/** 表紙の下地の色（白。文字は黒のテロップで描く。利用者の要望で濃い灰色から変えた） */
+export const COVER_COLOR = '#ffffff'
 /** 終わりの色（白フェードアウトの行き先なので白） */
 export const END_COLOR = '#ffffff'
 

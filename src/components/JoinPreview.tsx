@@ -174,7 +174,7 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
         の雰囲気を確かめるための簡易版です。白フェードと曲の終わりのフェードアウトは出ません（素材の音も出ません）。
       </p>
       <div
-        className="relative mx-auto w-full max-w-60 overflow-hidden rounded bg-black"
+        className="relative mx-auto w-full max-w-60 overflow-hidden rounded border border-stone-300 bg-black"
         style={{ aspectRatio: `${width} / ${height}` }}
       >
         <canvas ref={canvasRef} className={`block h-full w-full ${showVideo ? 'hidden' : ''}`} />
