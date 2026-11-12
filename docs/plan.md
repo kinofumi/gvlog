@@ -77,7 +77,7 @@ gvlog/
                                     # ← DOM 非依存（Canvas の型のみ）
     **media/**                      # importImage.ts, importVideo.ts, videoPoster.ts（先頭フレーム）, fileTypes.ts, limits.ts, errors.ts
     **preview/**                    # usePreview.ts（描画と rAF 再生）, clock.ts, previewVideos.ts（<video> の管理）, videoPlan.ts（シーク・再生の判断）
-    **export/**                     # exportVideo.ts（main thread）, frameSource.ts, videoSources.ts, codec.ts, naming.ts, share.ts
+    **export/**                     # exportVideo.ts（フレームのループ、main thread）, exportProject.ts（実物の組み立て。BGM も）, frameSource.ts, videoSources.ts, codec.ts, naming.ts, share.ts
     **storage/**                    # db.ts（idb-keyval）, projectRepo.ts
     **state/**                      # store.ts（zustand、フラットな 1 ストア）, persistence.ts
     capability/detect.ts            # 端末能力の表示（補助。成立の証明ではない）

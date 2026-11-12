@@ -1,27 +1,18 @@
-import { canEncodeBgm, createBgmProvider, type BgmProvider } from '../bgm/bgmAudio'
-import { totalSamplesFor } from '../bgm/loop'
-import type { ImportedVideo } from '../media/importVideo'
+import type { BgmProvider } from '../bgm/bgmAudio'
 import type { Project } from '../model/types'
 import type { Ctx } from '../render/ctx'
-import { renderFrame, type ProvidedImage } from '../render/renderFrame'
-import { compileTimeline, type CompiledItem } from '../timeline/compile'
+import { renderFrame } from '../render/renderFrame'
+import type { CompiledItem } from '../timeline/compile'
 import { outputFrames } from '../timeline/durations'
-import { pickEncoder, EXPORT_BITRATE } from './codec'
-import { createMp4Encoder, type FrameEncoder } from './encoder'
+import type { FrameEncoder } from './encoder'
 import { formatError } from './formatError'
-import { createFrameProvider, type ExportFrameProvider } from './frameProvider'
-import { VideoFrameSource, type FrameSource } from './frameSource'
-import { createVideoSources } from './videoSources'
+import type { ExportFrameProvider } from './frameProvider'
 
+/** 進み具合。stage が 'bgm' のときは映像が終わって BGM を付けている（frame は totalFrames） */
 export type ExportProgress = {
   frame: number
   totalFrames: number
-}
-
-export type ExportResult = {
-  blob: Blob
-  codecString: string
-  elapsedMs: number
+  stage: 'video' | 'bgm'
 }
 
 export class ExportCancelled extends Error {
@@ -77,21 +68,22 @@ export async function exportFrames(
       await provider.prepare(frame)
       renderFrame(compiled, project.items, frame, ctx, provider)
       await encoder.add(frame / fps, 1 / fps)
-      if (frame % 10 === 0) onProgress({ frame, totalFrames })
+      if (frame % 10 === 0) onProgress({ frame, totalFrames, stage: 'video' })
     }
     if (bgm) {
-      const totalSamples = totalSamplesFor(totalFrames, fps, bgm.sampleRate)
+      // 映像のあとに BGM を 1 秒ずつ。長さは BgmProvider が持つ（フェードアウトの位置と同じ値）
+      onProgress({ frame: totalFrames, totalFrames, stage: 'bgm' })
       const step = bgm.sampleRate * BGM_CHUNK_SEC
-      for (let start = 0; start < totalSamples; start += step) {
+      for (let start = 0; start < bgm.totalSamples; start += step) {
         if (signal.aborted) throw new ExportCancelled()
-        await encoder.addAudio(bgm.chunk(start, Math.min(step, totalSamples - start)))
+        await encoder.addAudio(bgm.chunk(start, Math.min(step, bgm.totalSamples - start)))
       }
     }
     // 最後のフレームや finalize を待っている間にキャンセルされた場合も、成功として返さない
     if (signal.aborted) throw new ExportCancelled()
     result = await encoder.finalize()
     if (signal.aborted) throw new ExportCancelled()
-    onProgress({ frame: totalFrames, totalFrames })
+    onProgress({ frame: totalFrames, totalFrames, stage: 'video' })
   } catch (error) {
     failure =
       error instanceof ExportCancelled
@@ -129,84 +121,4 @@ function withCleanupError(original: unknown, cleanup: unknown): unknown {
   }
   const message = original instanceof Error ? original.message : String(original)
   return new Error(`${message} 後始末にも失敗: ${formatError(cleanup)}`, { cause: original })
-}
-
-export type ExportOptions = {
-  /** 付ける BGM（デコード済みの曲）。無ければ無音の MP4 */
-  bgm?: AudioBuffer | null
-}
-
-/**
- * プロジェクトを MP4 に書き出す（実物の組み立て）。BGM が無ければ無音。
- * 1. 動画のデコーダを用意する（データの欠けはここで分かる。遅いエンコーダ診断の前に止める）
- * 2. 使える H.264 の設定を選ぶ（2 回目以降は覚えた値）。この間は進捗が出ない
- * 3. 出力サイズの Canvas、画像の供給役、エンコーダを用意して exportFrames を回す
- * videos は取り込んだ動画（store が持つもの）。作ったデコーダは、exportFrames に渡す前に失敗したときもここで解放する。
- */
-export async function exportProject(
-  project: Project,
-  photos: Record<string, ProvidedImage>,
-  videos: Record<string, ImportedVideo>,
-  onProgress: (p: ExportProgress) => void,
-  signal: AbortSignal,
-  options: ExportOptions = {},
-): Promise<ExportResult> {
-  const startedAt = performance.now()
-  const { width, height, fps } = project.preset
-  let sources = new Map<string, FrameSource>()
-  let handedOver = false
-  try {
-    if (project.items.length === 0) throw new Error('素材がありません。')
-    const compiled = compileTimeline(project.items)
-    const durations = project.items.map((i) => i.durationFrames)
-    sources = await createVideoSources(
-      compiled,
-      project.items,
-      videos,
-      outputFrames(durations, project.preset.maxFrames),
-      (video, visibleStart, visibleEnd, trimStartFrames) =>
-        new VideoFrameSource(video, visibleStart, visibleEnd, trimStartFrames, fps, width, height),
-    )
-    const choice = await pickEncoder(width, height, fps, EXPORT_BITRATE, signal)
-    if (signal.aborted) throw new ExportCancelled()
-    if (!choice)
-      throw new Error('この端末では MP4（H.264）を書き出せません。別の端末をお使いください。')
-    const song = options.bgm ?? null
-    if (song && !(await canEncodeBgm()))
-      throw new Error(
-        'この端末では BGM 付きの MP4 を作れません（iPhone は iOS 26 以降）。BGM を「なし」にしてください。',
-      )
-
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Canvas を作れませんでした。')
-
-    const encoder = createMp4Encoder(
-      canvas,
-      fps,
-      choice,
-      song ? { sampleRate: song.sampleRate, numberOfChannels: song.numberOfChannels } : null,
-    )
-    const provider = createFrameProvider(compiled, photos, sources)
-    const totalFrames = outputFrames(durations, project.preset.maxFrames)
-    const bgm = song
-      ? createBgmProvider(song, totalSamplesFor(totalFrames, fps, song.sampleRate))
-      : undefined
-    handedOver = true
-    const blob = await exportFrames(
-      project,
-      { compiled, ctx, provider, encoder, bgm },
-      onProgress,
-      signal,
-    )
-    return {
-      blob,
-      codecString: encoder.usedCodecString(),
-      elapsedMs: performance.now() - startedAt,
-    }
-  } finally {
-    if (!handedOver) await Promise.allSettled([...sources.values()].map((v) => v.dispose()))
-  }
 }

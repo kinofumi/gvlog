@@ -19,9 +19,11 @@
 1 を採用。
 
 - `bgm/loop.ts`（純粋）: `loopedChunk` が曲をループさせ、`fadeGain` で末尾 2 秒を直線でフェードアウト。`totalSamplesFor` で動画とぴったり同じ長さ。
-- `bgm/bgmAudio.ts`（ブラウザ）: `loadBgm` が fetch と `OfflineAudioContext.decodeAudioData`（44.1 kHz）。`createBgmProvider` が 1 秒ずつ `AudioBuffer` を作る。
-  `canEncodeBgm` は mediabunny の `canEncodeAudio('aac')`。
-- `export/encoder.ts`: `createMp4Encoder(..., audio)` で AAC の音声トラックを足し、`addAudio` で順に渡す。`exportFrames` は映像を全部エンコードしたあとに BGM を 1 秒ずつ足す。
+- `bgm/bgmAudio.ts`（ブラウザ）: `loadBgm` が fetch と `OfflineAudioContext.decodeAudioData`（44.1 kHz）をして、`mixToMono` で 1 チャンネルにする
+  （decodeAudioData はチャンネル数を変えないので、ステレオの曲でも対応確認・エンコード・メモリ見積もりがモノラルで一致するように）。
+  `createBgmProvider` が出力の長さ（`totalSamples`）を持ち、1 秒ずつ `AudioBuffer` を作る。`canEncodeBgm` は mediabunny の `canEncodeAudio('aac')`（1 チャンネル）。
+- `export/encoder.ts`: `createMp4Encoder(..., withAudio)` で AAC の音声トラックを足し、`addAudio` で順に渡す。`exportFrames` は映像を全部エンコードしたあとに BGM を 1 秒ずつ足し、
+  その間は進捗の `stage: 'bgm'`（画面は「BGM を付けています…」）。組み立て役 `exportProject` は `export/exportProject.ts` に分けた（BGM の対応確認は最初に行う）。
 - `bgm/useBgm.ts` + `components/BgmPicker.tsx`: 対応の確認、曲の選択、`<audio controls preload="none">` で試聴。読み込み中は生成を始めない。
 - 作れない端末では曲を選べなくし理由を出す。書き出し側でも `canEncodeBgm` を確かめて、だめなら分かる文で止める。
 
@@ -35,6 +37,7 @@
 ## 影響
 
 - 出力は「H.264 + AAC の MP4」になる（BGM なしなら従来どおり無音）。写真アプリ・ギャラリー・CapCut での扱いは実機で確認する（チェックリスト）。
-- メモリ: デコードした曲は 44.1 kHz モノラルで 1 分あたり約 10 MB。曲は 1〜2 分のループを想定する。出力側は 1 秒ずつ作るので増えない。
+- メモリ: デコードした曲はモノラルにそろえるので 44.1 kHz で 1 分あたり約 10 MB（ステレオの曲でも同じ）。曲は 1〜2 分のループを想定する。出力側は 1 秒ずつ作るので増えない。
+- 試聴は同時に 1 曲だけで、タブを離れたときと書き出し中は止める（`BgmPicker` が `active` を受ける）。
 - BGM の分だけ書き出しが長くなる（AAC のエンコードは映像より十分速い）。進捗バーは映像のぶんだけで、BGM の間は 100% の手前で止まって見える。
 - 曲の差し替えは `public/bgm/` と `bgm/tracks.ts`（題名と出どころ）を直すだけ。

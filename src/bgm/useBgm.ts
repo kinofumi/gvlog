@@ -5,8 +5,8 @@ import { BGM_TRACKS, NO_BGM, bgmUrl } from './tracks'
 export type BgmState = {
   /** 選んでいる曲の ID（NO_BGM なら無し） */
   id: string
-  /** デコード済みの曲。読み込み中や無しなら null */
-  song: AudioBuffer | null
+  /** デコード済みの曲（モノラルの PCM）。読み込み中や無しなら null */
+  song: Float32Array | null
   loading: boolean
   /** 失敗の知らせ（読み込み中は空） */
   error: string
@@ -22,7 +22,7 @@ export type BgmState = {
  */
 export function useBgm(): BgmState {
   const [id, setId] = useState(NO_BGM)
-  const [song, setSong] = useState<AudioBuffer | null>(null)
+  const [song, setSong] = useState<Float32Array | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [supported, setSupported] = useState<boolean | null>(null)

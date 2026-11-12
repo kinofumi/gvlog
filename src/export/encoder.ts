@@ -26,15 +26,12 @@ export interface FrameEncoder {
   usedCodecString(): string
 }
 
-/** 音声トラックの形（BGM のサンプルレートとチャンネル数）。null なら無音の MP4 */
-export type AudioSpec = { sampleRate: number; numberOfChannels: number } | null
-
-/** mediabunny で Canvas から H.264 / MP4 を作るエンコーダ。audio があれば AAC の音声トラックも付ける（ADR 019） */
+/** mediabunny で Canvas から H.264 / MP4 を作るエンコーダ。withAudio なら AAC の音声トラック（BGM）も付ける（ADR 019） */
 export function createMp4Encoder(
   canvas: HTMLCanvasElement,
   fps: number,
   choice: EncoderChoice,
-  audio: AudioSpec = null,
+  withAudio = false,
 ): FrameEncoder {
   let usedCodec = choice.fullCodecString ?? '(auto)'
   let finalized = false
@@ -52,7 +49,8 @@ export function createMp4Encoder(
   })
   output.addVideoTrack(source, { frameRate: fps })
   // 音声は AudioBuffer を順に渡すだけ（最初のものが 0 秒、あとは続き）。AAC は MP4 と写真アプリの標準
-  const audioSource = audio
+  // （QUALITY_MEDIUM 定数はこの版の mediabunny では非推奨なので new Quality('medium')）
+  const audioSource = withAudio
     ? new AudioBufferSource({ codec: 'aac', quality: new Quality('medium') })
     : null
   if (audioSource) output.addAudioTrack(audioSource)

@@ -39,3 +39,16 @@ export function loopedChunk(
   }
   return out
 }
+
+/**
+ * 複数チャンネル（ステレオなど）を平均して 1 チャンネルにする。
+ * BGM はモノラルにそろえる: 端末の対応確認（1 チャンネル）とエンコードが一致し、メモリも半分で済む。
+ */
+export function mixToMono(channels: Float32Array[]): Float32Array {
+  if (channels.length === 1) return channels[0]
+  const out = new Float32Array(channels[0]?.length ?? 0)
+  for (const data of channels) {
+    for (let i = 0; i < out.length; i++) out[i] += data[i] / channels.length
+  }
+  return out
+}

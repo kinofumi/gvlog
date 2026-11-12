@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BGM_FADE_OUT_SEC, fadeGain, loopedChunk, totalSamplesFor } from './loop'
+import { BGM_FADE_OUT_SEC, fadeGain, loopedChunk, mixToMono, totalSamplesFor } from './loop'
 
 describe('totalSamplesFor（出力の長さをサンプル数に）', () => {
   it('フレーム数と fps とサンプルレートから、動画と同じ長さのサンプル数を出す', () => {
@@ -35,9 +35,7 @@ describe('loopedChunk（曲をループさせて出力の一部を切り出す�
   const song = new Float32Array([0.1, 0.2, 0.3, 0.4])
 
   it('曲の中なら、そのままの並び', () => {
-    expect(Array.from(loopedChunk(song, 0, 3, 100, 0))).toEqual(
-      [0.1 as number, 0.2, 0.3].map((v) => Math.fround(v)),
-    )
+    expect(Array.from(loopedChunk(song, 0, 3, 100, 0))).toEqual(Array.from(song.subarray(0, 3)))
   })
 
   it('曲の終わりを越えたら先頭に戻って続く（ループ）', () => {
@@ -58,5 +56,18 @@ describe('loopedChunk（曲をループさせて出力の一部を切り出す�
 
   it('曲が空なら無音', () => {
     expect(Array.from(loopedChunk(new Float32Array(0), 0, 3, 100, 0))).toEqual([0, 0, 0])
+  })
+})
+
+describe('mixToMono（ステレオの曲を 1 チャンネルに）', () => {
+  it('左右の平均にする', () => {
+    const left = new Float32Array([1, 0, 0.5])
+    const right = new Float32Array([0, 0, 0.5])
+    expect(Array.from(mixToMono([left, right]))).toEqual([0.5, 0, 0.5])
+  })
+
+  it('もともと 1 チャンネルならそのまま', () => {
+    const mono = new Float32Array([0.1, 0.2])
+    expect(mixToMono([mono])).toBe(mono)
   })
 })

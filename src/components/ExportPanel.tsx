@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { exportProject, ExportCancelled, type ExportProgress } from '../export/exportVideo'
+import { exportProject } from '../export/exportProject'
+import { ExportCancelled, type ExportProgress } from '../export/exportVideo'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
 import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
@@ -22,10 +23,10 @@ type Props = {
   videos: Record<string, ImportedVideo>
   /** できた MP4 のファイル名 */
   fileName: string
-  /** 付ける BGM（デコード済み）。無ければ無音 */
-  bgm?: AudioBuffer | null
-  /** まだ始められない理由（BGM の読み込み中など）。あればボタンを無効にして表示する */
-  waiting?: string
+  /** 付ける BGM（デコード済みのモノラル PCM）。無ければ無音 */
+  bgm?: Float32Array | null
+  /** まだ始められない（BGM の読み込み中など）。理由は呼び出し側が自分の場所に出す */
+  waiting?: boolean
 }
 
 /** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード。エンコーダは端末に 1 本なので、どのタブから始めても store の exporting で排他する */
@@ -114,7 +115,6 @@ export function ExportPanel({ project, images, videos, fileName, bgm = null, wai
           動画を生成
         </Button>
       )}
-      {waiting && !exporting && <p className="text-sm text-stone-600">{waiting}</p>}
 
       {phase.kind === 'exporting' && (
         <div className="space-y-2">
@@ -126,7 +126,9 @@ export function ExportPanel({ project, images, videos, fileName, bgm = null, wai
                 max={phase.progress.totalFrames}
               />
               <p className="text-sm">
-                {phase.progress.frame} / {phase.progress.totalFrames} フレーム
+                {phase.progress.stage === 'bgm'
+                  ? 'BGM を付けています…'
+                  : `${phase.progress.frame} / ${phase.progress.totalFrames} フレーム`}
               </p>
             </>
           ) : (

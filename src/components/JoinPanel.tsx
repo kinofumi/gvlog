@@ -31,7 +31,13 @@ import { SmallButton } from './ui/SmallButton'
  * 先頭に表紙（文字は入力欄で変えられる。初期値は App が渡す）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
  * BGM（ADR 019）は useBgm が選択と読み込みを持ち、書き出しに song を渡す。読み込み中は生成を始めない。
  */
-export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
+export function JoinPanel({
+  defaultCoverText,
+  active,
+}: {
+  defaultCoverText: string
+  active: boolean
+}) {
   const exporting = useAppStore((s) => s.ui.exporting)
   const importing = useAppStore((s) => s.ui.importing)
   const setImporting = useAppStore((s) => s.setImporting)
@@ -206,7 +212,8 @@ export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
           onChange={bgm.pick}
           disabled={exporting}
           supported={bgm.supported}
-          status={bgm.loading ? 'BGM を読み込み中…' : bgm.error}
+          status={bgm.loading ? 'BGM を読み込み中…（終わるまで生成は始められません）' : bgm.error}
+          active={active}
         />
       </Section>
 
@@ -217,7 +224,7 @@ export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
           videos={videos}
           fileName={buildFileName(JOIN_PRESET.name, 'みんな', 'つなげる')}
           bgm={bgm.song}
-          waiting={bgm.loading ? 'BGM の読み込みが終わるまでお待ちください。' : undefined}
+          waiting={bgm.loading}
         />
       </Section>
     </div>

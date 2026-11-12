@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { BGM_TRACKS, NO_BGM, bgmUrl } from '../bgm/tracks'
 
 type Props = {
@@ -9,16 +10,28 @@ type Props = {
   supported: boolean | null
   /** 読み込み中や失敗の知らせ */
   status: string
+  /** この画面が表示されているか。隠れたら試聴を止める（タブは隠すだけで外さないため） */
+  active: boolean
 }
 
 /**
  * BGM を選ぶ（ADR 019）。曲ごとに <audio controls> で試聴できる（読み込みは再生ボタンを押してから）。
  * 作れない端末では曲を選べなくし、理由を出す。
+ * 試聴は同時に 1 曲だけ（別の曲を再生したら前の曲を止める）。画面が隠れたときと書き出し中も止める。
  */
-export function BgmPicker({ value, onChange, disabled, supported, status }: Props) {
+export function BgmPicker({ value, onChange, disabled, supported, status, active }: Props) {
   const canPick = !disabled && supported === true
+  const listRef = useRef<HTMLDivElement>(null)
+  const pauseAll = (except?: HTMLAudioElement) => {
+    listRef.current?.querySelectorAll('audio').forEach((audio) => {
+      if (audio !== except) audio.pause()
+    })
+  }
+  useEffect(() => {
+    if (!active || disabled) pauseAll()
+  }, [active, disabled])
   return (
-    <div className="space-y-2">
+    <div ref={listRef} className="space-y-2">
       <p className="text-sm text-stone-600">
         曲は動画の長さに合わせて繰り返し、最後の 2 秒でゆっくり消えます。
       </p>
@@ -52,7 +65,13 @@ export function BgmPicker({ value, onChange, disabled, supported, status }: Prop
             <span className="text-xs text-stone-500">{track.credit}</span>
           </label>
           {/* 試聴。preload="none" で、押すまで読み込まない */}
-          <audio className="h-8 w-full" controls preload="none" src={bgmUrl(track)} />
+          <audio
+            className="h-8 w-full"
+            controls
+            preload="none"
+            src={bgmUrl(track)}
+            onPlay={(e) => pauseAll(e.currentTarget)}
+          />
         </div>
       ))}
       {status && <p className="text-sm text-stone-600">{status}</p>}

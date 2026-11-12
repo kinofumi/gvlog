@@ -111,7 +111,7 @@ describe('exportFrames（書き出しのループ）', () => {
       signalOf(),
     )
     expect(encoder.added).toHaveLength(30)
-    expect(progress).toHaveBeenLastCalledWith({ frame: 30, totalFrames: 30 })
+    expect(progress).toHaveBeenLastCalledWith({ frame: 30, totalFrames: 30, stage: 'video' })
   })
 
   it('合計が上限を超えていたら、上限のフレーム数で止める（レビュー: Claude 8）', async () => {
@@ -133,40 +133,32 @@ describe('exportFrames（書き出しのループ）', () => {
     expect(encoder.added).toHaveLength(60)
   })
 
-  it('BGM があれば、映像のあとに出力と同じ長さの音を 1 秒ずつ足す（最後は端数）', async () => {
-    // 1 秒（30 フレーム）の出力に、サンプルレート 100 の BGM → 100 サンプル
+  it('BGM があれば、映像のあとに BgmProvider の長さぶんの音を 1 秒ずつ足す（最後は端数）', async () => {
+    // サンプルレート 100 の BGM。長さ 100 なら 1 回、150 なら 100 + 50
     const encoder = fakeEncoder()
     const chunks: [number, number][] = []
     encoder.addAudio = async (buffer) => {
       chunks.push([(buffer as unknown as { start: number }).start, buffer.length])
     }
-    const bgm = {
+    const bgmOf = (totalSamples: number) => ({
       sampleRate: 100,
-      numberOfChannels: 1,
+      totalSamples,
       chunk: (start: number, length: number) => ({ start, length }) as unknown as AudioBuffer,
-    }
+    })
+    const progress = vi.fn()
     await exportFrames(
       project,
-      { compiled, ctx: ctx(), provider: fakeProvider(), encoder, bgm },
-      () => {},
+      { compiled, ctx: ctx(), provider: fakeProvider(), encoder, bgm: bgmOf(100) },
+      progress,
       signalOf(),
     )
     expect(chunks).toEqual([[0, 100]])
+    // 映像が終わったら「BGM を付けている」段階を知らせる
+    expect(progress).toHaveBeenCalledWith({ frame: 30, totalFrames: 30, stage: 'bgm' })
     chunks.length = 0
-    // 上限 45 のプリセットに 1 枚（45 フレーム = 1.5 秒）→ 150 サンプルを 100 + 50 で
-    const longer = addItems(
-      createProject({ ...preset, maxFrames: 45 }, { memberName: '', spot: '' }),
-      [{ itemId: 'p1', info }],
-    )
     await exportFrames(
-      longer,
-      {
-        compiled: compileTimeline(longer.items),
-        ctx: ctx(),
-        provider: fakeProvider(),
-        encoder,
-        bgm,
-      },
+      project,
+      { compiled, ctx: ctx(), provider: fakeProvider(), encoder, bgm: bgmOf(150) },
       () => {},
       signalOf(),
     )
