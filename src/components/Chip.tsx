@@ -1,4 +1,4 @@
-/** 選択肢を 1 つ選ぶ丸いボタン（タッチしやすい高さ 44px） */
+/** 選択肢を 1 つ選ぶ丸いボタン（タッチしやすい高さ 44px）。選んでいるものは青地に白、ほかは青の枠線と文字（Button の primary / secondary と同じ色） */
 export function Chip({
   label,
   active,
@@ -13,7 +13,7 @@ export function Chip({
   return (
     <button
       className={`min-h-11 rounded-full border px-4 text-sm disabled:opacity-40 ${
-        active ? 'border-stone-900 bg-stone-900 text-white' : 'border-stone-400'
+        active ? 'border-blue-700 bg-blue-700 text-white' : 'border-blue-700 text-blue-700'
       }`}
       aria-pressed={active}
       disabled={disabled}

@@ -1,5 +1,6 @@
 import type { Caption } from '../model/types'
 import { ChipGroup } from './Chip'
+import { SmallButton } from './ui/SmallButton'
 
 const PRESETS: { id: Caption['presetId']; label: string }[] = [
   { id: 'band', label: '帯' },
@@ -60,12 +61,7 @@ export function CaptionEditor({
             onChange={(position) => update({ position })}
           />
           <ChipGroup options={SIZES} value={caption.size} onChange={(size) => update({ size })} />
-          <button
-            className="min-h-11 text-xs text-stone-600 underline"
-            onClick={() => onChange(undefined)}
-          >
-            テロップを外す
-          </button>
+          <SmallButton label="テロップを外す" onClick={() => onChange(undefined)} />
         </div>
       )}
     </div>
