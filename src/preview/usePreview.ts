@@ -4,6 +4,7 @@ import { compileTimeline, itemsAt } from '../timeline/compile'
 import { sourceFrameAt } from '../timeline/trim'
 import { outputFramesOf } from '../state/projectActions'
 import { useAppStore } from '../state/store'
+import { BLANK_IMAGE } from './blankImage'
 import { frameAtElapsed } from './clock'
 import { PreviewVideos } from './previewVideos'
 
@@ -82,7 +83,7 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
             return { image: element, width: element.videoWidth, height: element.videoHeight }
           }
         }
-        return images[itemId] ?? BLANK
+        return images[itemId] ?? BLANK_IMAGE
       },
     }
     renderFrame(compiled, items, playheadFrame, ctx, provider)
@@ -131,14 +132,4 @@ export function usePreview(canvasRef: RefObject<HTMLCanvasElement | null>): void
     handle = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(handle)
   }, [isPlaying, preset, totalFrames, seek, setPlaying])
-}
-
-/** 画像がまだ無い素材の代わり（M4 の復元中など）。黒い 1x1 */
-const BLANK: ProvidedImage = { image: blankCanvas(), width: 1, height: 1 }
-
-function blankCanvas(): CanvasImageSource {
-  const c = document.createElement('canvas')
-  c.width = 1
-  c.height = 1
-  return c
 }
