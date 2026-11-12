@@ -189,7 +189,7 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
       </div>
       <div className="flex items-center gap-3">
         <Button
-          className="w-24"
+          size="small"
           disabled={steps.length === 0 || exporting}
           onClick={() => (playing ? stop() : start())}
         >

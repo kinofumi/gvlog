@@ -29,7 +29,7 @@ export function PreviewCanvas() {
       <div className="flex items-center gap-3">
         {/* 再生中は素材が無くても止められるようにする */}
         <Button
-          className="w-24"
+          size="small"
           disabled={(!hasItems && !isPlaying) || exporting}
           onClick={() => setPlaying(!isPlaying)}
         >
