@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { BGM_TRACKS, bgmUrl } from '../bgm/tracks'
 import { useBgm } from '../bgm/useBgm'
-import { buildFileName } from '../export/naming'
 import { COVER_COLOR, END_COLOR, makeSolidImage } from '../join/cards'
 import {
   JOIN_COVER_FRAMES,
@@ -197,7 +196,7 @@ export function JoinPanel({
           project={project}
           images={images}
           videos={videos}
-          fileName={buildFileName([JOIN_PRESET.name, 'つなげる'])}
+          fileNames={[JOIN_PRESET.name, 'つなげる']}
           bgm={bgm.song}
           waiting={bgm.loading}
         />

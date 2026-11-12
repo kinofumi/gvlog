@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportProject } from '../export/exportProject'
 import { ExportCancelled, type ExportProgress } from '../export/exportVideo'
+import { buildFileName } from '../export/naming'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
 import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
@@ -21,8 +22,8 @@ type Props = {
   project: Project
   images: Record<string, ProvidedImage>
   videos: Record<string, ImportedVideo>
-  /** できた MP4 のファイル名 */
-  fileName: string
+  /** できた MP4 のファイル名に使う名前の並び（buildFileName に渡す。時刻は書き出しが終わったときに付ける） */
+  fileNames: string[]
   /** 付ける BGM（デコード済みのモノラル PCM）。無ければ無音 */
   bgm?: Float32Array | null
   /** まだ始められない（BGM の読み込み中など）。理由は呼び出し側が自分の場所に出す */
@@ -30,7 +31,7 @@ type Props = {
 }
 
 /** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード。エンコーダは端末に 1 本なので、どのタブから始めても store の exporting で排他する */
-export function ExportPanel({ project, images, videos, fileName, bgm = null, waiting }: Props) {
+export function ExportPanel({ project, images, videos, fileNames, bgm = null, waiting }: Props) {
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
   const probing = useAppStore((s) => s.ui.probing)
@@ -73,7 +74,7 @@ export function ExportPanel({ project, images, videos, fileName, bgm = null, wai
         controller.signal,
         { bgm },
       )
-      const file = new File([result.blob], fileName, { type: 'video/mp4' })
+      const file = new File([result.blob], buildFileName(fileNames), { type: 'video/mp4' })
       if (import.meta.env.DEV) {
         // 自動テストが書き出し結果を取り出すためのフック（開発モードだけ）
         ;(window as unknown as { __lastExport?: File }).__lastExport = file
