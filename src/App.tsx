@@ -58,8 +58,9 @@ export default function App() {
       </div>
 
       {/* 編集タブは隠すだけで外さない（取り込んだ画像や <video> を作り直さないため） */}
-      <div className={`space-y-6 ${tab === 'editor' ? '' : 'hidden'}`}>
-        <section className="space-y-3">
+      <div className={tab === 'editor' ? '' : 'hidden'}>
+        {/* 名前とスポットは Section と同じ mb-12 で次の区切りと間を空ける */}
+        <section className="mb-12 space-y-3">
           <label className="block">
             <span className="text-sm">名前</span>
             <input
