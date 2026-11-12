@@ -12,30 +12,28 @@ export type PreviewStep =
  * つなげるのプロジェクトを、簡易プレビューの手順に直す（ADR 017 追記）。
  * 白フェードは出さない。表紙と終わりは、その素材の真ん中のフレームを 1 枚描いて見せる
  * （始まりのフレームだとテロップがまだフェードインの途中で薄い。真ん中なら文字は出きっていて、終わりは真っ白）。
+ * 出力と同じく、合計が上限（maxFrames）を超えた分は入れない（途中の動画は切り詰め、その先は無し）。
  */
-export function previewSteps(items: Project['items']): PreviewStep[] {
+export function previewSteps(items: Project['items'], maxFrames: number): PreviewStep[] {
   const steps: PreviewStep[] = []
   let frame = 0
   let clipCount = 0
   for (const item of items) {
+    if (frame >= maxFrames) break
+    const durationFrames = Math.min(item.durationFrames, maxFrames - frame)
     if (item.kind === 'video') {
       clipCount += 1
-      steps.push({
-        kind: 'clip',
-        itemId: item.itemId,
-        label: `${clipCount} 本目`,
-        durationFrames: item.durationFrames,
-      })
+      steps.push({ kind: 'clip', itemId: item.itemId, label: `${clipCount} 本目`, durationFrames })
     } else {
       steps.push({
         kind: 'card',
         itemId: item.itemId,
         label: frame === 0 ? '表紙' : '終わり',
-        frame: frame + Math.floor(item.durationFrames / 2),
-        durationFrames: item.durationFrames,
+        frame: frame + Math.floor(durationFrames / 2),
+        durationFrames,
       })
     }
-    frame += item.durationFrames
+    frame += durationFrames
   }
   return steps
 }

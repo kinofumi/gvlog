@@ -1,5 +1,3 @@
-import { sumFrames } from '../timeline/durations'
-import { JOIN_COVER_FRAMES, JOIN_END_FRAMES } from '../join/joinProject'
 import type { NewVideo } from '../state/store'
 import { Thumbnail } from './Thumbnail'
 import { SmallButton } from './ui/SmallButton'
@@ -9,6 +7,8 @@ type Props = {
   fps: number
   exporting: boolean
   hasCover: boolean
+  /** 出力に入る全体の秒数（表紙と終わりを含む。プロジェクトの尺から JoinPanel が計算する） */
+  totalSec: number
   /** 上限を超えて出力に入らない秒数（0 なら収まっている） */
   overflowSec: number
   maxFrames: number
@@ -22,6 +22,7 @@ export function JoinClipList({
   fps,
   exporting,
   hasCover,
+  totalSec,
   overflowSec,
   maxFrames,
   onMove,
@@ -30,10 +31,6 @@ export function JoinClipList({
   if (clips.length === 0) {
     return <p className="text-sm text-stone-600">動画を選ぶと、ここに並びます。</p>
   }
-  const totalFrames =
-    sumFrames(clips.map((c) => c.info.sourceDurationFrames)) +
-    (hasCover ? JOIN_COVER_FRAMES : 0) +
-    JOIN_END_FRAMES
   return (
     <>
       <ul className="space-y-2">
@@ -69,7 +66,7 @@ export function JoinClipList({
         ))}
       </ul>
       <p className="text-sm text-stone-600">
-        全部で {(totalFrames / fps).toFixed(1)} 秒（{clips.length} 本。{hasCover ? '表紙と' : ''}
+        全部で {totalSec.toFixed(1)} 秒（{clips.length} 本。{hasCover ? '表紙と' : ''}
         終わりを含む）
       </p>
       {overflowSec > 0 && (

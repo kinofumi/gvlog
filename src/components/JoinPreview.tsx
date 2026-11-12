@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { previewSteps, type PreviewStep } from '../join/previewSteps'
 import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
+import { BLANK_IMAGE } from '../preview/blankImage'
 import { renderFrame, type ProvidedImage } from '../render/renderFrame'
 import { useAppStore } from '../state/store'
 import { compileTimeline } from '../timeline/compile'
@@ -18,7 +19,13 @@ type Props = {
   active: boolean
 }
 
+/** 再生していてよい条件の目印（useMemo で作る。条件が 1 つでも変わると別のオブジェクトになる） */
+type Session = { steps: PreviewStep[] }
+
 /** 止め絵を描く canvas の内部の幅（出力の 1/3。画面では小さく出すので十分） */
+const PLAY_BLOCKED =
+  '動画の再生を始められませんでした。iPhone の低電力モードでは動かないことがあります。生成した動画で確かめてください。'
+
 const CANVAS_WIDTH = 360
 
 /**
@@ -29,16 +36,24 @@ const CANVAS_WIDTH = 360
  */
 export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) {
   const exporting = useAppStore((s) => s.ui.exporting)
-  const steps = useMemo(() => previewSteps(project.items), [project.items])
+  const { width, height, fps, maxFrames } = project.preset
+  const steps = useMemo(() => previewSteps(project.items, maxFrames), [project.items, maxFrames])
   const compiled = useMemo(() => compileTimeline(project.items), [project.items])
-  // 再生の状態: 始めたときの手順と今の番号。null なら止まっている。
-  // 手順が変わった（素材や表紙の文字が変わった）、画面が隠れた、書き出しが始まった、のどれでも「止まっている」とみなす
-  const [run, setRun] = useState<{ steps: PreviewStep[]; index: number } | null>(null)
+  // 「再生していてよい条件」の目印。手順（素材や表紙の文字）、曲、画面の表示、書き出し、のどれかが変わると新しいものになる
+  const session = useMemo(
+    () => ({ steps }),
+    // bgmUrl / active / exporting は値を使わないが、変わったら新しい目印にしたいので依存に入れる
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [steps, bgmUrl, active, exporting],
+  )
+  // 再生の状態: 始めたときの目印と今の番号。null なら止まっている。
+  // 目印が今のものと違えば（素材が変わった、曲を変えた、画面が隠れた、書き出しが始まった）止まっているとみなし、戻っても勝手に再開しない
+  const [run, setRun] = useState<{ session: Session; index: number } | null>(null)
+  const [message, setMessage] = useState('')
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
-  const { width, height, fps } = project.preset
-  const step = run && run.steps === steps && active && !exporting ? steps[run.index] : null
+  const step = run && run.session === session && active && !exporting ? steps[run.index] : null
   const playing = step !== null
 
   function stop() {
@@ -52,6 +67,8 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
     if (!canvas || !ctx) return
     canvas.width = CANVAS_WIDTH
     canvas.height = Math.round((CANVAS_WIDTH * height) / width)
+    // 動画の手順中は canvas は隠れているので描かない（次の止め絵のときに描く）
+    if (step?.kind === 'clip') return
     if (steps.length === 0) {
       ctx.fillStyle = '#000'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -59,10 +76,11 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
     }
     const shown = step ?? steps[0]
     const frame = shown.kind === 'card' ? shown.frame : 0
-    renderFrame(compiled, project.items, frame, ctx, { get: (id) => images[id] ?? BLANK })
+    renderFrame(compiled, project.items, frame, ctx, { get: (id) => images[id] ?? BLANK_IMAGE })
   }, [compiled, project.items, images, steps, step, width, height])
 
-  // 手順を進める。止め絵は時間で、動画は終わったら次へ
+  // 手順を進める。どの手順も長さは durationFrames（出力と同じ）。動画は再生が始まってから数える（読み込みの待ちは足す）。
+  // 動画が尺より短ければ最後のフレームで止まったまま待ち（出力と同じ）、尺より長ければ途中で次へ（上限で切り詰めたとき）。
   useEffect(() => {
     const video = videoRef.current
     const audio = audioRef.current
@@ -75,12 +93,24 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
       audio.currentTime = 0
       return
     }
-    const next = () =>
-      setRun((r) => (r && r.index + 1 < r.steps.length ? { ...r, index: r.index + 1 } : null))
+    // 「次へ」は 1 手順につき 1 回だけ（再生の失敗が catch と error の両方から届いても 2 つ進まない。片付けのあとは無視）
+    let done = false
+    const next = () => {
+      if (done) return
+      done = true
+      setRun((r) =>
+        r && r.index + 1 < r.session.steps.length ? { ...r, index: r.index + 1 } : null,
+      )
+    }
+    const durationMs = (step.durationFrames / fps) * 1000
+    let timer: ReturnType<typeof setTimeout> | undefined
     if (step.kind === 'card') {
       video.pause()
-      const timer = setTimeout(next, (step.durationFrames / fps) * 1000)
-      return () => clearTimeout(timer)
+      timer = setTimeout(next, durationMs)
+      return () => {
+        done = true
+        clearTimeout(timer)
+      }
     }
     const clip = videos[step.itemId]
     if (!clip) {
@@ -90,18 +120,42 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
     const url = URL.createObjectURL(clip.blob)
     video.src = url
     video.currentTime = 0
-    void video.play().catch(next)
-    video.onended = next
+    video.onplaying = () => {
+      video.onplaying = null
+      timer = setTimeout(next, durationMs)
+    }
+    // 壊れたファイルは飛ばす。再生そのものを始められない（iPhone の低電力モードなど）ときは止めて知らせる
     video.onerror = next
+    void video.play().catch((error: unknown) => {
+      if (done) return
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        done = true
+        setMessage(PLAY_BLOCKED)
+        setRun(null)
+      } else {
+        next()
+      }
+    })
     return () => {
-      video.onended = null
+      done = true
+      clearTimeout(timer)
+      video.onplaying = null
       video.onerror = null
       URL.revokeObjectURL(url)
     }
   }, [step, videos, fps])
 
+  // 画面から外れるときは音を止める（JoinPanel は隠すだけで外さないが、念のため）
+  useEffect(() => {
+    const audio = audioRef.current
+    return () => audio?.pause()
+  }, [])
+
   function start() {
     if (steps.length === 0) return
+    setMessage('')
+    // 操作の中で一度 play() を呼んでおく（iPhone はこれで、この <video> を操作の外からも動かせるようになる。まだ src が無いので失敗は無視）
+    void videoRef.current?.play().catch(() => {})
     const audio = audioRef.current
     if (audio && bgmUrl) {
       audio.src = bgmUrl
@@ -109,7 +163,7 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
       audio.currentTime = 0
       void audio.play().catch(() => {})
     }
-    setRun({ steps, index: 0 })
+    setRun({ session, index: 0 })
   }
 
   const showVideo = step?.kind === 'clip'
@@ -143,16 +197,7 @@ export function JoinPreview({ project, images, videos, bgmUrl, active }: Props) 
         </Button>
         <span className="text-sm text-stone-600">{playing ? step.label : ''}</span>
       </div>
+      {message && <p className="text-sm text-red-700">{message}</p>}
     </div>
   )
-}
-
-/** 画像がまだ無い素材の代わり。黒い 1×1 */
-const BLANK: ProvidedImage = { image: blankCanvas(), width: 1, height: 1 }
-
-function blankCanvas(): CanvasImageSource {
-  const c = document.createElement('canvas')
-  c.width = 1
-  c.height = 1
-  return c
 }

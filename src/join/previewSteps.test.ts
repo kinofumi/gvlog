@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { JOIN_COVER_FRAMES, JOIN_END_FRAMES, buildJoinProject, type JoinClip } from './joinProject'
 import { previewSteps } from './previewSteps'
+import { JOIN_PRESET } from './joinProject'
 
 function clip(itemId: string, frames: number): JoinClip {
   return {
@@ -19,12 +20,12 @@ function clip(itemId: string, frames: number): JoinClip {
 
 describe('previewSteps（簡易プレビューの順番）', () => {
   it('素材が無ければ空', () => {
-    expect(previewSteps(buildJoinProject([]).items)).toEqual([])
+    expect(previewSteps(buildJoinProject([]).items, JOIN_PRESET.maxFrames)).toEqual([])
   })
 
   it('表紙は止め絵（表紙の真ん中のフレーム）、動画は順に、終わりは白の止め絵', () => {
     const project = buildJoinProject([clip('a', 300), clip('b', 60)], '那珂湊')
-    expect(previewSteps(project.items)).toEqual([
+    expect(previewSteps(project.items, JOIN_PRESET.maxFrames)).toEqual([
       {
         kind: 'card',
         itemId: 'join-cover',
@@ -45,8 +46,17 @@ describe('previewSteps（簡易プレビューの順番）', () => {
   })
 
   it('表紙が無ければ 1 本目から始まる', () => {
-    const steps = previewSteps(buildJoinProject([clip('a', 300)]).items)
+    const steps = previewSteps(buildJoinProject([clip('a', 300)]).items, JOIN_PRESET.maxFrames)
     expect(steps.map((s) => s.label)).toEqual(['1 本目', '終わり'])
     expect(steps[1]).toMatchObject({ kind: 'card', frame: 300 + JOIN_END_FRAMES / 2 })
+  })
+
+  it('上限を超えた分は出力と同じく入らない（途中の動画は切り詰め、その先は無し）', () => {
+    const items = buildJoinProject([clip('a', 300), clip('b', 300), clip('c', 60)]).items
+    const steps = previewSteps(items, 450)
+    expect(steps).toEqual([
+      { kind: 'clip', itemId: 'a', label: '1 本目', durationFrames: 300 },
+      { kind: 'clip', itemId: 'b', label: '2 本目', durationFrames: 150 },
+    ])
   })
 })

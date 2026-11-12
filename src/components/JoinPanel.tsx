@@ -15,7 +15,7 @@ import { MediaError } from '../media/errors'
 import { isVideoFile } from '../media/fileTypes'
 import { importOneVideo } from '../media/importEntries'
 import { useAppStore, type NewVideo } from '../state/store'
-import { overflowFrames } from '../timeline/durations'
+import { overflowFrames, sumFrames } from '../timeline/durations'
 import { BgmPicker } from './BgmPicker'
 import { ExportPanel } from './ExportPanel'
 import { JoinClipList } from './JoinClipList'
@@ -26,12 +26,11 @@ import { Button } from './ui/Button'
 /**
  * つなげる: 全員が作った MP4 を集めて順に並べ、白フェードでつないで 1 本にする（ADR 017）。
  * 集めた動画はこの画面が持つ（編集タブの素材とは別）。プロジェクトは buildJoinProject で組み立て、書き出しは編集と同じ ExportPanel。
- * プレビューは無し（編集済みの動画を並べるだけなので、順番とサムネイルで足りる）。
  * 取り込み中・書き出し中の印は store のもの（ui.importing / ui.exporting）を使う。タブをまたいで 1 つずつにするため。
  * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
  * 先頭に表紙（文字は入力欄で変えられる。初期値は App が渡す）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
  * BGM（ADR 019）は useBgm が選択と読み込みを持ち、書き出しに song を渡す。読み込み中は生成を始めない。
- * プレビューは簡易版（JoinPreview。白フェード無しで順に再生し、BGM を重ねる）。
+ * プレビューは簡易版（JoinPreview。白フェード無しで順に再生し、BGM を重ねる。つなぎ目は生成した動画で確かめる）。
  */
 export function JoinPanel({
   defaultCoverText,
@@ -67,6 +66,7 @@ export function JoinPanel({
   const { fps, maxFrames } = JOIN_PRESET
   const hasCover = project.items.some((i) => i.itemId === JOIN_COVER_ID)
   const durations = project.items.map((i) => i.durationFrames)
+  const totalSec = sumFrames(durations) / fps
   // 上限（10 分）を超えた分は出力に入らない（ADR 015 と同じ切り捨て）
   const overflowSec = overflowFrames(durations, maxFrames) / fps
 
@@ -150,6 +150,7 @@ export function JoinPanel({
           fps={fps}
           exporting={exporting}
           hasCover={hasCover}
+          totalSec={totalSec}
           overflowSec={overflowSec}
           maxFrames={maxFrames}
           onMove={move}
