@@ -76,7 +76,7 @@ export function MediaPicker() {
       title={
         <>
           写真・動画を追加{' '}
-          <span className="text-sm font-normal text-stone-500">
+          <span className="text-sm font-normal text-stone-300">
             （{count} / {maxItems(preset.maxFrames)} 個）
           </span>
         </>
