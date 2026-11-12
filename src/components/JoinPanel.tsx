@@ -114,7 +114,7 @@ export function JoinPanel({
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       <Section title="みんなの動画を集める">
         <p className="text-sm text-stone-600">
           それぞれが生成した MP4 を選びます。順番を並べ替えて「つなげて生成」を押すと、
