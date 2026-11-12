@@ -23,7 +23,7 @@ const photo: PhotoInfo = {
 }
 const video: VideoInfo = { ...photo, kind: 'video', fileName: 'v.mov', sourceDurationFrames: 900 }
 const imported = (name: string) => ({ fileName: name }) as unknown as ImportedVideo
-const empty = () => createProject(DEFAULT_PRESET, { memberName: '', spot: '' })
+const empty = () => createProject(DEFAULT_PRESET)
 
 /** 受け取った引数を覚え、dispose の呼び出しを数えるフェイク */
 function fakeSource(args: unknown[]): FrameSource & { args: unknown[]; disposed: number } {

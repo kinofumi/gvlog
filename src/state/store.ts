@@ -37,7 +37,6 @@ export type AppState = {
     probing: boolean
   }
 
-  setMeta(meta: { memberName: string; spot: string }): void
   /** まとめて追加（初期の尺は 5 秒、動画は元の長さまで）。入らなかった素材の画像と動画は解放する */
   addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
@@ -61,7 +60,7 @@ export type AppState = {
  * プロジェクトの変更は projectActions の純粋関数に任せ、ここでは画像の所有と UI 状態だけを扱う。
  */
 export const useAppStore = create<AppState>((set, get) => ({
-  project: actions.createProject(DEFAULT_PRESET, { memberName: '', spot: '' }),
+  project: actions.createProject(DEFAULT_PRESET),
   images: {},
   videos: {},
   ui: {
@@ -72,8 +71,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     exporting: false,
     probing: false,
   },
-
-  setMeta: (meta) => set((s) => ({ project: actions.setMeta(s.project, meta) })),
 
   addItems: (entries) => {
     const before = get().project

@@ -20,26 +20,17 @@ import { clampTrims, trimEndRange } from '../timeline/trim'
 // 変えられないときは元の Project をそのまま返す（呼び出し側は同一性で判定できる）。
 // 各素材の尺は独立で、1 つを変えても他は動かない。合計が preset.maxFrames を超えた分は出力で切る（ADR 015）。
 
-export function createProject(
-  preset: GroupPreset,
-  meta: { memberName: string; spot: string },
-): Project {
+export function createProject(preset: GroupPreset): Project {
   const now = new Date().toISOString()
   return {
     id: newId(),
     schemaVersion: 1,
     preset: { ...preset },
     locked: false,
-    meta: { ...meta },
     items: [],
     createdAt: now,
     updatedAt: now,
   }
-}
-
-export function setMeta(project: Project, meta: { memberName: string; spot: string }): Project {
-  if (project.meta.memberName === meta.memberName && project.meta.spot === meta.spot) return project
-  return { ...project, meta: { ...meta }, updatedAt: new Date().toISOString() }
 }
 
 /** 写真を 1 枚末尾に追加する（addItems の薄い包み） */

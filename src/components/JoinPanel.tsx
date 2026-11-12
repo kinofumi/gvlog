@@ -197,7 +197,7 @@ export function JoinPanel({
           project={project}
           images={images}
           videos={videos}
-          fileName={buildFileName(JOIN_PRESET.name, 'みんな', 'つなげる')}
+          fileName={buildFileName([JOIN_PRESET.name, 'つなげる'])}
           bgm={bgm.song}
           waiting={bgm.loading}
         />

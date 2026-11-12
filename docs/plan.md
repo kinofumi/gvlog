@@ -108,7 +108,6 @@ interface Project {
   schemaVersion: 1
   preset: GroupPreset // スナップショット
   locked: boolean
-  meta: { memberName: string; spot: string }
   items: MediaItem[]
   createdAt: string
   updatedAt: string
@@ -301,7 +300,7 @@ for (let t = 0; t < totalFrames; t++) {
   完了後の自動呼び出しはしない（ユーザー操作が必要なため）。
 - `AbortError` はキャンセル（何もしない）、それ以外は失敗として「ダウンロード」の副手段を案内する。
 - 「ダウンロード」は `<a download>` + Blob URL。
-- ファイル名: `${preset.name}_${memberName}_${spot}_${yyyymmdd}.mp4`。禁止文字は `_` に置換、空欄は `member` / `spot`。
+- ファイル名: `${preset.name}_${yyyymmdd}_${hhmm}.mp4`（つなげるは `${preset.name}_つなげる_...`）。禁止文字は `_` に置換。名前とスポットの入力は ADR 020 でやめた。
 
 ## 5. 状態管理と永続化
 

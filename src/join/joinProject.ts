@@ -43,7 +43,7 @@ function cardInfo(fileName: string): PhotoInfo {
  * createProject が ID と日時を作るので厳密には純粋ではないが、素材と尺とつなぎは入力だけで決まる。
  */
 export function buildJoinProject(clips: JoinClip[], coverText = ''): Project {
-  const empty = createProject(JOIN_PRESET, { memberName: '', spot: '' })
+  const empty = createProject(JOIN_PRESET)
   if (clips.length === 0) return empty
   const title = coverText.trim()
   const hasCover = title !== ''
