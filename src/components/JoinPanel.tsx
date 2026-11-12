@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { BGM_TRACKS, bgmUrl } from '../bgm/tracks'
 import { useBgm } from '../bgm/useBgm'
 import { buildFileName } from '../export/naming'
 import { COVER_COLOR, END_COLOR, makeSolidImage } from '../join/cards'
@@ -14,13 +15,13 @@ import { MediaError } from '../media/errors'
 import { isVideoFile } from '../media/fileTypes'
 import { importOneVideo } from '../media/importEntries'
 import { useAppStore, type NewVideo } from '../state/store'
-import { overflowFrames, sumFrames } from '../timeline/durations'
+import { overflowFrames } from '../timeline/durations'
 import { BgmPicker } from './BgmPicker'
 import { ExportPanel } from './ExportPanel'
+import { JoinClipList } from './JoinClipList'
+import { JoinPreview } from './JoinPreview'
 import { Section } from './Section'
-import { Thumbnail } from './Thumbnail'
 import { Button } from './ui/Button'
-import { SmallButton } from './ui/SmallButton'
 
 /**
  * つなげる: 全員が作った MP4 を集めて順に並べ、白フェードでつないで 1 本にする（ADR 017）。
@@ -30,6 +31,7 @@ import { SmallButton } from './ui/SmallButton'
  * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
  * 先頭に表紙（文字は入力欄で変えられる。初期値は App が渡す）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
  * BGM（ADR 019）は useBgm が選択と読み込みを持ち、書き出しに song を渡す。読み込み中は生成を始めない。
+ * プレビューは簡易版（JoinPreview。白フェード無しで順に再生し、BGM を重ねる）。
  */
 export function JoinPanel({
   defaultCoverText,
@@ -47,6 +49,7 @@ export function JoinPanel({
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const bgm = useBgm()
+  const bgmTrack = BGM_TRACKS.find((t) => t.id === bgm.id)
 
   const project = useMemo(() => buildJoinProject(clips, coverText), [clips, coverText])
   const cards = useMemo(
@@ -64,7 +67,6 @@ export function JoinPanel({
   const { fps, maxFrames } = JOIN_PRESET
   const hasCover = project.items.some((i) => i.itemId === JOIN_COVER_ID)
   const durations = project.items.map((i) => i.durationFrames)
-  const totalSec = sumFrames(durations) / fps
   // 上限（10 分）を超えた分は出力に入らない（ADR 015 と同じ切り捨て）
   const overflowSec = overflowFrames(durations, maxFrames) / fps
 
@@ -143,54 +145,16 @@ export function JoinPanel({
       </Section>
 
       <Section title="順番">
-        {clips.length === 0 ? (
-          <p className="text-sm text-stone-600">動画を選ぶと、ここに並びます。</p>
-        ) : (
-          <ul className="space-y-2">
-            {clips.map((clip, index) => (
-              <li key={clip.itemId} className="flex gap-3 rounded border border-stone-300 p-2">
-                <Thumbnail source={clip.image} />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-sm">
-                    {index + 1}. {clip.info.fileName}
-                  </p>
-                  <p className="text-sm text-stone-600">
-                    {(clip.info.sourceDurationFrames / fps).toFixed(1)} 秒
-                  </p>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <SmallButton
-                    label="▲"
-                    disabled={index === 0 || exporting}
-                    onClick={() => move(index, index - 1)}
-                  />
-                  <SmallButton
-                    label="▼"
-                    disabled={index === clips.length - 1 || exporting}
-                    onClick={() => move(index, index + 1)}
-                  />
-                  <SmallButton
-                    label="削除"
-                    disabled={exporting}
-                    onClick={() => remove(clip.itemId)}
-                  />
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-        {clips.length > 0 && (
-          <p className="text-sm text-stone-600">
-            全部で {totalSec.toFixed(1)} 秒（{clips.length} 本。{hasCover ? '表紙と' : ''}
-            終わりを含む）
-          </p>
-        )}
-        {overflowSec > 0 && (
-          <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
-            上限の {maxFrames / fps / 60} 分を超えた末尾 {overflowSec.toFixed(1)}{' '}
-            秒は、生成する動画に入りません（最後の白フェードアウトも入りません）。本数を減らしてください。
-          </p>
-        )}
+        <JoinClipList
+          clips={clips}
+          fps={fps}
+          exporting={exporting}
+          hasCover={hasCover}
+          overflowSec={overflowSec}
+          maxFrames={maxFrames}
+          onMove={move}
+          onRemove={remove}
+        />
       </Section>
 
       <Section title="表紙">
@@ -213,6 +177,16 @@ export function JoinPanel({
           disabled={exporting}
           supported={bgm.supported}
           status={bgm.loading ? 'BGM を読み込み中…（終わるまで生成は始められません）' : bgm.error}
+          active={active}
+        />
+      </Section>
+
+      <Section title="プレビュー">
+        <JoinPreview
+          project={project}
+          images={images}
+          videos={videos}
+          bgmUrl={bgmTrack ? bgmUrl(bgmTrack) : null}
           active={active}
         />
       </Section>

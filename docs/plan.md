@@ -65,9 +65,9 @@ gvlog/
   src/
     main.tsx, App.tsx               # タブ 4 つ（イベントの栞 / おすすめ / 動画編集 / つなげる）を useState で切替（react-router 不使用）。編集とつなげるのタブは隠すだけで外さない
     screens/                        # Home / Media / Edit / Preview / Export
-    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project と bgm を受ける）, JoinPanel, BgmPicker
+    components/                     # TabBar, Section, EventGuide, TipsGuide, MediaPicker, MediaList（選んだ素材の下に ItemEditor）, TrimEditor, FrameSlider, TotalDuration, PreviewCanvas, ExportPanel（props で project と bgm を受ける）, JoinPanel, JoinClipList, JoinPreview（簡易プレビュー）, BgmPicker
     **bgm/**                        # loop.ts（ループとフェードアウト、純粋）、bgmAudio.ts（デコードと AudioBuffer）、tracks.ts（曲一覧。実体は public/bgm/）、useBgm.ts（ADR 019）
-    **join/**                       # joinProject.ts（表紙 → 集めた動画 → 白い終わり、を白フェードで並べた Project を組み立てる純粋関数。ADR 017）、cards.ts（表紙と終わりの 1 色の絵）
+    **join/**                       # joinProject.ts（表紙 → 集めた動画 → 白い終わり、を白フェードで並べた Project を組み立てる純粋関数。ADR 017）、cards.ts（表紙と終わりの 1 色の絵）、previewSteps.ts（簡易プレビューの手順）
     **guide/**                      # nakaminato.ts（栞のデータ: 予定と地図の検索名）, tips.ts（おすすめポイントのデータ）, mapsLink.ts（Google マップの検索 URL）
     components/ui/                  # Button, Chip, SmallButton, Dialog（<dialog> のポップアップ。共有完了の知らせ）（shadcn/ui 相当の小さな部品）
     **model/**                      # types.ts, defaults.ts, validate.ts（プリセット・保存データの検証）
