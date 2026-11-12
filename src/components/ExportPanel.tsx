@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { exportProject, ExportCancelled, type ExportProgress } from '../export/exportVideo'
+import { exportProject } from '../export/exportProject'
+import { ExportCancelled, type ExportProgress } from '../export/exportVideo'
 import { canShareFile, downloadFile, shareFile } from '../export/share'
 import type { ImportedVideo } from '../media/importVideo'
 import type { Project } from '../model/types'
@@ -22,10 +23,14 @@ type Props = {
   videos: Record<string, ImportedVideo>
   /** できた MP4 のファイル名 */
   fileName: string
+  /** 付ける BGM（デコード済みのモノラル PCM）。無ければ無音 */
+  bgm?: Float32Array | null
+  /** まだ始められない（BGM の読み込み中など）。理由は呼び出し側が自分の場所に出す */
+  waiting?: boolean
 }
 
 /** 書き出し: 開始、進捗、キャンセル、共有 / ダウンロード。エンコーダは端末に 1 本なので、どのタブから始めても store の exporting で排他する */
-export function ExportPanel({ project, images, videos, fileName }: Props) {
+export function ExportPanel({ project, images, videos, fileName, bgm = null, waiting }: Props) {
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
   const probing = useAppStore((s) => s.ui.probing)
@@ -38,7 +43,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
 
   const exporting = phase.kind === 'exporting'
   // 取り込み中（素材が増える途中）、診断中（エンコーダが使用中）、別のタブの書き出し中は始めない
-  const canExport = project.items.length > 0 && !busy && !importing && !probing
+  const canExport = project.items.length > 0 && !busy && !importing && !probing && !waiting
 
   // 画面を離れたら書き出しを中断する（続けても結果を受け取る相手がいない）
   useEffect(() => () => abortRef.current?.abort(), [])
@@ -66,6 +71,7 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
         videos,
         (progress) => setPhase({ kind: 'exporting', progress }),
         controller.signal,
+        { bgm },
       )
       const file = new File([result.blob], fileName, { type: 'video/mp4' })
       if (import.meta.env.DEV) {
@@ -120,7 +126,9 @@ export function ExportPanel({ project, images, videos, fileName }: Props) {
                 max={phase.progress.totalFrames}
               />
               <p className="text-sm">
-                {phase.progress.frame} / {phase.progress.totalFrames} フレーム
+                {phase.progress.stage === 'bgm'
+                  ? 'BGM を付けています…'
+                  : `${phase.progress.frame} / ${phase.progress.totalFrames} フレーム`}
               </p>
             </>
           ) : (

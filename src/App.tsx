@@ -44,7 +44,7 @@ export default function App() {
         <h1 className="text-xl font-bold">gvlog（M3 検証版）</h1>
         <p className="text-sm text-stone-600">
           {preset.width}x{preset.height} / {preset.fps}fps / 最長 {preset.maxFrames / preset.fps} 秒
-          / 無音 MP4
+          / MP4（音声なし。つなげるでは BGM を付けられます）
         </p>
       </header>
 
@@ -97,7 +97,7 @@ export default function App() {
 
       {/* つなげるタブも隠すだけ（集めた動画を捨てないため） */}
       <div className={tab === 'join' ? '' : 'hidden'}>
-        <JoinPanel defaultCoverText={NAKAMINATO.title} />
+        <JoinPanel defaultCoverText={NAKAMINATO.title} active={tab === 'join'} />
       </div>
 
       <footer className="text-xs text-stone-500">

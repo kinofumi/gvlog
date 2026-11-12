@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { useBgm } from '../bgm/useBgm'
 import { buildFileName } from '../export/naming'
 import { COVER_COLOR, END_COLOR, makeSolidImage } from '../join/cards'
 import {
@@ -14,6 +15,7 @@ import { isVideoFile } from '../media/fileTypes'
 import { importOneVideo } from '../media/importEntries'
 import { useAppStore, type NewVideo } from '../state/store'
 import { overflowFrames, sumFrames } from '../timeline/durations'
+import { BgmPicker } from './BgmPicker'
 import { ExportPanel } from './ExportPanel'
 import { Section } from './Section'
 import { Thumbnail } from './Thumbnail'
@@ -27,8 +29,15 @@ import { SmallButton } from './ui/SmallButton'
  * 取り込み中・書き出し中の印は store のもの（ui.importing / ui.exporting）を使う。タブをまたいで 1 つずつにするため。
  * 集めた動画の解放は「削除」のときだけ。この画面は App が隠すだけで外さないので、アンマウント時の解放は持たない。
  * 先頭に表紙（文字は入力欄で変えられる。初期値は App が渡す）、最後は白フェードアウトして終わる。表紙と終わりの絵は 1 色の canvas で、ここで 1 回だけ作る。
+ * BGM（ADR 019）は useBgm が選択と読み込みを持ち、書き出しに song を渡す。読み込み中は生成を始めない。
  */
-export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
+export function JoinPanel({
+  defaultCoverText,
+  active,
+}: {
+  defaultCoverText: string
+  active: boolean
+}) {
   const exporting = useAppStore((s) => s.ui.exporting)
   const importing = useAppStore((s) => s.ui.importing)
   const setImporting = useAppStore((s) => s.setImporting)
@@ -37,6 +46,7 @@ export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
   const [progress, setProgress] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
+  const bgm = useBgm()
 
   const project = useMemo(() => buildJoinProject(clips, coverText), [clips, coverText])
   const cards = useMemo(
@@ -196,12 +206,25 @@ export function JoinPanel({ defaultCoverText }: { defaultCoverText: string }) {
         </label>
       </Section>
 
+      <Section title="BGM">
+        <BgmPicker
+          value={bgm.id}
+          onChange={bgm.pick}
+          disabled={exporting}
+          supported={bgm.supported}
+          status={bgm.loading ? 'BGM を読み込み中…（終わるまで生成は始められません）' : bgm.error}
+          active={active}
+        />
+      </Section>
+
       <Section title="つなげて生成">
         <ExportPanel
           project={project}
           images={images}
           videos={videos}
           fileName={buildFileName(JOIN_PRESET.name, 'みんな', 'つなげる')}
+          bgm={bgm.song}
+          waiting={bgm.loading}
         />
       </Section>
     </div>

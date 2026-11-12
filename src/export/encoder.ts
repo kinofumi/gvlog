@@ -1,4 +1,11 @@
-import { BufferTarget, CanvasSource, Mp4OutputFormat, Output } from 'mediabunny'
+import {
+  AudioBufferSource,
+  BufferTarget,
+  CanvasSource,
+  Mp4OutputFormat,
+  Output,
+  Quality,
+} from 'mediabunny'
 import { EXPORT_BITRATE, type EncoderChoice } from './codec'
 
 /**
@@ -9,6 +16,8 @@ export interface FrameEncoder {
   start(): Promise<void>
   /** キャンバスの今の内容を、その時刻のフレームとしてエンコードする */
   add(timeSec: number, durationSec: number): Promise<void>
+  /** BGM の音を続きとしてエンコードする（音声トラック付きで作ったときだけ。無ければ失敗する） */
+  addAudio(buffer: AudioBuffer): Promise<void>
   /** 終了して MP4 を返す */
   finalize(): Promise<Blob>
   /** 途中でやめる。finalize 済みなら何もしない。解放に失敗したら投げる（呼び出し側が元の失敗と併記する） */
@@ -17,11 +26,12 @@ export interface FrameEncoder {
   usedCodecString(): string
 }
 
-/** mediabunny で Canvas から H.264 / MP4 を作るエンコーダ */
+/** mediabunny で Canvas から H.264 / MP4 を作るエンコーダ。withAudio なら AAC の音声トラック（BGM）も付ける（ADR 019） */
 export function createMp4Encoder(
   canvas: HTMLCanvasElement,
   fps: number,
   choice: EncoderChoice,
+  withAudio = false,
 ): FrameEncoder {
   let usedCodec = choice.fullCodecString ?? '(auto)'
   let finalized = false
@@ -38,10 +48,20 @@ export function createMp4Encoder(
     },
   })
   output.addVideoTrack(source, { frameRate: fps })
+  // 音声は AudioBuffer を順に渡すだけ（最初のものが 0 秒、あとは続き）。AAC は MP4 と写真アプリの標準
+  // （QUALITY_MEDIUM 定数はこの版の mediabunny では非推奨なので new Quality('medium')）
+  const audioSource = withAudio
+    ? new AudioBufferSource({ codec: 'aac', quality: new Quality('medium') })
+    : null
+  if (audioSource) output.addAudioTrack(audioSource)
 
   return {
     start: () => output.start(),
     add: (timeSec, durationSec) => source.add(timeSec, durationSec),
+    addAudio: (buffer) => {
+      if (!audioSource) throw new Error('音声トラックの無い書き出しに BGM を渡しました。')
+      return audioSource.add(buffer)
+    },
     finalize: async () => {
       await output.finalize()
       finalized = true
