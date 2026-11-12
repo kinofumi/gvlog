@@ -25,10 +25,8 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function App() {
-  // App は preset と meta だけ購読する（素材や尺が変わるたびに全タブを再描画しないため）
+  // App は preset だけ購読する（素材や尺が変わるたびに全タブを再描画しないため）
   const preset = useAppStore((s) => s.project.preset)
-  const meta = useAppStore((s) => s.project.meta)
-  const setMeta = useAppStore((s) => s.setMeta)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const [tab, setTab] = useState<Tab>('guide')
 
@@ -59,28 +57,6 @@ export default function App() {
 
       {/* 編集タブは隠すだけで外さない（取り込んだ画像や <video> を作り直さないため） */}
       <div className={tab === 'editor' ? '' : 'hidden'}>
-        {/* 名前とスポットは Section と同じ mb-12 で次の区切りと間を空ける */}
-        <section className="mb-12 space-y-3">
-          <label className="block">
-            <span className="text-sm">名前</span>
-            <input
-              className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
-              value={meta.memberName}
-              onChange={(e) => setMeta({ ...meta, memberName: e.target.value })}
-              placeholder="例: 木下"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm">スポット</span>
-            <input
-              className="mt-1 w-full rounded border border-stone-300 px-3 py-2"
-              value={meta.spot}
-              onChange={(e) => setMeta({ ...meta, spot: e.target.value })}
-              placeholder="例: 清水寺"
-            />
-          </label>
-        </section>
-
         {/* 上から順に作業する並び: 選ぶ → 素材（選んだ素材の下に設定） → プレビュー → 生成 → 保存 */}
         <MediaPicker />
         <Section title="素材">

@@ -1,4 +1,3 @@
-import { buildFileName } from '../export/naming'
 import { useAppStore } from '../state/store'
 import { ExportPanel } from './ExportPanel'
 import { TotalDuration } from './TotalDuration'
@@ -8,7 +7,6 @@ export function EditorExport() {
   const project = useAppStore((s) => s.project)
   const images = useAppStore((s) => s.images)
   const videos = useAppStore((s) => s.videos)
-  const { preset, meta } = project
   return (
     <>
       {project.items.length > 0 && <TotalDuration />}
@@ -16,7 +14,7 @@ export function EditorExport() {
         project={project}
         images={images}
         videos={videos}
-        fileName={buildFileName(preset.name, meta.memberName, meta.spot)}
+        fileNames={[project.preset.name]}
       />
     </>
   )

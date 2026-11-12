@@ -19,7 +19,7 @@ const info: PhotoInfo = {
   width: 200,
   height: 100,
 }
-const project = addItems(createProject(preset, { memberName: '', spot: '' }), [
+const project = addItems(createProject(preset), [
   { itemId: 'p1', info },
   { itemId: 'p2', info },
 ])
@@ -96,9 +96,7 @@ describe('exportFrames（書き出しのループ）', () => {
   it('合計が上限に満たなければ、その長さだけ書き出す（レビュー: Codex 4）', async () => {
     // 上限 60 フレームのプリセットに 1 枚（60）を入れ、30 に縮める
     const short = setItemDuration(
-      addItems(createProject({ ...preset, maxFrames: 60 }, { memberName: '', spot: '' }), [
-        { itemId: 'p1', info },
-      ]),
+      addItems(createProject({ ...preset, maxFrames: 60 }), [{ itemId: 'p1', info }]),
       'p1',
       30,
     )
@@ -116,13 +114,10 @@ describe('exportFrames（書き出しのループ）', () => {
 
   it('合計が上限を超えていたら、上限のフレーム数で止める（レビュー: Claude 8）', async () => {
     // 上限 60 のプリセットに 2 枚（60 ずつ）を入れると合計 120 > 上限 60
-    const over = addItems(
-      createProject({ ...preset, maxFrames: 60 }, { memberName: '', spot: '' }),
-      [
-        { itemId: 'p1', info },
-        { itemId: 'p2', info },
-      ],
-    )
+    const over = addItems(createProject({ ...preset, maxFrames: 60 }), [
+      { itemId: 'p1', info },
+      { itemId: 'p2', info },
+    ])
     const encoder = fakeEncoder()
     await exportFrames(
       over,
@@ -324,7 +319,7 @@ describe('exportFrames（書き出しのループ）', () => {
   })
 
   it('素材が無ければ始める前に失敗する', async () => {
-    const empty = createProject(preset, { memberName: '', spot: '' })
+    const empty = createProject(preset)
     const encoder = fakeEncoder()
     await expect(
       exportFrames(

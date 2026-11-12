@@ -109,7 +109,6 @@ export type Project = {
   /** スナップショット。リンクで配られたプリセットをそのまま保持する */
   preset: GroupPreset
   locked: boolean
-  meta: { memberName: string; spot: string }
   items: MediaItem[]
   createdAt: string
   updatedAt: string

@@ -12,7 +12,6 @@ import {
   setCaption,
   setItemDuration,
   setKenBurns,
-  setMeta,
   setTransition,
   setTrimEnd,
   setTrimStart,
@@ -39,18 +38,18 @@ const videoInfo = (n: number, sourceDurationFrames: number): VideoInfo => ({
 })
 
 function withPhotos(n: number): Project {
-  let p = createProject(DEFAULT_PRESET, { memberName: '木下', spot: '清水寺' })
+  let p = createProject(DEFAULT_PRESET)
   for (let i = 1; i <= n; i++) p = addPhoto(p, `p${i}`, photoInfo(i))
   return p
 }
 
 const durations = (p: Project) => p.items.map((i) => i.durationFrames)
 
-const empty = () => createProject(DEFAULT_PRESET, { memberName: '', spot: '' })
+const empty = () => createProject(DEFAULT_PRESET)
 
 describe('createProject', () => {
   it('プリセットのスナップショットと空の素材で始まる', () => {
-    const p = createProject(DEFAULT_PRESET, { memberName: '木下', spot: '清水寺' })
+    const p = createProject(DEFAULT_PRESET)
     expect(p.preset).toEqual(DEFAULT_PRESET)
     expect(p.preset).not.toBe(DEFAULT_PRESET)
     expect(p.items).toEqual([])
@@ -205,9 +204,7 @@ describe('setKenBurns / setCaption / setTransition', () => {
   })
 
   it('変えられない素材（写真でない）への Ken Burns 設定は元のまま', () => {
-    const p = addItems(createProject(DEFAULT_PRESET, { memberName: '', spot: '' }), [
-      { itemId: 'v1', info: videoInfo(1, 300) },
-    ])
+    const p = addItems(createProject(DEFAULT_PRESET), [{ itemId: 'v1', info: videoInfo(1, 300) }])
     expect(setKenBurns(p, 'v1', 'zoomIn')).toBe(p)
   })
 
@@ -262,13 +259,6 @@ describe('setKenBurns / setCaption / setTransition', () => {
     expect(setTransition(p, 'p1', { type: 'cut', durationFrames: 0 })).toBe(p)
     expect(setCaption(p, 'p1', undefined)).toBe(p)
     expect(setKenBurns(p, 'p1', 'none')).toBe(p)
-  })
-
-  it('setMeta は名前とスポットを置き換え、渡したオブジェクトを参照で持たない', () => {
-    const meta = { memberName: '山田', spot: '金閣寺' }
-    const p = setMeta(withPhotos(1), meta)
-    meta.spot = '書き換え'
-    expect(p.meta).toEqual({ memberName: '山田', spot: '金閣寺' })
   })
 
   it('更新のたびに updatedAt が進み、元のオブジェクトは変わらない', () => {
