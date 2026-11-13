@@ -45,7 +45,11 @@ export default function App() {
       {/* 表紙の間は裏の画面を inert にして、タブや VoiceOver のフォーカスが表紙の裏に行かないようにする */}
       <main className="mx-auto max-w-md space-y-6 px-4 py-6" inert={splash}>
         <header>
-          <h1 className="text-xl font-bold">gvlog（M3 検証版）</h1>
+          <h1 className="flex items-center gap-2 text-xl font-bold">
+            {/* マークは favicon と同じ絵（public/favicon.svg）。差し替えるときは 1 つのファイルで済む */}
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-7 w-7" />
+            gvlog（M3 検証版）
+          </h1>
           <p className="text-sm text-stone-600">
             {preset.width}x{preset.height} / {preset.fps}fps / 最長 {preset.maxFrames / preset.fps}{' '}
             秒 / MP4（音声なし。つなげるでは BGM を付けられます）
