@@ -11,4 +11,10 @@ describe('mapsSearchUrl（場所の名前から Google マップの検索リン�
   it('空白を含む名前もそのまま 1 つの検索語になる', () => {
     expect(mapsSearchUrl('湊公園 ひたちなか')).toContain('query=%E6%B9%8A%E5%85%AC%E5%9C%92%20')
   })
+
+  it('「緯度,経度」を渡すとカンマがエンコードされ、その地点のピンのリンクになる', () => {
+    expect(mapsSearchUrl('36.345106,140.588006')).toBe(
+      'https://www.google.com/maps/search/?api=1&query=36.345106%2C140.588006',
+    )
+  })
 })
