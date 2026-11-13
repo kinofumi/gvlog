@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { EncodeProbePanel } from './components/EncodeProbePanel'
 import { EventGuide } from './components/EventGuide'
 import { EditorExport } from './components/EditorExport'
 import { JoinPanel } from './components/JoinPanel'
@@ -26,8 +25,6 @@ const TABS: { id: Tab; label: string }[] = [
 ]
 
 export default function App() {
-  // App は preset だけ購読する（素材や尺が変わるたびに全タブを再描画しないため）
-  const preset = useAppStore((s) => s.project.preset)
   const setPlaying = useAppStore((s) => s.setPlaying)
   const [tab, setTab] = useState<Tab>('guide')
   // 起動時の表紙（Splash）。消えたら false。アプリの画面はその下で先に組み立てておく
@@ -44,18 +41,7 @@ export default function App() {
       {splash && <Splash onDone={() => setSplash(false)} />}
       {/* 表紙の間は裏の画面を inert にして、タブや VoiceOver のフォーカスが表紙の裏に行かないようにする */}
       <main className="mx-auto max-w-md space-y-6 px-4 py-6" inert={splash}>
-        <header>
-          <h1 className="flex items-center gap-2 text-xl font-bold">
-            {/* マークは favicon と同じ絵（public/favicon.svg）。差し替えるときは 1 つのファイルで済む */}
-            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" className="h-7 w-7" />
-            gvlog（M3 検証版）
-          </h1>
-          <p className="text-sm text-stone-600">
-            {preset.width}x{preset.height} / {preset.fps}fps / 最長 {preset.maxFrames / preset.fps}{' '}
-            秒 / MP4（音声なし。つなげるでは BGM を付けられます）
-          </p>
-        </header>
-
+        {/* 見出し（アプリ名と仕様の行）、画面下の UA、エンコードテスト（診断）は本番前に外した（2026-11-13、利用者の指示）。アプリ名はタブのタイトルと favicon だけに残る */}
         <TabBar tabs={TABS} value={tab} onChange={switchTab} />
 
         <div className={tab === 'guide' ? '' : 'hidden'}>
@@ -78,18 +64,12 @@ export default function App() {
           <Section title="書き出し" icon="download">
             <EditorExport />
           </Section>
-
-          <EncodeProbePanel preset={preset} />
         </div>
 
         {/* つなげるタブも隠すだけ（集めた動画を捨てないため） */}
         <div className={tab === 'join' ? '' : 'hidden'}>
           <JoinPanel defaultCoverText={NAKAMINATO.coverText} active={tab === 'join'} />
         </div>
-
-        <footer className="text-xs text-stone-500">
-          <p>{navigator.userAgent}</p>
-        </footer>
       </main>
     </>
   )

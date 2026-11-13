@@ -25,10 +25,9 @@ export type LatencyMode = 'quality' | 'realtime'
  * 書き出しは 'quality' だけを使う。WebCodecs の仕様で 'quality' はフレームを落としてはいけないので、
  * 固定尺（300 フレーム）が保証される。'realtime' はフレームを落としてよいので書き出しには使わない。
  * Safari の H.264 エンコーダが 'quality' で止まる既知の不具合（mediabunny issue #541）は、
- * iPhone（iOS 18.7）/ Android / PC の実機では再現しなかった。診断では両方を試して表にする。
+ * iPhone（iOS 18.7）/ Android / PC の実機では再現しなかった（両方を試す診断画面は本番前に外した。結果は docs/support-matrix.md）。
  */
 const EXPORT_LATENCY_MODE: LatencyMode = 'quality'
-const DIAGNOSTIC_LATENCY_MODES: LatencyMode[] = ['quality', 'realtime']
 
 /** 1 候補あたりの試行フレーム数と、固まったとみなすまでの時間 */
 const PROBE_FRAMES = 5
@@ -134,22 +133,6 @@ export async function probeOne(
   }
   result.ms = Math.round(performance.now() - startedAt)
   return result
-}
-
-/** すべての組み合わせを試して結果を返す（診断画面用）。書き出しでは使わない 'realtime' も含める */
-export async function probeAll(
-  width: number,
-  height: number,
-  fps: number,
-  bitrate: number,
-): Promise<ProbeResult[]> {
-  const results: ProbeResult[] = []
-  for (const latencyMode of DIAGNOSTIC_LATENCY_MODES) {
-    for (const fullCodecString of CODEC_CANDIDATES) {
-      results.push(await probeOne({ fullCodecString, latencyMode }, width, height, fps, bitrate))
-    }
-  }
-  return results
 }
 
 /** 一度決めた設定はページを開いている間は変わらないので、覚えておいて 2 回目以降の書き出しで使う */
