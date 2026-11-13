@@ -1,16 +1,14 @@
 import { mapsSearchUrl } from '../guide/mapsLink'
 import { NAKAMINATO } from '../guide/nakaminato'
+import { Section } from './Section'
 
-/** イベントの栞: タイムスケジュールと、各スポットの Google マップへのリンク */
+/** イベントの栞: タイムスケジュールと、各スポットの Google マップへのリンク。見出しは他のタブと同じ Section の帯 */
 export function EventGuide() {
   const guide = NAKAMINATO
   return (
-    <section className="space-y-4">
-      <div className="space-y-1">
-        <h2 className="text-lg font-bold">{guide.title}</h2>
-        <p className="text-sm text-stone-600">{guide.intro}</p>
-      </div>
-      <ol className="space-y-3">
+    <Section title={guide.title} icon="clock">
+      <p className="text-sm text-stone-600">{guide.intro}</p>
+      <ol className="space-y-3 pt-2">
         {guide.stops.map((stop) => (
           <li key={`${stop.time}-${stop.title}`} className="flex gap-3">
             <span className="w-12 shrink-0 pt-0.5 text-sm font-bold tabular-nums">{stop.time}</span>
@@ -30,6 +28,6 @@ export function EventGuide() {
         ))}
       </ol>
       <p className="text-sm text-stone-600">{guide.closing}</p>
-    </section>
+    </Section>
   )
 }
