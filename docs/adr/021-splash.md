@@ -17,11 +17,11 @@
 
 2 を採る。1 は index.html と React の両方に表紙の都合が散らばり、教科書で追いにくい。3 はホーム画面に追加した人にしか出ない。
 
-- `src/components/Splash.tsx`: 画面いっぱい（`fixed inset-0 z-50`）の白地に `public/splash.png` を `object-contain` で置き、2 秒たつか、どこかをタップしたら 0.3 秒で薄くなって消える。消えたら App が外す（`splash` state）。
+- `src/components/Splash.tsx`: 画面いっぱい（`fixed inset-0 z-50`）の白地に `public/splash.jpg` を `object-contain` で置き、2 秒たつか、どこかをタップしたら 0.3 秒で薄くなって消える。消えたら App が外す（`splash` state）。
 - 表紙の間は `main` を `inert` にし、裏のタブやリンクにフォーカスが行かないようにする（Codex の指摘）。`onDone` は App が毎回作り直すので、Splash は ref で最新を持ち、フェードのタイマーを引き直さない（同じく指摘）。
 - 開くたびに毎回出す。当日は開き直すことが多く、「1 回だけ」にすると栞の説明と食い違うため。1 回だけにしたくなったら sessionStorage で判定を足す。
-- 画像は `public/splash.png` に置く。差し替えはファイルを置き換えるだけ（コードは `SPLASH_SRC` の 1 か所で参照）。`index.html` の `<link rel="preload" as="image">` で JS を待たずに取得を始めさせる（Vite が base を付ける）。届く順は保証されないので、2 秒は画像が出てから数える。画像が読めなければすぐ消える。
-- 仮の画像は `scripts/make-splash.mjs`（`@napi-rs/canvas`）で作った 1080x1920 の青いグラデーションに「イベント名（仮）」の文字。本番の画像が届いたら `public/splash.png` を置き換える。
+- 画像は `public/splash.jpg` に置く。差し替えはファイルを置き換えるだけ（コードは `SPLASH_SRC` の 1 か所で参照）。`index.html` の `<link rel="preload" as="image">` で JS を待たずに取得を始めさせる（Vite が base を付ける）。届く順は保証されないので、2 秒は画像が出てから数える。画像が読めなければすぐ消える。
+- 仮の画像は `scripts/make-splash.mjs`（`@napi-rs/canvas`）で作った 1080x1920 の青いグラデーションに「イベント名（仮）」の文字。2026-11-13 にイベントのチラシの表面（`docs/nakaminato001.jpg`、A4 縦）を幅 1080 に縮めた JPEG（約 350 KB）に置き換えた。写真なので PNG より JPEG が軽い。A4 は 9:16 より横長だが、`object-contain` と白地でチラシの白い余白が画面になじむ。
 - 消えている途中は `pointer-events-none` にしてタップを通す。画像は `pointer-events-none` と `draggable={false}` で長押しの「画像を保存」やドラッグが出ないようにする（Claude のレビュー）。
 
 ## 影響
