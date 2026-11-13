@@ -1,6 +1,6 @@
 // 仮のスプラッシュ画像（1080x1920 PNG）を @napi-rs/canvas（devDependency）で作る（ADR 021）。
 // 使い方: プロジェクト直下で `node scripts/make-splash.mjs public/splash.png`
-// 本番の画像が届いたら public/splash.png を差し替えるだけで、このスクリプトはもう使わない
+// 本番の画像（チラシの表面、public/splash.jpg）に差し替えたので、このスクリプトはもう使わない。仮の画像の作り方の記録として残す
 import { createCanvas } from '@napi-rs/canvas'
 import { writeFileSync } from 'node:fs'
 const W = 1080, H = 1920

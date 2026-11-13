@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
-/** 表紙の画像。public/splash.png を差し替えるだけで変えられる（Pages のサブパスにも対応） */
-const SPLASH_SRC = `${import.meta.env.BASE_URL}splash.png`
+/** 表紙の画像（イベントのチラシの表面、docs/nakaminato001.jpg を幅 1080 に縮めた JPEG）。public/splash.jpg を差し替えるだけで変えられる（Pages のサブパスにも対応） */
+const SPLASH_SRC = `${import.meta.env.BASE_URL}splash.jpg`
 /** 画像が出てから、自動で消え始めるまでの時間 */
 const SHOW_MS = 2000
 /** 薄くなって消えるまでの時間（下の duration-300 と合わせる） */
@@ -51,15 +51,14 @@ export function Splash({ onDone }: { onDone: () => void }) {
         src={SPLASH_SRC}
         alt=""
         // 画像はタップを受けない（長押しの「画像を保存」やドラッグが出ないように。タップは button が受ける）
-        className="pointer-events-none h-full w-full object-contain"
+        // flex-1 + min-h-0 で、下の「タップで始める」の分だけ縮む（重ねると横長の画面でチラシの文字にかぶる）
+        className="pointer-events-none min-h-0 w-full flex-1 object-contain"
         draggable={false}
         onLoad={() => setLoaded(true)}
         // 画像が無い・壊れているときは待たずに消える（白い画面を 2 秒見せない）
         onError={() => setFading(true)}
       />
-      <span className="absolute bottom-6 rounded-full px-3 py-1 text-xs text-stone-600 bg-white/80">
-        タップで始める
-      </span>
+      <span className="shrink-0 py-4 text-xs text-stone-600">タップで始める</span>
     </button>
   )
 }
