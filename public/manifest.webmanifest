@@ -1,0 +1,21 @@
+{
+  "name": "gvlog",
+  "short_name": "gvlog",
+  "description": "グループ Vlog 用の短い縦動画をブラウザだけで作る",
+  "lang": "ja",
+  "start_url": "/gvlog/",
+  "scope": "/gvlog/",
+  "display": "browser",
+  "background_color": "#f5f5f4",
+  "theme_color": "#f5f5f4",
+  "icons": [
+    { "src": "/gvlog/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/gvlog/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    {
+      "src": "/gvlog/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
