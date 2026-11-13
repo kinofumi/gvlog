@@ -7,8 +7,12 @@ import { ItemEditor } from './ItemEditor'
 import { Thumbnail } from './Thumbnail'
 import { TotalDuration } from './TotalDuration'
 import { SmallButton } from './ui/SmallButton'
+import { Button } from './ui/Button'
 
-/** 素材の一覧: 選択、並べ替え、削除、尺の調整、合計と上限。選んだ素材のすぐ下に設定（ItemEditor）を出す */
+/**
+ * 素材の一覧: 並べ替え、削除、尺の調整、合計と上限。「この素材を編集する」を押した素材のすぐ下に設定（ItemEditor）を出す。
+ * 以前は行のタップで開いていたが気づかれなかったので、ボタンに一本化した（2026-11-14。行タップとボタンの 2 経路だと開閉の挙動がずれる）。
+ */
 export function MediaList() {
   const items = useAppStore((s) => s.project.items)
   const preset = useAppStore((s) => s.project.preset)
@@ -48,25 +52,14 @@ export function MediaList() {
               className={`rounded border p-2 ${selected ? 'border-stone-900' : 'border-stone-300'} ${
                 outside ? 'opacity-50' : ''
               }`}
-              onClick={() => select(item.itemId)}
             >
               <div className="flex gap-3">
                 <Thumbnail source={images[item.itemId]} />
-                <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-sm">
-                    {index + 1}. {item.kind === 'video' && '🎬 '}
-                    {item.fileName}
-                    {cutNote && <span className="text-red-700"> {cutNote}</span>}
-                  </p>
-                  <FrameSlider
-                    min={MIN_ITEM_FRAMES}
-                    max={maxFrames}
-                    value={item.durationFrames}
-                    fps={fps}
-                    disabled={exporting}
-                    onChange={(frames) => setItemDuration(item.itemId, frames)}
-                  />
-                </div>
+                <p className="min-w-0 flex-1 text-sm break-all">
+                  {index + 1}. {item.kind === 'video' && '🎬 '}
+                  {item.fileName}
+                  {cutNote && <span className="text-red-700"> {cutNote}</span>}
+                </p>
                 <div className="flex flex-col gap-1">
                   <SmallButton
                     label="▲"
@@ -85,11 +78,31 @@ export function MediaList() {
                   />
                 </div>
               </div>
+              {/* 尺のスライダーは行の下に全幅で置く（両側の矢印と秒の表示が入る幅を確保するため） */}
+              <div className="mt-2">
+                <FrameSlider
+                  label={`${index + 1} 番目の尺`}
+                  min={MIN_ITEM_FRAMES}
+                  max={maxFrames}
+                  value={item.durationFrames}
+                  fps={fps}
+                  disabled={exporting}
+                  onChange={(frames) => setItemDuration(item.itemId, frames)}
+                />
+              </div>
+              <Button
+                variant="secondary"
+                className="mt-2"
+                aria-expanded={selected}
+                aria-controls={`item-editor-${item.itemId}`}
+                onClick={() => select(selected ? null : item.itemId)}
+              >
+                {selected ? '編集を閉じる' : 'この素材を編集する'}
+              </Button>
               {selected && (
-                // 設定の中のタップで選択をやり直さない（同じ素材なので害はないが、無駄な更新を避ける）
                 <div
+                  id={`item-editor-${item.itemId}`}
                   className="mt-3 border-t border-stone-200 pt-3"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <ItemEditor item={item} index={index} />
                 </div>
@@ -99,7 +112,9 @@ export function MediaList() {
         })}
       </ul>
       {selectedItemId === null && (
-        <p className="text-sm text-stone-600">素材をタップすると、その下に設定が出ます。</p>
+        <p className="text-sm text-stone-600">
+          「この素材を編集する」を押すと、その下に設定（写真の動き、動画の開始位置・終了位置、次へのつなぎ、テロップ）が出ます。
+        </p>
       )}
     </div>
   )

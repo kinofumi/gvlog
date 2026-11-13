@@ -103,6 +103,8 @@ export function ItemEditor({ item, index }: Props) {
         </div>
         {transitionType !== 'cut' && following && (
           <FrameSlider
+            label="つなぎの長さ"
+            stepSeconds={0.2}
             min={0}
             max={maxTransition}
             value={transition.durationFrames}

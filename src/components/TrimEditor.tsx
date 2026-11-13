@@ -42,6 +42,9 @@ export function TrimEditor({
       <div className="space-y-1">
         <p className="text-sm">開始位置</p>
         <FrameSlider
+          label="開始位置"
+          decreaseLabel="0.1 秒前へ"
+          increaseLabel="0.1 秒後ろへ"
           min={0}
           max={maxStart}
           value={item.trimStartFrames}
@@ -53,6 +56,9 @@ export function TrimEditor({
       <div className="space-y-1">
         <p className="text-sm">終了位置</p>
         <FrameSlider
+          label="終了位置"
+          decreaseLabel="0.1 秒前へ"
+          increaseLabel="0.1 秒後ろへ"
           min={range.min}
           max={Math.max(range.min, range.max)}
           value={Math.max(range.min, Math.min(end, range.max))}
