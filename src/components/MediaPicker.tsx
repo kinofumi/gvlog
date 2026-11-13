@@ -73,6 +73,7 @@ export function MediaPicker() {
 
   return (
     <Section
+      icon="photo"
       title={
         <>
           写真・動画を追加{' '}
