@@ -84,7 +84,7 @@ export default function App() {
 
         {/* つなげるタブも隠すだけ（集めた動画を捨てないため） */}
         <div className={tab === 'join' ? '' : 'hidden'}>
-          <JoinPanel defaultCoverText={NAKAMINATO.title} active={tab === 'join'} />
+          <JoinPanel defaultCoverText={NAKAMINATO.coverText} active={tab === 'join'} />
         </div>
 
         <footer className="text-xs text-stone-500">

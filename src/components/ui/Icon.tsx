@@ -11,6 +11,7 @@ export type IconName =
   | 'link'
   | 'clock'
   | 'pin'
+  | 'flag'
 
 /** それぞれの絵のパス（viewBox 24x24、線の太さ 2、色は currentColor）。stroke だけで描き、塗りはしない */
 const PATHS: Record<IconName, string> = {
@@ -36,6 +37,8 @@ const PATHS: Record<IconName, string> = {
   clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7v5l3 2',
   // 地図のピン（おすすめの場所）
   pin: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  // 旗（イベントの名前）
+  flag: 'M5 21V4 M5 4h13l-3 4 3 4H5',
 }
 
 type Props = {
