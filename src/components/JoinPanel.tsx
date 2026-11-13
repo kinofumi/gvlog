@@ -114,7 +114,7 @@ export function JoinPanel({
 
   return (
     <div>
-      <Section title="みんなの動画を集める">
+      <Section title="みんなの動画を集める" icon="folder">
         <p className="text-sm text-stone-600">
           それぞれが生成した MP4 を選びます。順番を並べ替えて「つなげて生成」を押すと、
           {(JOIN_FADE_FRAMES / fps).toFixed(1)} 秒の白フェードでつないだ 1
@@ -143,7 +143,7 @@ export function JoinPanel({
         ))}
       </Section>
 
-      <Section title="順番">
+      <Section title="順番" icon="list">
         <JoinClipList
           clips={clips}
           fps={fps}
@@ -157,7 +157,7 @@ export function JoinPanel({
         />
       </Section>
 
-      <Section title="表紙">
+      <Section title="表紙" icon="text">
         <label className="block space-y-1 text-sm">
           <span>表紙の文字（改行できます。空にすると表紙なし）</span>
           <textarea
@@ -170,7 +170,7 @@ export function JoinPanel({
         </label>
       </Section>
 
-      <Section title="BGM">
+      <Section title="BGM" icon="music">
         <BgmPicker
           value={bgm.id}
           onChange={bgm.pick}
@@ -181,7 +181,7 @@ export function JoinPanel({
         />
       </Section>
 
-      <Section title="プレビュー">
+      <Section title="プレビュー" icon="play">
         <JoinPreview
           project={project}
           images={images}
@@ -191,7 +191,7 @@ export function JoinPanel({
         />
       </Section>
 
-      <Section title="つなげて生成">
+      <Section title="つなげて生成" icon="link">
         <ExportPanel
           project={project}
           images={images}

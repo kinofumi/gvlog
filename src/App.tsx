@@ -69,13 +69,13 @@ export default function App() {
         <div className={tab === 'editor' ? '' : 'hidden'}>
           {/* 上から順に作業する並び: 選ぶ → 素材（選んだ素材の下に設定） → プレビュー → 生成 → 保存 */}
           <MediaPicker />
-          <Section title="素材">
+          <Section title="素材" icon="film">
             <MediaList />
           </Section>
-          <Section title="動画のプレビュー">
+          <Section title="動画のプレビュー" icon="play">
             <PreviewCanvas />
           </Section>
-          <Section title="書き出し">
+          <Section title="書き出し" icon="download">
             <EditorExport />
           </Section>
 

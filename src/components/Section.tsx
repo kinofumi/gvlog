@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
+import { Icon, type IconName } from './ui/Icon'
 
 type Props = {
   title: ReactNode
+  /** 見出しの文字の前に置く絵（文字だけでは寂しい、との感想で付けた。無くてもよい） */
+  icon?: IconName
   children: ReactNode
 }
 
@@ -10,11 +13,15 @@ type Props = {
  * 区切りどうしの間は mb-12（3rem、本文の約 3 文字分）空ける。並べる側（JoinPanel、App）は space-y を使わない。
  * 見出しの下は mb-4（1rem）空ける。中身の間隔（space-y-2）は内側の div に持たせ、見出しの余白とぶつからないようにする。
  * App の main が左右に px-4 の余白を持つので、見出しだけ -mx-4 で余白を打ち消し、同じ px-4 で文字の位置を本文とそろえる。
+ * 絵と文字は flex で横に並べ、絵は縮めない（shrink-0。長い見出しで潰れないように）。
  */
-export function Section({ title, children }: Props) {
+export function Section({ title, icon, children }: Props) {
   return (
     <section className="mb-12">
-      <h2 className="-mx-4 mb-4 px-4 py-2 text-lg font-bold text-white bg-stone-600">{title}</h2>
+      <h2 className="-mx-4 mb-4 flex items-center gap-2 px-4 py-2 text-lg font-bold text-white bg-stone-600">
+        {icon && <Icon name={icon} className="h-6 w-6 shrink-0" />}
+        <span>{title}</span>
+      </h2>
       <div className="space-y-2">{children}</div>
     </section>
   )
