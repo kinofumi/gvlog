@@ -34,7 +34,6 @@ type Props = {
 export function ExportPanel({ project, images, videos, fileNames, bgm = null, waiting }: Props) {
   const setPlaying = useAppStore((s) => s.setPlaying)
   const importing = useAppStore((s) => s.ui.importing)
-  const probing = useAppStore((s) => s.ui.probing)
   // 別のタブ（編集 / つなげる）の ExportPanel が書き出し中かもしれない。エンコーダは 1 本なので store の印で排他する
   const busy = useAppStore((s) => s.ui.exporting)
   const setExporting = useAppStore((s) => s.setExporting)
@@ -43,8 +42,8 @@ export function ExportPanel({ project, images, videos, fileNames, bgm = null, wa
   const abortRef = useRef<AbortController | null>(null)
 
   const exporting = phase.kind === 'exporting'
-  // 取り込み中（素材が増える途中）、診断中（エンコーダが使用中）、別のタブの書き出し中は始めない
-  const canExport = project.items.length > 0 && !busy && !importing && !probing && !waiting
+  // 取り込み中（素材が増える途中）、別のタブの書き出し中は始めない
+  const canExport = project.items.length > 0 && !busy && !importing && !waiting
 
   // 画面を離れたら書き出しを中断する（続けても結果を受け取る相手がいない）
   useEffect(() => () => abortRef.current?.abort(), [])

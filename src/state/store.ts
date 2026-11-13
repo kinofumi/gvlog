@@ -33,8 +33,6 @@ export type AppState = {
     importing: boolean
     /** 書き出し中。使用中の画像を閉じないよう、素材の削除や差し替えを止める */
     exporting: boolean
-    /** エンコードの診断中。エンコーダを 2 本同時に動かさないよう、書き出しを止める */
-    probing: boolean
   }
 
   /** まとめて追加（初期の尺は 5 秒、動画は元の長さまで）。入らなかった素材の画像と動画は解放する */
@@ -52,7 +50,6 @@ export type AppState = {
   setPlaying(isPlaying: boolean): void
   setImporting(importing: boolean): void
   setExporting(exporting: boolean): void
-  setProbing(probing: boolean): void
 }
 
 /**
@@ -69,7 +66,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     isPlaying: false,
     importing: false,
     exporting: false,
-    probing: false,
   },
 
   addItems: (entries) => {
@@ -156,7 +152,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setPlaying: (isPlaying) => set((s) => ({ ui: { ...s.ui, isPlaying } })),
   setImporting: (importing) => set((s) => ({ ui: { ...s.ui, importing } })),
   setExporting: (exporting) => set((s) => ({ ui: { ...s.ui, exporting } })),
-  setProbing: (probing) => set((s) => ({ ui: { ...s.ui, probing } })),
 }))
 
 /** 再生位置を出力の長さ（0〜末尾）に収める。尺を縮めたり素材を外したりすると、今の位置が範囲の外に出るため */
