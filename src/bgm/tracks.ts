@@ -12,13 +12,17 @@ export type BgmTrack = {
 export const NO_BGM = 'none'
 
 /**
- * 仮の 3 曲（Python で合成した単純な電子音のループ。本番の曲が届いたら差し替える）。
+ * 本番の 3 曲。利用者が Suno（有料の Pro プラン。商用利用を含めて使える）で生成したインスト曲（2026-11-13）。
+ * 元の WAV は bgm-src/（コミットしない）、配信用の MP3 は scripts/make-bgm.sh でモノラル・-16 LUFS・44.1 kHz にそろえて作る。
  * 曲は出力の長さまでループし、末尾 2 秒でフェードアウトする（bgm/loop.ts）。
  */
+/** 3 曲とも同じ出どころ（画面の曲名の横に出す） */
+const CREDIT = 'Suno で生成（Pro プラン、2026-11）'
+
 export const BGM_TRACKS: BgmTrack[] = [
-  { id: 'yasashii', title: 'やさしい（仮）', file: 'yasashii.mp3', credit: '仮の合成音' },
-  { id: 'hazumu', title: 'はずむ（仮）', file: 'hazumu.mp3', credit: '仮の合成音' },
-  { id: 'shizuka', title: 'しずか（仮）', file: 'shizuka.mp3', credit: '仮の合成音' },
+  { id: 'yasashii', title: 'やさしい', file: 'yasashii.mp3', credit: CREDIT },
+  { id: 'hazumu', title: 'はずむ', file: 'hazumu.mp3', credit: CREDIT },
+  { id: 'shizuka', title: 'しずか', file: 'shizuka.mp3', credit: CREDIT },
 ]
 
 /** 曲のファイルの URL（Pages のサブパスにも対応） */

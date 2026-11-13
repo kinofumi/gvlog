@@ -71,3 +71,6 @@ tmp/
 
 # gstack のレポート（スクリーンショットや検証用の動画）
 .gstack/
+
+# BGM の元データ（Suno からダウンロードした WAV。1 曲 15〜19 MB なのでコミットせず、配信用の MP3 だけを public/bgm/ に置く。作り方は scripts/make-bgm.sh）
+bgm-src/
