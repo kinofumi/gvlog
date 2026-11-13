@@ -1,6 +1,16 @@
 /** 見出しなどに添える小さな絵。外部のアイコン集は使わず、線だけの単純な SVG を手で書く（plan §10、ライブラリを増やさない） */
 export type IconName =
-  'photo' | 'film' | 'play' | 'download' | 'folder' | 'list' | 'text' | 'music' | 'link'
+  | 'photo'
+  | 'film'
+  | 'play'
+  | 'download'
+  | 'folder'
+  | 'list'
+  | 'text'
+  | 'music'
+  | 'link'
+  | 'clock'
+  | 'pin'
 
 /** それぞれの絵のパス（viewBox 24x24、線の太さ 2、色は currentColor）。stroke だけで描き、塗りはしない */
 const PATHS: Record<IconName, string> = {
@@ -22,6 +32,10 @@ const PATHS: Record<IconName, string> = {
   music: 'M9 18V6l10-2v12 M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0z M19 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   // 鎖（つなげる）
   link: 'M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1 M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1',
+  // 時計（タイムスケジュール）
+  clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7v5l3 2',
+  // 地図のピン（おすすめの場所）
+  pin: 'M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z M12 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
 }
 
 type Props = {
