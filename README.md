@@ -113,4 +113,5 @@ scripts/      補助スクリプト
 - [docs/reviews/](docs/reviews/) — レビュー記録（Claude ＋ Codex）
 - [docs/support-matrix.md](docs/support-matrix.md) — 実機で確認できた端末とブラウザ
 - [docs/testing-checklist.md](docs/testing-checklist.md) — 実機チェックリスト
+- [docs/study/](docs/study/) — このアプリを題材に TypeScript と Tailwind を学ぶ勉強プランとテキスト（9 章 + Python との対照表）
 - [CLAUDE.md](CLAUDE.md) — AI と人間の共通ルール
