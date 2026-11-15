@@ -107,6 +107,7 @@ scripts/      補助スクリプト
 ## ドキュメント
 
 - [docs/idea.md](docs/idea.md) — 元の構想
+- [docs/event-experience-design.md](docs/event-experience-design.md) — 次の事業「イベント体験の設計」の構想メモ（2026-11-16）
 - [docs/plan.md](docs/plan.md) — 要件、設計、ロードマップ、テスト方針、レビュー体制
 - [docs/adr/](docs/adr/) — 設計判断の記録（一覧は [docs/adr/README.md](docs/adr/README.md)）
 - [docs/devlog/](docs/devlog/) — セッションごとの作業記録
