@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>gvlog で学ぶ TypeScript と Tailwind — 勉強プラン</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="all.html">1 ファイル版（印刷用）</a></p>
+<main>
+<h1 id="gvlog-で学ぶ-typescript-と-tailwind--勉強プラン">gvlog で学ぶ
+TypeScript と Tailwind — 勉強プラン</h1>
+<blockquote>
+<p>作成日: 2026-11-14。対象は「Python は中級、TypeScript と Tailwind
+は初めて」の人。 題材はこのリポジトリのコードそのもの。読む → 動かす →
+テストを書いて直す、の順で進む。</p>
+</blockquote>
+<h2 id="ねらい">ねらい</h2>
+<ul>
+<li>gvlog のコードを、人に説明できる程度に読めるようになる。</li>
+<li>小さな機能なら、テストを先に書いてから自分で足せるようになる。</li>
+<li>Tailwind
+のクラスを見て、画面のどこがどう変わるか想像できるようになる。</li>
+</ul>
+<p>React
+そのものの深い理解は目標にしない。「関数が画面を返す」「状態が変わると関数がもう一度呼ばれる」の
+2 点だけ押さえる。</p>
+<h2 id="進め方の約束">進め方の約束</h2>
+<ul>
+<li><p><strong>本番と分ける。</strong> 演習は <code>study</code>
+ブランチで行う。イベント（2026-11-28）までは main
+に混ぜない。実機で使うときは <code>git checkout main</code> に戻す。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> study        <span class="co"># 最初の 1 回</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout study           <span class="co"># 勉強を再開するとき</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout main            <span class="co"># 本番のアプリに戻るとき</span></span></code></pre></div></li>
+<li><p><strong>1 章 = 1 回（60〜90 分）。</strong> 週 2 回で 5
+週間。急がない。</p></li>
+<li><p><strong>読むだけで終わらせない。</strong> 各章の演習を最低 1
+つやる。テストを赤くしてから緑に戻す。</p></li>
+<li><p><strong>詰まったら記録する。</strong>
+<code>docs/study/notes.md</code>
+を自分で作り、「分からなかったこと」「調べて分かったこと」を 1
+行ずつ残す。これはあとで教科書の「つまずきやすい場所」の材料になる。</p></li>
+<li><p><strong>AI は辞書と相棒として使う。</strong> 「このファイルを
+Python
+で書くとどうなる？」「この関数のテストを先に書いて」と頼むのはよい。答えをまるごと貼るのは、自分で一度書いてから。</p></li>
+</ul>
+<h2 id="章立て">章立て</h2>
+<table>
+<thead>
+<tr>
+<th>章</th>
+<th>テキスト</th>
+<th>題材のファイル</th>
+<th>身につくこと</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="01-tools.html">道具をそろえる</a></td>
+<td><code>package.json</code>、<code>tsconfig.app.json</code></td>
+<td>npm スクリプト、Vite、vitest、型チェック、lint</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="02-types.html">型を読む</a></td>
+<td><code>src/model/types.ts</code>、<code>src/model/validate.ts</code></td>
+<td>型エイリアス、リテラル型、union、<code>?</code>、<code>unknown</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="03-functions-and-tests.html">関数とテスト</a></td>
+<td><code>src/timeline/durations.ts</code>、<code>frameStep.ts</code></td>
+<td>関数の書き方、<code>number</code> の罠、vitest、TDD</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="04-immutable.html">配列とオブジェクトを壊さずに変える</a></td>
+<td><code>src/timeline/clamp.ts</code>、<code>compile.ts</code></td>
+<td><code>map</code>/<code>filter</code>、スプレッド、ジェネリクスの最小限</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="05-async.html">非同期</a></td>
+<td><code>src/export/withTimeout.ts</code></td>
+<td>Promise、<code>async</code>/<code>await</code>、中断</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="06-react.html">React の部品を読む</a></td>
+<td><code>src/components/ui/</code>、<code>FrameSlider.tsx</code>、<code>TabBar.tsx</code></td>
+<td>JSX、props、条件描画、一覧の描画、<code>useState</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="07-tailwind.html">Tailwind</a></td>
+<td><code>Section.tsx</code>、<code>Button.tsx</code>、<code>src/index.css</code></td>
+<td>ユーティリティクラス、数の意味、状態、並び順</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="08-state.html">状態とデータの流れ</a></td>
+<td><code>src/state/store.ts</code>、<code>projectActions.ts</code></td>
+<td>zustand、セレクタ、純粋関数に任せる設計</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="09-next.html">仕上げと次の一歩</a></td>
+<td><code>docs/adr/</code>、<code>docs/plan.md</code></td>
+<td>開発の流れ、AI との付き合い方、次に読む層</td>
+</tr>
+</tbody>
+</table>
+<p>付録: <a href="python-to-typescript.html">Python と TypeScript
+の対照表</a></p>
+<h2 id="html-版">HTML 版</h2>
+<p>Markdown が元データで、同じ内容の HTML 版を
+<code>docs/study/html/</code> に置いている（章ごとの
+<code>01-tools.html</code> …、<code>index.html</code>
+がこのプラン、<code>all.html</code> が全章を 1
+ファイルにしたもの。どれも CSS を埋め込んだ 1
+ファイルで、画像や外部の読み込みは無い。ブラウザで開くか、印刷して使う）。
+本文を直したら <code>scripts/make-study-html.sh</code>
+で作り直す（pandoc が要る。<code>brew install pandoc</code>）。HTML
+を直接直さない。</p>
+<h2 id="読む順番の理由">読む順番の理由</h2>
+<p>1〜5 章は <strong>ブラウザも React
+も出てこない</strong>。純粋関数とテストだけなので、Python
+の知識がそのまま効く。TypeScript の文法に慣れるのはここで済ませる。</p>
+<p>6〜8 章で画面に入る。React、Tailwind、zustand は別々のものなので、1
+章ずつ分けた。6 章では見た目のクラスを読み飛ばし、7
+章で初めてクラスを見る。</p>
+<p><code>src/render/</code>、<code>src/export/</code>、<code>src/bgm/</code>
+は扱わない。Canvas、WebCodecs、mediabunny の知識が主で、TypeScript
+の勉強としては遠回りになる。9 章で入口だけ案内する。</p>
+<h2 id="毎回の手順">毎回の手順</h2>
+<ol type="1">
+<li><code>git checkout study</code>、<code>npm run dev</code>
+でアプリを開いておく（PC なら <code>NO_SSL=1 npm run dev</code>）。</li>
+<li>別のターミナルで <code>npm run test:watch</code>
+を動かしておく。ファイルを保存するたびにテストが走る。</li>
+<li>章のテキストを読みながら、題材のファイルをエディタで開く。</li>
+<li>演習をやる。終わったら
+<code>npm run lint</code>、<code>npm run typecheck</code>、<code>npm test</code>
+の 3 つを通す。</li>
+<li><code>docs/study/notes.md</code> に 1〜3 行書く。</li>
+</ol>
+<h2 id="先に知っておくとよいpython-との大きな違い">先に知っておくとよい、Python
+との大きな違い</h2>
+<ul>
+<li><strong>数は 1 種類。</strong> <code>number</code> に int と float
+の区別がない。<code>7 / 2</code> は <code>3.5</code>。整数にしたいときは
+<code>Math.floor</code>
+を自分で呼ぶ（このアプリはフレーム番号を整数で持つので、至るところで呼んでいる。ADR
+008）。</li>
+<li><strong>「無い」が 2 つある。</strong>
+<code>undefined</code>（未設定）と
+<code>null</code>（意図して空）。このアプリでは、省略できるフィールドは
+<code>undefined</code>、「選んでいない」は <code>null</code>
+と使い分けている。</li>
+<li><strong><code>const</code>
+は再代入禁止であって、不変ではない。</strong>
+<code>const items = []</code> でも <code>items.push(x)</code>
+はできる。不変にしたいなら、変えずに新しい値を作る（4 章）。</li>
+<li><strong>型は実行時に消える。</strong> 型チェックは <code>tsc</code>
+がビルド前にやるだけ。実行中には型情報は無い。外から来た値（JSON、ファイル）は
+<code>unknown</code> として受けて自分で確かめる（2 章の
+<code>validatePreset</code>）。</li>
+<li><strong>インデントではなく波括弧。</strong>
+セミコロンはこのリポジトリでは付けない（prettier の設定）。</li>
+</ul>
+</main>
+</body>
+</html>

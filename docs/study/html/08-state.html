@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 8 章 状態とデータの流れ</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="07-tailwind.html">← 第 7 章 Tailwind</a><a href="09-next.html">第 9 章 仕上げと次の一歩 →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-8-章-状態とデータの流れ" id="toc-第-8-章-状態とデータの流れ">第 8 章 状態とデータの流れ</a>
+<ul>
+<li><a href="#全体像" id="toc-全体像">全体像</a></li>
+<li><a href="#store-の形" id="toc-store-の形">store の形</a></li>
+<li><a href="#action-は純粋関数に任せる" id="toc-action-は純粋関数に任せる">action は純粋関数に任せる</a></li>
+<li><a href="#部品からの読み方-セレクタ" id="toc-部品からの読み方-セレクタ">部品からの読み方: セレクタ</a></li>
+<li><a href="#追ってみる-尺のスライダー" id="toc-追ってみる-尺のスライダー">追ってみる: 尺のスライダー</a></li>
+<li><a href="#同じなら元を返すの意味" id="toc-同じなら元を返すの意味">「同じなら元を返す」の意味</a></li>
+<li><a href="#排他-importing-と-exporting" id="toc-排他-importing-と-exporting">排他: <code>importing</code> と
+<code>exporting</code></a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-8-章-状態とデータの流れ">第 8 章 状態とデータの流れ</h1>
+<blockquote>
+<p>題材:
+<code>src/state/store.ts</code>、<code>src/state/projectActions.ts</code>
+とそのテスト、<code>src/components/MediaList.tsx</code> 目標:
+スライダーを動かしたときに、どのファイルのどの関数を通って画面が変わるかを追える。</p>
+</blockquote>
+<h2 id="全体像">全体像</h2>
+<pre><code>[部品]  FrameSlider の onChange
+  ↓ setItemDuration(itemId, frames)
+[store] useAppStore の setItemDuration
+  ↓ actions.setItemDuration(project, itemId, frames)
+[純粋関数] projectActions.ts → timeline/durations.ts、clamp.ts、trim.ts
+  ↓ 新しい project
+[store] set({ project })
+  ↓ 変わった部分を見ている部品だけが再描画
+[部品]  MediaList、TotalDuration、PreviewCanvas …</code></pre>
+<p>考え方は Python でも書ける。「状態は 1 つの dict。変更は
+<code>new = f(old, ...)</code> を返す純粋関数。dict
+を差し替えたら、購読している関数を呼び直す」。zustand
+はその「購読」の部分を React 用に用意したライブラリ。</p>
+<h2 id="store-の形">store の形</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> useAppStore <span class="op">=</span> <span class="fu">create</span><span class="op">&lt;</span>AppState<span class="op">&gt;</span>((<span class="kw">set</span><span class="op">,</span> <span class="kw">get</span>) <span class="kw">=&gt;</span> ({</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  project<span class="op">:</span> actions<span class="op">.</span><span class="fu">createProject</span>(DEFAULT_PRESET)<span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  images<span class="op">:</span> {}<span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  videos<span class="op">:</span> {}<span class="op">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  ui<span class="op">:</span> { selectedItemId<span class="op">:</span> <span class="dt">null</span><span class="op">,</span> playheadFrame<span class="op">:</span> <span class="dv">0</span><span class="op">,</span> isPlaying<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> importing<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> exporting<span class="op">:</span> <span class="kw">false</span> }<span class="op">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  setItemDuration<span class="op">:</span> (itemId<span class="op">,</span> frames) <span class="kw">=&gt;</span> { <span class="op">...</span> }<span class="op">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  select<span class="op">:</span> (itemId) <span class="kw">=&gt;</span> <span class="kw">set</span>((s) <span class="kw">=&gt;</span> ({ ui<span class="op">:</span> { <span class="op">...</span>s<span class="op">.</span><span class="at">ui</span><span class="op">,</span> selectedItemId<span class="op">:</span> itemId } }))<span class="op">,</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>}))</span></code></pre></div>
+<ul>
+<li><code>AppState</code>
+の型（ファイル冒頭）に、<strong>データ</strong> と
+<strong>操作（action）</strong> の両方が並んでいる。Python
+のクラスで言えば属性とメソッドだが、クラスは使わない。</li>
+<li><code>create</code> に渡した関数が初期状態を返す。<code>set</code>
+は状態を差し替える関数、<code>get</code> は今の状態を読む関数。</li>
+<li>action の中で <code>set({ project })</code> や
+<code>set((s) =&gt; ({ ui: { ...s.ui, selectedItemId } }))</code>
+と呼ぶ。渡したフィールドだけが差し替わる（浅い merge）。<code>ui</code>
+の中の 1 つを変えるときは、4 章のスプレッドで <code>ui</code>
+を作り直す。</li>
+</ul>
+<h2 id="action-は純粋関数に任せる">action は純粋関数に任せる</h2>
+<p><code>store.ts</code> の冒頭コメント:</p>
+<blockquote>
+<p>プロジェクトの変更は projectActions
+の純粋関数に任せ、ここでは画像の所有と UI 状態だけを扱う。</p>
+</blockquote>
+<p><code>projectActions.ts</code> の関数は
+<code>(project, ...) =&gt; project</code> の形で、store も React
+も知らない。だから <code>projectActions.test.ts</code> は vitest
+だけで動き、ブラウザが要らない。テストを読むと「追加した素材は 5
+秒」「上限を超えたら追加しない」「同じ値なら元のまま（<code>toBe(p)</code>）」といった仕様がそのまま書いてある。</p>
+<p>store 側に残っているのは、</p>
+<ul>
+<li>画像や動画の <strong>所有</strong>（<code>ImageBitmap</code>
+を閉じる、使い終わった動画を解放する）。これは副作用なので純粋関数に入れない。</li>
+<li><code>ui</code>（選択中、再生中、取り込み中、書き出し中）。</li>
+</ul>
+<h2 id="部品からの読み方-セレクタ">部品からの読み方: セレクタ</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">items</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exporting <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">ui</span><span class="op">.</span><span class="at">exporting</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> setItemDuration <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">setItemDuration</span>)</span></code></pre></div>
+<p><code>useAppStore(セレクタ)</code>
+は「状態のこの部分」を返し、<strong>その部分が変わったときだけ</strong>
+部品を描き直す。<code>useAppStore()</code>
+と引数なしで全体を取ると、何が変わっても描き直されて遅くなるので、必ず必要な部分だけ取る。action
+も同じ書き方で取る。</p>
+<h2 id="追ってみる-尺のスライダー">追ってみる: 尺のスライダー</h2>
+<ol type="1">
+<li><code>MediaList.tsx</code>:
+<code>&lt;FrameSlider ... onChange={(frames) =&gt; setItemDuration(item.itemId, frames)} /&gt;</code></li>
+<li><code>FrameSlider.tsx</code>: スライダーを動かすと
+<code>onChange(Number(e.target.value))</code>。矢印なら
+<code>onChange(stepFrames(...))</code>。</li>
+<li><code>store.ts</code>:
+<code>setItemDuration: (itemId, frames) =&gt; set((s) =&gt; withProject(s, actions.setItemDuration(s.project, itemId, frames)))</code>。<code>withProject</code>
+はファイルの下にある補助関数で、新しい <code>project</code>
+が元と同じオブジェクトならそのまま返し、違えば再生位置（<code>ui.playheadFrame</code>）も新しい尺の範囲に収めて返す。</li>
+<li><code>projectActions.ts</code> の <code>setItemDuration</code>:
+<code>clampDuration</code> で整え、同じ値なら元の <code>project</code>
+を返す。違えば <code>items</code> を <code>map</code>
+で作り直し、<code>clampAfterResize</code>（つなぎとテロップを尺に収める）、<code>clampTrims</code>（動画の開始位置を収める）を通す。</li>
+<li><code>set</code> で差し替わる。<code>s.project.items</code>
+を見ている
+<code>MediaList</code>、<code>TotalDuration</code>、<code>PreviewCanvas</code>
+が描き直される。<code>s.ui.exporting</code>
+だけを見ている部品は、その値が変わらない限り動かない。</li>
+</ol>
+<p>テスト <code>projectActions.test.ts</code>
+の「変えたあとはトランジションとキャプションが切り詰められる」が、4
+の仕様をそのまま書いている。</p>
+<h2 id="同じなら元を返すの意味">「同じなら元を返す」の意味</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">setItemDuration</span>(p<span class="op">,</span> <span class="st">&#39;p1&#39;</span><span class="op">,</span> <span class="dv">150</span>))<span class="op">.</span><span class="fu">toBe</span>(p)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">removeItem</span>(p<span class="op">,</span> <span class="st">&#39;nope&#39;</span>))<span class="op">.</span><span class="fu">toBe</span>(p)</span></code></pre></div>
+<p>変化が無いときは <strong>同じオブジェクト</strong> を返す。store
+はそれを見て <code>set</code> を呼ばず、部品は描き直されない。4
+章の「壊さずに変える」の裏返しで、「変えないときは新しく作らない」。Python
+で <code>if new == old: return old</code> と書くのと同じだが、ここでは
+<code>==</code> ではなく同一性で判定するので速い。</p>
+<h2 id="排他-importing-と-exporting">排他: <code>importing</code> と
+<code>exporting</code></h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exporting <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">ui</span><span class="op">.</span><span class="at">exporting</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>SmallButton label<span class="op">=</span><span class="st">&quot;削除&quot;</span> disabled<span class="op">=</span>{exporting} <span class="op">...</span> <span class="op">/&gt;</span></span></code></pre></div>
+<p>書き出し中に素材を消すと、使っている画像が閉じられて書き出しが壊れる。store
+に「今は書き出し中」を 1
+つ置き、関係する部品がそれを見て自分を無効にする。フラグを 1
+か所に置き、部品は読むだけ。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-8-1-追う">演習 8-1 追う</h3>
+<p>▲ ボタン（並べ替え）を押したときの経路を、1〜5
+の形で書く。<code>moveItem</code> を <code>MediaList.tsx</code> →
+<code>store.ts</code> → <code>projectActions.ts</code>
+と読む。「範囲外なら元のまま」がどこで判定されているか。</p>
+<h3 id="演習-8-2-どこで立つか">演習 8-2 どこで立つか</h3>
+<p><code>ui.exporting</code> を <code>true</code> にしている場所と
+<code>false</code> に戻している場所を <code>grep</code>
+で探す。戻し忘れたら何が起きるか考える。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-rn</span> <span class="st">&quot;setExporting&quot;</span> src</span></code></pre></div>
+<h3 id="演習-8-3-テストから仕様を言う">演習 8-3
+テストから仕様を言う</h3>
+<p><code>projectActions.test.ts</code> の
+<code>describe(&#39;addPhoto / addItems ...&#39;)</code>
+を読み、素材の追加の規則を 4 つ、日本語の箇条書きにする。</p>
+<h3 id="演習-8-4-1-つ足す勉強ブランチだけ">演習 8-4 1
+つ足す（勉強ブランチだけ）</h3>
+<p><code>ui</code> に <code>showHelp: boolean</code>
+を足し、<code>toggleHelp()</code> という action
+を足す。<code>MediaList</code>
+の案内文（「この素材を編集する」を押すと…）を、<code>showHelp</code>
+が真のときだけ出すようにする。手順:</p>
+<ol type="1">
+<li><code>AppState</code> の型に 2
+つ足す（型エラーで、初期値と実装を書く場所を教えてくれる）。</li>
+<li>初期値 <code>showHelp: true</code>
+と、<code>toggleHelp: () =&gt; set((s) =&gt; ({ ui: { ...s.ui, showHelp: !s.ui.showHelp } }))</code>。</li>
+<li><code>store.test.ts</code> に「<code>toggleHelp</code>
+で反転する」のテスト。</li>
+<li><code>MediaList</code> で読んで条件描画。</li>
+</ol>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>8-1: <code>MediaList</code> の
+<code>onClick={() =&gt; moveItem(item.itemId, index - 1)}</code> → store
+の <code>moveItem</code> →
+<code>actions.moveItem(project, itemId, toIndex)</code>。範囲外・無い
+ID・同じ位置は <code>actions.moveItem</code> の冒頭で
+<code>return project</code>（テスト「範囲外の位置や無い
+ID、同じ位置への移動なら元のまま」）。</li>
+<li>8-2: <code>src/components/ExportPanel.tsx</code> の 1
+か所だけ。書き出しの開始で <code>true</code>、<code>finally</code> で
+<code>false</code>。戻し忘れると削除・並べ替え・尺の変更がずっと押せなくなる。</li>
+<li>8-3: 新しい素材の尺は 5 秒で、既存の尺は変えない／写真は Ken Burns
+が none、テロップ無し、cut でつなぐ／個数の上限（15 秒なら 15
+個）を超えたら追加しない／同じ ID
+は拒否し、まとめて追加でも飛ばす。</li>
+<li>8-4: テストは
+<code>useAppStore.getState().toggleHelp(); expect(useAppStore.getState().ui.showHelp).toBe(false)</code>
+の形（<code>store.test.ts</code>
+の既存のテストに書き方の例がある）。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>状態は 1 つの store。部品はセレクタで必要な部分だけ読む。</li>
+<li>変更は <code>projectActions.ts</code> の純粋関数が新しい
+<code>project</code> を返し、store が <code>set</code>
+で差し替える。</li>
+<li>変化が無いときは同じオブジェクトを返す。描き直しが起きない。</li>
+<li>排他のフラグは store に 1
+つ置き、部品は読んで自分を無効にする。</li>
+</ul>
+</main>
+</body>
+</html>

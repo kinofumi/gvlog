@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 5 章 非同期</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="04-immutable.html">← 第 4 章 配列とオブジェクトを壊さずに変える</a><a href="06-react.html">第 6 章 React の部品を読む →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-5-章-非同期" id="toc-第-5-章-非同期">第 5 章 非同期</a>
+<ul>
+<li><a href="#ブラウザは-1-本のスレッド" id="toc-ブラウザは-1-本のスレッド">ブラウザは 1 本のスレッド</a></li>
+<li><a href="#promise--future" id="toc-promise--future">Promise ≒
+Future</a></li>
+<li><a href="#new-promise-で手作りする" id="toc-new-promise-で手作りする"><code>new Promise</code>
+で手作りする</a></li>
+<li><a href="#1-回だけ終わるを守る" id="toc-1-回だけ終わるを守る">「1
+回だけ終わる」を守る</a></li>
+<li><a href="#abortsignal-協力的な中断" id="toc-abortsignal-協力的な中断">AbortSignal: 協力的な中断</a></li>
+<li><a href="#非同期のテスト" id="toc-非同期のテスト">非同期のテスト</a></li>
+<li><a href="#このアプリでどこに使っているか" id="toc-このアプリでどこに使っているか">このアプリでどこに使っているか</a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-5-章-非同期">第 5 章 非同期</h1>
+<blockquote>
+<p>題材: <code>src/export/withTimeout.ts</code> とそのテスト 目標:
+<code>Promise</code> と <code>async</code>/<code>await</code> を asyncio
+に対応づけて読める。中断（AbortSignal）の仕組みが分かる。</p>
+</blockquote>
+<h2 id="ブラウザは-1-本のスレッド">ブラウザは 1 本のスレッド</h2>
+<p>JavaScript は基本的に 1
+本のスレッドで動き、待ち時間（ファイル読み込み、動画のデコード、タイマー）はイベントループに任せる。Python
+の <code>asyncio</code>
+と同じモデル。違いは、<strong>最初から全部が非同期</strong>
+であること。同期で待つ手段（<code>time.sleep</code>）が無い。</p>
+<h2 id="promise--future">Promise ≒ Future</h2>
+<table>
+<thead>
+<tr>
+<th>asyncio</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async def f():</code></td>
+<td><code>async function f() {</code></td>
+</tr>
+<tr>
+<td><code>await g()</code></td>
+<td><code>await g()</code></td>
+</tr>
+<tr>
+<td><code>asyncio.Future</code></td>
+<td><code>Promise</code></td>
+</tr>
+<tr>
+<td><code>future.set_result(v)</code></td>
+<td><code>resolve(v)</code></td>
+</tr>
+<tr>
+<td><code>future.set_exception(e)</code></td>
+<td><code>reject(e)</code></td>
+</tr>
+<tr>
+<td><code>asyncio.wait_for(coro, timeout)</code></td>
+<td>自作（<code>withTimeout</code>）</td>
+</tr>
+<tr>
+<td><code>task.cancel()</code></td>
+<td><code>AbortController.abort()</code>（協力的な中断）</td>
+</tr>
+<tr>
+<td><code>asyncio.sleep(1)</code></td>
+<td><code>new Promise((r) =&gt; setTimeout(r, 1000))</code></td>
+</tr>
+<tr>
+<td><code>asyncio.gather(a, b)</code></td>
+<td><code>Promise.all([a, b])</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>async function</code> は呼ぶと必ず <code>Promise</code>
+を返す。<code>await</code> は <code>Promise</code>
+が終わるまで、その関数の続きを後回しにする。Python と同じ。</p>
+<h2 id="new-promise-で手作りする"><code>new Promise</code>
+で手作りする</h2>
+<p><code>withTimeout.ts</code> は <code>async</code> ではなく
+<code>new Promise</code> で書いてある。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">withTimeout</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(promise<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>T<span class="op">&gt;,</span> ms<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> signal<span class="op">?:</span> AbortSignal)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>T<span class="op">&gt;</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="bu">Promise</span>((resolve<span class="op">,</span> reject) <span class="kw">=&gt;</span> {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>new Promise((resolve, reject) =&gt; { ... })</code>
+は「結果を後で入れる箱」を作る。<code>resolve(v)</code>
+を呼ぶと成功、<code>reject(e)</code> で失敗。箱の中で 3
+つの出口を待っている。</p>
+<ol type="1">
+<li>元の <code>promise</code> が終わる → その結果をそのまま流す。</li>
+<li><code>ms</code> ミリ秒たつ → タイムアウトのエラー。</li>
+<li><code>signal</code> が中断される → 「中断されました」のエラー。</li>
+</ol>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>promise<span class="op">.</span><span class="fu">then</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  (value) <span class="kw">=&gt;</span> <span class="fu">finish</span>(() <span class="kw">=&gt;</span> <span class="fu">resolve</span>(value))<span class="op">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  (error) <span class="kw">=&gt;</span> <span class="fu">finish</span>(() <span class="kw">=&gt;</span> <span class="fu">reject</span>(error))<span class="op">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p><code>.then(成功時, 失敗時)</code> は <code>await</code>
+を使わない書き方。<code>async</code> にすると「元の promise
+が失敗したあともタイマーを片付ける」が書きにくいので、ここでは
+<code>.then</code> を選んでいる。</p>
+<h2 id="1-回だけ終わるを守る">「1 回だけ終わる」を守る</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> settled <span class="op">=</span> <span class="kw">false</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">finish</span>(settle<span class="op">:</span> () <span class="kw">=&gt;</span> <span class="dt">void</span>) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (settled) <span class="cf">return</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  settled <span class="op">=</span> <span class="kw">true</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="pp">clearTimeout</span>(timer)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  signal<span class="op">?.</span><span class="fu">removeEventListener</span>(<span class="st">&#39;abort&#39;</span><span class="op">,</span> onAbort)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">settle</span>()</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>3 つの出口のどれが先に来ても、<code>finish</code> を通して <strong>1
+回だけ</strong>
+結果を入れ、タイマーとイベントの登録を片付ける。<code>Promise</code> は
+2 回目の <code>resolve</code>
+を黙って無視するが、タイマーの片付けは自分でやらないと残る。</p>
+<p>Python で <code>asyncio.wait_for</code> を自作するときの
+<code>done</code> フラグと同じ。</p>
+<h2 id="abortsignal-協力的な中断">AbortSignal: 協力的な中断</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (signal<span class="op">?.</span><span class="at">aborted</span>) {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">onAbort</span>()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  signal<span class="op">?.</span><span class="fu">addEventListener</span>(<span class="st">&#39;abort&#39;</span><span class="op">,</span> onAbort)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>AbortController</code> を作った側が
+<code>controller.abort()</code> を呼ぶと、<code>signal</code> に
+<code>&#39;abort&#39;</code>
+イベントが飛ぶ。受ける側はそれを聞いて自分で止まる。Python の
+<code>task.cancel()</code> が <code>CancelledError</code>
+を投げ込むのに対し、こちらは「お願い」なので、聞いていない処理は止まらない。</p>
+<p>「すでに中断済みの signal を渡されたら、イベントは来ない」ので先に
+<code>aborted</code> を見る。テストの最後の <code>it</code>
+がこの場合を確かめている。</p>
+<h2 id="非同期のテスト">非同期のテスト</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;期限内に終われば値をそのまま返す&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(<span class="fu">withTimeout</span>(<span class="bu">Promise</span><span class="op">.</span><span class="fu">resolve</span>(<span class="dv">42</span>)<span class="op">,</span> <span class="dv">1000</span>))<span class="op">.</span><span class="at">resolves</span><span class="op">.</span><span class="fu">toBe</span>(<span class="dv">42</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;元の Promise が失敗したらその失敗をそのまま返す&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(<span class="fu">withTimeout</span>(<span class="bu">Promise</span><span class="op">.</span><span class="fu">reject</span>(<span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;元の失敗&#39;</span>))<span class="op">,</span> <span class="dv">1000</span>))<span class="op">.</span><span class="at">rejects</span><span class="op">.</span><span class="fu">toThrow</span>(<span class="st">&#39;元の失敗&#39;</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<ul>
+<li><code>it</code> の関数を <code>async</code>
+にし、<code>await expect(...)</code> と書く。</li>
+<li><code>.resolves.toBe(v)</code>
+は成功を、<code>.rejects.toThrow(&#39;...&#39;)</code>
+は失敗とそのメッセージを確かめる。pytest の <code>await</code> と
+<code>pytest.raises</code> に当たる。</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>vi<span class="op">.</span><span class="fu">useFakeTimers</span>()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="fu">withTimeout</span>(never<span class="op">,</span> <span class="dv">4000</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  vi<span class="op">.</span><span class="fu">advanceTimersByTime</span>(<span class="dv">4000</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(result)<span class="op">.</span><span class="at">rejects</span><span class="op">.</span><span class="fu">toThrow</span>(<span class="st">&#39;固まった可能性&#39;</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>} <span class="cf">finally</span> {</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  vi<span class="op">.</span><span class="fu">useRealTimers</span>()</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>本当に 4 秒待たず、偽のタイマーで時間を進める。<code>try</code> /
+<code>finally</code> で必ず本物に戻す。Python の <code>freezegun</code>
+や <code>asyncio</code> の <code>loop.time</code>
+差し替えに相当する。</p>
+<h2 id="このアプリでどこに使っているか">このアプリでどこに使っているか</h2>
+<p>書き出し（<code>src/export/</code>）は WebCodecs と mediabunny
+の非同期 API を <code>await</code> でつないでいる。1
+フレームのエンコードが固まったときに全体が止まらないよう、<code>withTimeout</code>
+で包んでいる。「中断」は書き出しの「やめる」ボタンにつながっている。読むのは
+9 章以降でよい。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-5-1-sleep-を書く">演習 5-1 <code>sleep</code> を書く</h3>
+<p><code>src/export/sleep.ts</code> に
+<code>sleep(ms): Promise&lt;void&gt;</code> を書く。先にテスト:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;指定した時間のあとに終わる&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> start <span class="op">=</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>()</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">sleep</span>(<span class="dv">20</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(<span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>() <span class="op">-</span> start)<span class="op">.</span><span class="fu">toBeGreaterThanOrEqual</span>(<span class="dv">15</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>（15 にしているのはタイマーの誤差のため。）</p>
+<h3 id="演習-5-2-withtimeout-で包む">演習 5-2 <code>withTimeout</code>
+で包む</h3>
+<p>5-1 の <code>sleep(100)</code> を
+<code>withTimeout(sleep(100), 10)</code>
+で包むと何が起きるか予想し、テストに足す。</p>
+<h3 id="演習-5-3-読む">演習 5-3 読む</h3>
+<p><code>withTimeout.ts</code> から <code>if (settled) return</code>
+を消すと、どのテストが落ちるか予想する。実際に消して
+<code>npm test</code>、戻す。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>5-1:
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** ms ミリ秒待つ */</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">sleep</span>(ms<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="bu">Promise</span>((resolve) <span class="kw">=&gt;</span> <span class="pp">setTimeout</span>(resolve<span class="op">,</span> ms))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div></li>
+<li>5-2:
+<code>await expect(withTimeout(sleep(100), 10)).rejects.toThrow(&#39;固まった可能性&#39;)</code>。</li>
+<li>5-3: 落ちるテストは無い（<code>Promise</code> が 2 回目の
+<code>resolve</code>/<code>reject</code> を無視するため）。ただし
+<code>clearTimeout</code> や <code>removeEventListener</code> が 2
+回呼ばれるようになり、片付けの意図が崩れる。テストが通ることと設計が正しいことは別、という例。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li><code>Promise</code> は
+Future、<code>async</code>/<code>await</code>
+は同じ。全部が非同期。</li>
+<li><code>new Promise((resolve, reject) =&gt; ...)</code>
+は箱を手作りするとき。出口が複数あるなら「1
+回だけ終わる」を自分で守る。</li>
+<li>中断は <code>AbortSignal</code> を聞いて自分で止まる。</li>
+<li>非同期のテストは
+<code>async () =&gt; { await expect(...).resolves / .rejects }</code>。</li>
+</ul>
+</main>
+</body>
+</html>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 7 章 Tailwind</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="06-react.html">← 第 6 章 React の部品を読む</a><a href="08-state.html">第 8 章 状態とデータの流れ →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-7-章-tailwind" id="toc-第-7-章-tailwind">第 7 章
+Tailwind</a>
+<ul>
+<li><a href="#考え方-css-をクラス名で書く" id="toc-考え方-css-をクラス名で書く">考え方: CSS
+をクラス名で書く</a></li>
+<li><a href="#数の規則-1--025rem--4px" id="toc-数の規則-1--025rem--4px">数の規則: 1 = 0.25rem = 4px</a></li>
+<li><a href="#向きの文字" id="toc-向きの文字">向きの文字</a></li>
+<li><a href="#並べる-flex" id="toc-並べる-flex">並べる: flex</a></li>
+<li><a href="#文字" id="toc-文字">文字</a></li>
+<li><a href="#色" id="toc-色">色</a></li>
+<li><a href="#状態と画面幅-接頭辞" id="toc-状態と画面幅-接頭辞">状態と画面幅: <code>接頭辞:</code></a></li>
+<li><a href="#並び順の約束claudemd" id="toc-並び順の約束claudemd">並び順の約束（CLAUDE.md）</a></li>
+<li><a href="#条件で変える" id="toc-条件で変える">条件で変える</a></li>
+<li><a href="#3-回書いたら部品にする" id="toc-3-回書いたら部品にする">3
+回書いたら部品にする</a></li>
+<li><a href="#tailwind-v4-の設定" id="toc-tailwind-v4-の設定">Tailwind
+v4 の設定</a></li>
+<li><a href="#ふつうの-css-を書くとき" id="toc-ふつうの-css-を書くとき">ふつうの CSS を書くとき</a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-7-章-tailwind">第 7 章 Tailwind</h1>
+<blockquote>
+<p>題材:
+<code>src/components/Section.tsx</code>、<code>ui/Button.tsx</code>、<code>ui/SmallButton.tsx</code>、<code>TabBar.tsx</code>、<code>MediaList.tsx</code>、<code>src/index.css</code>
+目標:
+このアプリで使っているクラスを見て、位置・大きさ・色を言える。CLAUDE.md
+の並び順で自分でも書ける。</p>
+</blockquote>
+<h2 id="考え方-css-をクラス名で書く">考え方: CSS をクラス名で書く</h2>
+<p>Tailwind では、CSS を別ファイルに書く代わりに、<strong>1 つの CSS
+プロパティ = 1 つのクラス</strong> を要素に並べる。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">p</span><span class="ot"> class</span><span class="op">=</span><span class="st">&quot;rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700&quot;</span><span class="dt">&gt;&lt;/</span><span class="kw">p</span><span class="dt">&gt;</span></span></code></pre></div>
+<p>は、ふつうの CSS で書くと:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>border-radius<span class="in">:</span> 0<span class="fu">.25rem</span>;</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>border-width<span class="in">:</span> 1px;</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>border-color<span class="in">:</span> <span class="in">(</span>赤の薄い色<span class="in">)</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>background-color<span class="in">:</span> <span class="in">(</span>赤のごく薄い色<span class="in">)</span>;</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>padding-left<span class="in">:</span> 0<span class="fu">.75rem</span>;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>padding-right<span class="in">:</span> 0<span class="fu">.75rem</span>;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>padding-top<span class="in">:</span> 0<span class="fu">.5rem</span>;</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>padding-bottom<span class="in">:</span> 0<span class="fu">.5rem</span>;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>font-size<span class="in">:</span> 0<span class="fu">.875rem</span>;</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>color<span class="in">:</span> <span class="in">(</span>赤の濃い色<span class="in">)</span>;</span></code></pre></div>
+<p>利点は、要素とその見た目が同じ場所にあること。欠点は、クラスの名前と数の規則を覚えるまで読めないこと。この章はその規則を、このアプリにあるクラスだけで覚える。</p>
+<h2 id="数の規則-1--025rem--4px">数の規則: 1 = 0.25rem = 4px</h2>
+<p><code>p-2</code>、<code>gap-3</code>、<code>mb-12</code>、<code>w-12</code>、<code>min-h-11</code>
+の数字はすべて同じ目盛り。<strong>4 倍すると px</strong> になる。</p>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>値</th>
+<th>px</th>
+<th>このアプリでの使われ方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gap-1</code></td>
+<td>0.25rem</td>
+<td>4</td>
+<td>スライダーと矢印の間</td>
+</tr>
+<tr>
+<td><code>p-2</code></td>
+<td>0.5rem</td>
+<td>8</td>
+<td>素材の行の内側</td>
+</tr>
+<tr>
+<td><code>gap-3</code></td>
+<td>0.75rem</td>
+<td>12</td>
+<td>サムネイルと文字の間</td>
+</tr>
+<tr>
+<td><code>px-4</code></td>
+<td>1rem</td>
+<td>16</td>
+<td>画面の左右の余白（<code>App</code> の <code>main</code>）</td>
+</tr>
+<tr>
+<td><code>min-h-10</code></td>
+<td>2.5rem</td>
+<td>40</td>
+<td><code>Button</code> の高さ</td>
+</tr>
+<tr>
+<td><code>min-h-11</code></td>
+<td>2.75rem</td>
+<td>44</td>
+<td>指で押す部品の最小の高さ（Apple の指針の 44pt）</td>
+</tr>
+<tr>
+<td><code>w-12</code></td>
+<td>3rem</td>
+<td>48</td>
+<td>秒の表示の幅</td>
+</tr>
+<tr>
+<td><code>mb-12</code></td>
+<td>3rem</td>
+<td>48</td>
+<td>区切り（<code>Section</code>）どうしの間</td>
+</tr>
+</tbody>
+</table>
+<p><code>min-h-11</code>
+がやたら多いのは、スマホで指で押すための約束。<code>SmallButton</code>
+は <code>min-h-11 min-w-11</code> で 44px 角を確保している。</p>
+<p>分数もある。<code>w-4/5</code> は幅 80%。<code>Button</code> の
+normal サイズ。</p>
+<h2 id="向きの文字">向きの文字</h2>
+<table>
+<thead>
+<tr>
+<th>文字</th>
+<th>意味</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p</code></td>
+<td>padding（内側）</td>
+<td><code>p-2</code> 全方向、<code>px-4</code> 左右、<code>py-2</code>
+上下、<code>pt-3</code> 上だけ</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>margin（外側）</td>
+<td><code>mt-2</code> 上、<code>mb-4</code> 下、<code>mx-auto</code>
+左右を自動（中央寄せ）</td>
+</tr>
+<tr>
+<td><code>-m</code></td>
+<td>負の margin</td>
+<td><code>-mx-4</code> 左右に外へ 16px はみ出す</td>
+</tr>
+<tr>
+<td><code>w</code></td>
+<td>width</td>
+<td><code>w-12</code>、<code>w-4/5</code>、<code>min-w-0</code></td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>height</td>
+<td><code>h-6 w-6</code> アイコンの 24px 角、<code>min-h-11</code></td>
+</tr>
+<tr>
+<td><code>gap</code></td>
+<td>子どうしの間</td>
+<td>flex や grid の中で</td>
+</tr>
+<tr>
+<td><code>space-y-2</code></td>
+<td>子の縦の間</td>
+<td>子要素の上に margin を付ける（<code>Section</code> の中身）</td>
+</tr>
+</tbody>
+</table>
+<p><code>-mx-4</code> は読み方に注意。<code>Section</code> の見出しと
+<code>TabBar</code> が使っている。<code>main</code> が <code>px-4</code>
+で左右に 16px
+の余白を持つので、その分だけ外にはみ出し、画面の幅いっぱいにする。コメントに理由が書いてある。</p>
+<h2 id="並べる-flex">並べる: flex</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex items-center gap-1 text-xs&quot;</span><span class="op">&gt;</span>     <span class="co">// FrameSlider: 横に並べて上下中央</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex flex-col gap-1&quot;</span><span class="op">&gt;</span>                 <span class="co">// MediaList: 縦に並べる（▲▼削除）</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex flex-wrap gap-2&quot;</span><span class="op">&gt;</span>                <span class="co">// ChipGroup: 横に並べ、あふれたら折り返す</span></span></code></pre></div>
+<ul>
+<li><code>flex</code>: 子を横に並べる。<code>flex-col</code> で縦。</li>
+<li><code>items-center</code>:
+並べる方向と直角の向きで中央にそろえる（横並びなら上下中央）。</li>
+<li><code>gap-N</code>: 子どうしの間隔。</li>
+<li><code>flex-1</code>: 余った幅を取る。<code>FrameSlider</code> の
+<code>&lt;input&gt;</code> が矢印の間を埋める。<code>TabBar</code>
+の各タブが等幅になる。</li>
+<li><code>min-w-0</code>: <code>flex-1</code>
+の子が、中身（長いファイル名）に押されて縮まなくなるのを防ぐ。<code>MediaList</code>
+の <code>&lt;p className=&quot;min-w-0 flex-1 ...&quot;&gt;</code> と
+<code>FrameSlider</code> の
+<code>&lt;input className=&quot;flex-1 min-w-0&quot;&gt;</code>。セットで覚える。</li>
+<li><code>shrink-0</code>: 縮めない。<code>Section</code>
+のアイコン、当日の流れの時刻の列。</li>
+</ul>
+<p><code>block w-4/5 mx-auto</code>（<code>Button</code>）は flex
+ではなく、ブロック要素を幅 80% にして <code>mx-auto</code>
+で中央に置く定型。</p>
+<h2 id="文字">文字</h2>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text-xs</code></td>
+<td>0.75rem（12px）。小さなボタン、スライダーの行</td>
+</tr>
+<tr>
+<td><code>text-sm</code></td>
+<td>0.875rem（14px）。本文のほとんど</td>
+</tr>
+<tr>
+<td><code>text-base</code></td>
+<td>1rem（16px）。キャッチコピー</td>
+</tr>
+<tr>
+<td><code>text-lg</code></td>
+<td>1.125rem（18px）。見出しの帯</td>
+</tr>
+<tr>
+<td><code>font-bold</code></td>
+<td>太字</td>
+</tr>
+<tr>
+<td><code>text-right</code></td>
+<td>右寄せ（秒の表示）</td>
+</tr>
+<tr>
+<td><code>tabular-nums</code></td>
+<td>数字を等幅に（秒の表示が動いても幅が揺れない）</td>
+</tr>
+<tr>
+<td><code>break-all</code></td>
+<td>長いファイル名をどこでも折り返す</td>
+</tr>
+</tbody>
+</table>
+<h2 id="色">色</h2>
+<p><code>色名-濃さ</code> の形。濃さは 50、100、200 …
+900、950。数が大きいほど濃い。</p>
+<p>このアプリの色は <strong>2 系統</strong> だけ。</p>
+<ul>
+<li><code>stone</code>: 灰色（やや暖色）。背景 <code>#f5f5f4</code> は
+<code>stone-100</code>、本文の文字 <code>#1c1917</code> は
+<code>stone-900</code>。</li>
+<li><code>blue-700</code>: 押せるもの（ボタン、リンク）。</li>
+<li><code>red</code>: 注意（上限を超えたとき）。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>どこ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bg-blue-700 text-white</code></td>
+<td>primary のボタン</td>
+</tr>
+<tr>
+<td><code>border border-blue-700 text-blue-700</code></td>
+<td>secondary のボタン、Chip の非選択</td>
+</tr>
+<tr>
+<td><code>bg-stone-600 text-white</code></td>
+<td>見出しの帯（黒は強すぎるとの感想で 600）</td>
+</tr>
+<tr>
+<td><code>text-stone-600</code></td>
+<td>補足の文</td>
+</tr>
+<tr>
+<td><code>border-stone-300</code></td>
+<td>素材の行の枠。選択中は <code>border-stone-900</code></td>
+</tr>
+<tr>
+<td><code>bg-stone-400</code></td>
+<td>押せないボタン</td>
+</tr>
+<tr>
+<td><code>opacity-50</code></td>
+<td>上限を超えて入らない素材</td>
+</tr>
+</tbody>
+</table>
+<p><code>border</code> は「枠線 1px」、<code>border-blue-700</code>
+はその色。2 つで 1 組。<code>border-b</code>
+は下だけ、<code>border-t</code> は上だけ（<code>MediaList</code>
+の編集欄の区切り）。</p>
+<h2 id="状態と画面幅-接頭辞">状態と画面幅: <code>接頭辞:</code></h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;bg-blue-700 text-white disabled:bg-stone-400&#39;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;min-h-11 flex-1 rounded-t border px-1 text-xs sm:text-sm&#39;</span></span></code></pre></div>
+<ul>
+<li><code>disabled:bg-stone-400</code>: 要素が <code>disabled</code>
+のときだけ背景を灰色に。</li>
+<li><code>sm:text-sm</code>: 画面幅 640px 以上のときだけ
+<code>text-sm</code>（それ未満は
+<code>text-xs</code>）。スマホ優先で、広い画面のときの上書きを後ろに足す。</li>
+</ul>
+<p><code>hover:</code> はこのアプリではほぼ使わない。タッチ端末では
+hover が無いため。</p>
+<h2 id="並び順の約束claudemd">並び順の約束（CLAUDE.md）</h2>
+<blockquote>
+<p>レイアウト → サイズ → 余白 → 文字 → 色 → 状態</p>
+</blockquote>
+<div class="sourceCode" id="cb5"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>className <span class="op">=</span> <span class="st">&#39;flex items-center gap-1 text-xs&#39;</span> <span class="co">// レイアウト → 文字</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>className <span class="op">=</span> <span class="st">&#39;min-h-11 min-w-11 rounded px-2 text-xs bg-blue-700 text-white disabled:bg-stone-400&#39;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">//         サイズ            形      余白 文字    色                    状態</span></span></code></pre></div>
+<p>読む側が「どこに置くか → どのくらいの大きさか → 周りとの間 → 文字 →
+色 → 特別なとき」の順に追えるようにするための順。prettier
+は並び順を直さないので、自分で守る。</p>
+<h2 id="条件で変える">条件で変える</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>className<span class="op">=</span>{<span class="vs">`rounded border p-2 </span><span class="sc">${</span>selected <span class="op">?</span> <span class="st">&#39;border-stone-900&#39;</span> <span class="op">:</span> <span class="st">&#39;border-stone-300&#39;</span><span class="sc">}</span><span class="vs"> </span><span class="sc">${</span>outside <span class="op">?</span> <span class="st">&#39;opacity-50&#39;</span> <span class="op">:</span> <span class="st">&#39;&#39;</span><span class="sc">}</span><span class="vs">`</span>}</span></code></pre></div>
+<p>バッククォートの中に <code>${}</code>
+で三項演算子を入れる。共通のクラスを前に、変わるクラスを後ろに。<code>Button.tsx</code>
+は <code>look</code> と <code>width</code>
+を変数に出してから組み立てている。長くなったらこの形。</p>
+<p><strong>やってはいけないこと</strong>: <code>bg-${color}-700</code>
+のようにクラス名を文字列でつなぐ。Tailwind
+はソースを文字列検索して使われているクラスの CSS
+だけを作るので、組み立てたクラスは見つからず、スタイルが出ない。候補をすべて書き出す（<code>active ? &#39;border-blue-700 bg-blue-700 text-white&#39; : &#39;border-blue-700 text-blue-700&#39;</code>）。</p>
+<h2 id="3-回書いたら部品にする">3 回書いたら部品にする</h2>
+<p>CLAUDE.md
+の約束。<code>bg-blue-700 text-white disabled:bg-stone-400</code> は
+<code>Button</code> と <code>SmallButton</code> の 2
+か所にあるが、<code>ExternalLink.tsx</code> のコメントのように、3
+か所目が出たら切り出す。<code>@apply</code> で CSS
+側にまとめるのはしない（部品に寄せる）。</p>
+<h2 id="tailwind-v4-の設定">Tailwind v4 の設定</h2>
+<p><code>src/index.css</code> の 1 行目:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">@import</span> <span class="st">&#39;tailwindcss&#39;</span><span class="op">;</span></span></code></pre></div>
+<p>と、<code>vite.config.ts</code> の <code>tailwindcss()</code>
+プラグイン。これだけ。v3 までにあった <code>tailwind.config.js</code>
+は無い。使っているクラスは Vite がソースから拾う。</p>
+<h2 id="ふつうの-css-を書くとき">ふつうの CSS を書くとき</h2>
+<p><code>index.css</code>
+の残りは、スライダー（<code>input[type=&#39;range&#39;]</code>）の見た目。つまみの大きさや溝の色は擬似要素（<code>::-webkit-slider-thumb</code>）で指定するしかなく、Tailwind
+のクラスでは届かない。こういうときだけ CSS
+を書く。コメントに「指で操作できるように 44px、つまみ
+28px」と理由がある。</p>
+<h2 id="やってみる">やってみる</h2>
+<p>開発サーバーを開き、ブラウザの開発者ツール（要素の検査）で、クラスを足したり消したりして見る。保存しなくても試せる。</p>
+<h3 id="演習-7-1-読んで答える">演習 7-1 読んで答える</h3>
+<p><code>TabBar.tsx</code> の選択中のタブに付く
+<code>-mb-px border-b-stone-100</code>
+は何をしているか。コメントと見比べて説明する。</p>
+<h3 id="演習-7-2-色を変える">演習 7-2 色を変える</h3>
+<p><code>Section.tsx</code> の <code>bg-stone-600</code> を
+<code>bg-stone-800</code>、<code>bg-blue-700</code>
+に変えて見比べる。元に戻す。</p>
+<h3 id="演習-7-3-選択中の枠を青に">演習 7-3 選択中の枠を青に</h3>
+<p><code>MediaList.tsx</code> で、「この素材を編集する」を押した行の枠を
+<code>border-stone-900</code> から <code>border-blue-700</code>
+に変える。ボタンの色と同じ系統になるのを確かめる。これは勉強ブランチだけに留めるか、本番に入れたいなら利用者（自分）として判断して
+ADR ではなく devlog に 1 行書く。</p>
+<h3 id="演習-7-4-並び順を直す">演習 7-4 並び順を直す</h3>
+<p>次のクラス列を CLAUDE.md の順に並べ直す。</p>
+<pre><code>text-sm bg-red-50 px-3 rounded border-red-300 py-2 text-red-700 border</code></pre>
+<h3 id="演習-7-5-壊してみる">演習 7-5 壊してみる</h3>
+<p><code>SmallButton.tsx</code> で <code>min-h-11 min-w-11</code>
+を消し、スマホ幅（開発者ツールの端末モード、390px）で ▲▼
+がどれだけ小さくなるか見る。戻す。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>7-1:
+タブの帯の下線（<code>border-b border-stone-400</code>）に、選択中のタブの下辺を
+1px 重ね（<code>-mb-px</code>）、その下辺の色を画面の地色と同じ
+<code>stone-100</code>
+にする。線が消えて、タブと中身がつながって見える。</li>
+<li>7-4:
+<code>rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700</code>（形
+→ 枠 → 色 → 余白 → 文字 → 色。<code>TotalDuration.tsx</code>
+の実物と同じ）。「形」は「サイズ」の仲間として前に置く。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>数は 4 倍で px。<code>min-h-11</code> は 44px、指のための約束。</li>
+<li><code>flex</code> + <code>gap</code> + <code>flex-1 min-w-0</code>
+が横並びの定型。</li>
+<li>色は <code>stone</code>（灰）と <code>blue-700</code>（押せる）と
+<code>red</code>（注意）だけ。</li>
+<li><code>disabled:</code>、<code>sm:</code> は接頭辞。</li>
+<li>クラス名を文字列でつなげない。候補を全部書く。</li>
+<li>並び順はレイアウト → サイズ → 余白 → 文字 → 色 → 状態。</li>
+</ul>
+</main>
+</body>
+</html>

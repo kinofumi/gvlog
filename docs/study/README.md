@@ -42,6 +42,11 @@ React そのものの深い理解は目標にしない。「関数が画面を�
 
 付録: [Python と TypeScript の対照表](python-to-typescript.md)
 
+## HTML 版
+
+Markdown が元データで、同じ内容の HTML 版を `docs/study/html/` に置いている（章ごとの `01-tools.html` …、`index.html` がこのプラン、`all.html` が全章を 1 ファイルにしたもの。どれも CSS を埋め込んだ 1 ファイルで、画像や外部の読み込みは無い。ブラウザで開くか、印刷して使う）。
+本文を直したら `scripts/make-study-html.sh` で作り直す（pandoc が要る。`brew install pandoc`）。HTML を直接直さない。
+
 ## 読む順番の理由
 
 1〜5 章は **ブラウザも React も出てこない**。純粋関数とテストだけなので、Python の知識がそのまま効く。TypeScript の文法に慣れるのはここで済ませる。
