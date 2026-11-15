@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>付録 Python と TypeScript の対照表</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="09-next.html">← 第 9 章 仕上げと次の一歩</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#付録-python-と-typescript-の対照表" id="toc-付録-python-と-typescript-の対照表">付録 Python と TypeScript
+の対照表</a>
+<ul>
+<li><a href="#値と型" id="toc-値と型">値と型</a></li>
+<li><a href="#文法" id="toc-文法">文法</a></li>
+<li><a href="#配列辞書文字列" id="toc-配列辞書文字列">配列・辞書・文字列</a></li>
+<li><a href="#非同期" id="toc-非同期">非同期</a></li>
+<li><a href="#テスト" id="toc-テスト">テスト</a></li>
+<li><a href="#道具" id="toc-道具">道具</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="付録-python-と-typescript-の対照表">付録 Python と TypeScript
+の対照表</h1>
+<blockquote>
+<p>このアプリに出てくる書き方だけ。分からない用語が出たら、ここに 1
+行足す。</p>
+</blockquote>
+<h2 id="値と型">値と型</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code>、<code>float</code></td>
+<td><code>number</code></td>
+<td>区別なし。<code>7 / 2</code> は <code>3.5</code>。整数は
+<code>Math.floor</code></td>
+</tr>
+<tr>
+<td><code>str</code></td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>boolean</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>None</code></td>
+<td><code>undefined</code>（未設定）／<code>null</code>（意図して空）</td>
+<td>2 つある</td>
+</tr>
+<tr>
+<td><code>list[int]</code></td>
+<td><code>number[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>dict[str, V]</code></td>
+<td><code>Record&lt;string, V&gt;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>set[str]</code></td>
+<td><code>Set&lt;string&gt;</code></td>
+<td><code>.has()</code>、<code>.add()</code></td>
+</tr>
+<tr>
+<td><code>tuple[int, int]</code></td>
+<td><code>[number, number]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Any</code></td>
+<td><code>unknown</code></td>
+<td><code>unknown</code> は確かめるまで何もできない</td>
+</tr>
+<tr>
+<td><code>Literal[&#39;a&#39;, &#39;b&#39;]</code></td>
+<td><code>&#39;a&#39; | &#39;b&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Optional[T]</code></td>
+<td><code>T | undefined</code>、フィールドなら
+<code>name?: T</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Union[A, B]</code></td>
+<td><code>A | B</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>@dataclass class P:</code></td>
+<td><code>type P = { ... }</code></td>
+<td>クラスではない。<code>{ ... }</code> で作る</td>
+</tr>
+<tr>
+<td><code>class B(A):</code>（フィールドの合体）</td>
+<td><code>type B = A &amp; { ... }</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Protocol</code></td>
+<td>（何も書かない）</td>
+<td>形が合えば通る（構造的な型）</td>
+</tr>
+<tr>
+<td><code>TypeVar(&#39;T&#39;, bound=A)</code></td>
+<td><code>&lt;T extends A&gt;</code></td>
+<td>最小限にする</td>
+</tr>
+<tr>
+<td><code>isinstance(x, Video)</code></td>
+<td><code>x.kind === &#39;video&#39;</code></td>
+<td>フィールドの値で見分ける</td>
+</tr>
+<tr>
+<td><code>match x: case ...</code></td>
+<td><code>if (x.kind === ...)</code>、<code>switch</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x: int = cast(int, y)</code></td>
+<td><code>y as number</code></td>
+<td>確かめた直後にだけ</td>
+</tr>
+<tr>
+<td><code>Final</code>／定数</td>
+<td><code>as const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="文法">文法</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x = 1</code>（再代入する）</td>
+<td><code>let x = 1</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x = 1</code>（再代入しない）</td>
+<td><code>const x = 1</code></td>
+<td>中身は変えられる</td>
+</tr>
+<tr>
+<td><code>def f(x: int) -&gt; int:</code></td>
+<td><code>function f(x: number): number {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lambda x: x + 1</code></td>
+<td><code>(x) =&gt; x + 1</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>def f(x, y=10):</code></td>
+<td><code>function f(x: number, y = 10)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>def f(**kwargs):</code></td>
+<td><code>function f({ a, b, ...rest }: Props)</code></td>
+<td>分割代入と <code>...rest</code></td>
+</tr>
+<tr>
+<td><code>f&quot;{a} と {b}&quot;</code></td>
+<td><code>`${a} と {b}`</code></td>
+<td>バッククォート</td>
+</tr>
+<tr>
+<td><code>x if c else y</code></td>
+<td><code>c ? x : y</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>a or b</code></td>
+<td><code>a ?? b</code>（<code>null</code>/<code>undefined</code>
+のときだけ）、<code>a || b</code>（偽のとき）</td>
+<td><code>0</code> や <code>&#39;&#39;</code> には <code>??</code></td>
+</tr>
+<tr>
+<td><code>a and b</code></td>
+<td><code>a &amp;&amp; b</code></td>
+<td>JSX では「a のときだけ b を出す」</td>
+</tr>
+<tr>
+<td><code>x == y</code></td>
+<td><code>x === y</code></td>
+<td><code>==</code> は使わない</td>
+</tr>
+<tr>
+<td><code>x is y</code></td>
+<td><code>x === y</code>（オブジェクト）</td>
+<td></td>
+</tr>
+<tr>
+<td><code>x in d</code>（dict のキー）</td>
+<td><code>&#39;x&#39; in d</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x in xs</code>（list）</td>
+<td><code>xs.includes(x)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>getattr(x, &#39;a&#39;, None)</code></td>
+<td><code>x?.a</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>for x in xs:</code></td>
+<td><code>for (const x of xs) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>for i, x in enumerate(xs):</code></td>
+<td><code>xs.forEach((x, i) =&gt; ...)</code></td>
+<td>要素が先、添字が後</td>
+</tr>
+<tr>
+<td><code>for i in range(n):</code></td>
+<td><code>for (let i = 0; i &lt; n; i++) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>while c:</code></td>
+<td><code>while (c) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>try: ... except E as e: ... finally:</code></td>
+<td><code>try { } catch (e) { } finally { }</code></td>
+<td><code>e</code> の型は <code>unknown</code></td>
+</tr>
+<tr>
+<td><code>raise ValueError(&#39;...&#39;)</code></td>
+<td><code>throw new Error(&#39;...&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pass</code></td>
+<td><code>{}</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>from m import f</code></td>
+<td><code>import { f } from &#39;./m&#39;</code></td>
+<td>相対パス、拡張子なし</td>
+</tr>
+<tr>
+<td><code>from m import T</code>（型だけ）</td>
+<td><code>import type { T } from &#39;./m&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td>先頭 <code>_</code> で非公開</td>
+<td><code>export</code> を付けない</td>
+<td></td>
+</tr>
+<tr>
+<td><code># コメント</code></td>
+<td><code>// コメント</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&quot;&quot;&quot;docstring&quot;&quot;&quot;</code></td>
+<td><code>/** JSDoc */</code>（関数の上）</td>
+<td>エディタがホバーで表示する</td>
+</tr>
+<tr>
+<td><code>print(x)</code></td>
+<td><code>console.log(x)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="配列辞書文字列">配列・辞書・文字列</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[f(x) for x in xs]</code></td>
+<td><code>xs.map((x) =&gt; f(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>[x for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>any(p(x) for x in xs)</code></td>
+<td><code>xs.some((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>all(p(x) for x in xs)</code></td>
+<td><code>xs.every((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>next((x for x in xs if p(x)), None)</code></td>
+<td><code>xs.find((x) =&gt; p(x))</code></td>
+<td>無ければ <code>undefined</code></td>
+</tr>
+<tr>
+<td><code>sum(xs)</code></td>
+<td><code>xs.reduce((s, x) =&gt; s + x, 0)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>functools.reduce(f, xs, init)</code></td>
+<td><code>xs.reduce(f, init)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>len(xs)</code></td>
+<td><code>xs.length</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs[1:3]</code></td>
+<td><code>xs.slice(1, 3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs[-1]</code></td>
+<td><code>xs[xs.length - 1]</code>、<code>xs.at(-1)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs + [y]</code></td>
+<td><code>[...xs, y]</code></td>
+<td>新しい配列</td>
+</tr>
+<tr>
+<td><code>xs.append(y)</code></td>
+<td><code>xs.push(y)</code></td>
+<td>書き換える</td>
+</tr>
+<tr>
+<td><code>{**d, &#39;k&#39;: v}</code></td>
+<td><code>{ ...d, k: v }</code></td>
+<td>新しいオブジェクト（浅い）</td>
+</tr>
+<tr>
+<td><code>dataclasses.replace(x, k=v)</code></td>
+<td><code>{ ...x, k: v }</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>d.get(&#39;k&#39;)</code></td>
+<td><code>d[&#39;k&#39;]</code>、<code>d.k</code></td>
+<td>無ければ <code>undefined</code></td>
+</tr>
+<tr>
+<td><code>d.items()</code></td>
+<td><code>Object.entries(d)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>d.keys()</code>／<code>d.values()</code></td>
+<td><code>Object.keys(d)</code>／<code>Object.values(d)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.strip()</code></td>
+<td><code>s.trim()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.split(&#39;:&#39;)</code></td>
+<td><code>s.split(&#39;:&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&#39;:&#39;.join(xs)</code></td>
+<td><code>xs.join(&#39;:&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.zfill(2)</code></td>
+<td><code>s.padStart(2, &#39;0&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.replace(a, b)</code>（全部）</td>
+<td><code>s.replace(/a/g, b)</code>、<code>s.replaceAll(a, b)</code></td>
+<td><code>replace</code> は最初の 1 つだけ</td>
+</tr>
+<tr>
+<td><code>&#39;あ&#39; * 3</code></td>
+<td><code>&#39;あ&#39;.repeat(3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>str(n)</code></td>
+<td><code>String(n)</code>、<code>`${n}`</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>int(s)</code>／<code>float(s)</code></td>
+<td><code>Number(s)</code></td>
+<td>失敗すると <code>NaN</code></td>
+</tr>
+<tr>
+<td><code>round(x, 1)</code></td>
+<td><code>x.toFixed(1)</code>（文字列になる）</td>
+<td></td>
+</tr>
+<tr>
+<td><code>math.floor</code>／<code>ceil</code></td>
+<td><code>Math.floor</code>／<code>Math.ceil</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>min(a, b)</code>／<code>max(a, b)</code></td>
+<td><code>Math.min(a, b)</code>／<code>Math.max(a, b)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>math.isfinite(x)</code></td>
+<td><code>Number.isFinite(x)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>isinstance(x, int)</code>（整数か）</td>
+<td><code>Number.isInteger(x)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="非同期">非同期</h2>
+<table>
+<thead>
+<tr>
+<th>asyncio</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async def</code> / <code>await</code></td>
+<td><code>async function</code> / <code>await</code></td>
+</tr>
+<tr>
+<td><code>asyncio.Future</code></td>
+<td><code>Promise</code></td>
+</tr>
+<tr>
+<td><code>asyncio.sleep(1)</code></td>
+<td><code>new Promise((r) =&gt; setTimeout(r, 1000))</code></td>
+</tr>
+<tr>
+<td><code>asyncio.gather(a, b)</code></td>
+<td><code>Promise.all([a, b])</code></td>
+</tr>
+<tr>
+<td><code>asyncio.wait_for(c, t)</code></td>
+<td>自作（<code>src/export/withTimeout.ts</code>）</td>
+</tr>
+<tr>
+<td><code>task.cancel()</code></td>
+<td><code>AbortController</code> /
+<code>AbortSignal</code>（協力的）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="テスト">テスト</h2>
+<table>
+<thead>
+<tr>
+<th>pytest</th>
+<th>vitest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>class TestX:</code></td>
+<td><code>describe(&#39;X&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>def test_y():</code></td>
+<td><code>it(&#39;y&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（値）</td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（配列・辞書）</td>
+<td><code>expect(a).toEqual(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a is b</code></td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert x in xs</code></td>
+<td><code>expect(xs).toContain(x)</code></td>
+</tr>
+<tr>
+<td><code>assert x is None</code></td>
+<td><code>expect(x).toBeNull()</code> /
+<code>.toBeUndefined()</code></td>
+</tr>
+<tr>
+<td><code>assert len(xs) == 3</code></td>
+<td><code>expect(xs).toHaveLength(3)</code></td>
+</tr>
+<tr>
+<td><code>with pytest.raises(E, match=m):</code></td>
+<td><code>expect(() =&gt; f()).toThrow(m)</code></td>
+</tr>
+<tr>
+<td><code>await</code> のテスト</td>
+<td><code>it(&#39;...&#39;, async () =&gt; { await expect(p).resolves.toBe(v) })</code></td>
+</tr>
+<tr>
+<td>失敗する <code>await</code></td>
+<td><code>await expect(p).rejects.toThrow(m)</code></td>
+</tr>
+<tr>
+<td><code>freezegun</code></td>
+<td><code>vi.useFakeTimers()</code> /
+<code>vi.advanceTimersByTime()</code></td>
+</tr>
+<tr>
+<td><code>unittest.mock.patch</code></td>
+<td><code>vi.spyOn(obj, &#39;method&#39;)</code></td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>npm test</code></td>
+</tr>
+<tr>
+<td><code>pytest path/to/test.py</code></td>
+<td><code>npx vitest run src/path/to/x.test.ts</code></td>
+</tr>
+<tr>
+<td><code>pytest-watch</code></td>
+<td><code>npm run test:watch</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="道具">道具</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>このリポジトリ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pip</code> / <code>requirements.txt</code></td>
+<td><code>npm</code> / <code>package.json</code></td>
+</tr>
+<tr>
+<td><code>pip install -r</code></td>
+<td><code>npm ci</code></td>
+</tr>
+<tr>
+<td><code>venv</code></td>
+<td><code>node_modules/</code></td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td><code>tsc</code>（<code>npm run typecheck</code>）</td>
+</tr>
+<tr>
+<td><code>ruff check</code></td>
+<td><code>oxlint</code>（<code>npm run lint</code>）</td>
+</tr>
+<tr>
+<td><code>ruff format</code> / <code>black</code></td>
+<td><code>prettier</code>（<code>npm run format</code>）</td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>vitest</code>（<code>npm test</code>）</td>
+</tr>
+<tr>
+<td><code>python -m http.server</code></td>
+<td><code>vite</code>（<code>npm run dev</code>）</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

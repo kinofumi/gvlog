@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 1 章 道具をそろえる</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="02-types.html">第 2 章 型を読む →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-1-章-道具をそろえる" id="toc-第-1-章-道具をそろえる">第
+1 章 道具をそろえる</a>
+<ul>
+<li><a href="#python-との対応" id="toc-python-との対応">Python
+との対応</a></li>
+<li><a href="#packagejson-を読む" id="toc-packagejson-を読む">package.json を読む</a></li>
+<li><a href="#tsconfigappjson-の読むべき-4-行" id="toc-tsconfigappjson-の読むべき-4-行">tsconfig.app.json の、読むべき
+4 行</a></li>
+<li><a href="#viteconfigts" id="toc-viteconfigts">vite.config.ts</a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-1-章-道具をそろえる">第 1 章 道具をそろえる</h1>
+<blockquote>
+<p>題材:
+<code>package.json</code>、<code>tsconfig.app.json</code>、<code>vite.config.ts</code>
+目標: 5 つのコマンドの役割が言える。テストを 1
+つ壊して、その出力を読める。</p>
+</blockquote>
+<h2 id="python-との対応">Python との対応</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>このリポジトリ</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python</code> 3.x</td>
+<td>Node.js 22</td>
+<td>実行環境（開発時のみ。本番はブラウザ）</td>
+</tr>
+<tr>
+<td><code>pip</code> + <code>requirements.txt</code></td>
+<td><code>npm</code> + <code>package.json</code></td>
+<td>依存の管理</td>
+</tr>
+<tr>
+<td><code>pip install -r ...</code></td>
+<td><code>npm ci</code></td>
+<td>依存を入れる（<code>node_modules/</code>）</td>
+</tr>
+<tr>
+<td><code>venv</code></td>
+<td><code>node_modules/</code></td>
+<td>プロジェクトごとの依存の置き場</td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>vitest</code>（<code>npm test</code>）</td>
+<td>テスト</td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td><code>tsc</code>（<code>npm run typecheck</code>）</td>
+<td>型チェック</td>
+</tr>
+<tr>
+<td><code>ruff check</code></td>
+<td><code>oxlint</code>（<code>npm run lint</code>）</td>
+<td>静的検査</td>
+</tr>
+<tr>
+<td><code>ruff format</code> / <code>black</code></td>
+<td><code>prettier</code>（<code>npm run format</code>）</td>
+<td>整形</td>
+</tr>
+<tr>
+<td><code>python -m http.server</code></td>
+<td><code>vite</code>（<code>npm run dev</code>）</td>
+<td>開発サーバー（ホットリロード付き）</td>
+</tr>
+</tbody>
+</table>
+<p>Python では「実行＝型を見ない」だが、TypeScript では
+<strong>型チェックとビルドが別の工程</strong>
+として先に走る。<code>npm run build</code> が
+<code>tsc -b &amp;&amp; vite build</code>
+になっているのはそのため。型が合わないと、ブラウザに届く前に止まる。</p>
+<h2 id="packagejson-を読む">package.json を読む</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;scripts&quot;</span><span class="er">:</span> <span class="fu">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;dev&quot;</span><span class="fu">:</span> <span class="st">&quot;vite&quot;</span><span class="fu">,</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;build&quot;</span><span class="fu">:</span> <span class="st">&quot;tsc -b &amp;&amp; vite build&quot;</span><span class="fu">,</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;lint&quot;</span><span class="fu">:</span> <span class="st">&quot;oxlint&quot;</span><span class="fu">,</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;typecheck&quot;</span><span class="fu">:</span> <span class="st">&quot;tsc -b&quot;</span><span class="fu">,</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;test&quot;</span><span class="fu">:</span> <span class="st">&quot;vitest run&quot;</span><span class="fu">,</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;test:watch&quot;</span><span class="fu">:</span> <span class="st">&quot;vitest&quot;</span><span class="fu">,</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;prettier --write </span><span class="ch">\&quot;</span><span class="st">src/**/*.{ts,tsx,css}</span><span class="ch">\&quot;</span><span class="st">&quot;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><code>npm run &lt;名前&gt;</code>
+でここに書いたコマンドが動く。<code>test</code> だけは
+<code>npm test</code> と短く呼べる。</p>
+<p><code>dependencies</code>
+はブラウザに届くもの（React、zustand、mediabunny、Tailwind）。<code>devDependencies</code>
+は開発中だけ使うもの（TypeScript、Vite、vitest、prettier）。Python の
+<code>requirements.txt</code> と <code>requirements-dev.txt</code>
+の分け方と同じ。</p>
+<p>CLAUDE.md の約束どおり、外部ライブラリは <code>docs/plan.md</code>
+§10
+の表にあるものだけ。勉強中に「便利そうだから」とライブラリを足さない。</p>
+<h2 id="tsconfigappjson-の読むべき-4-行">tsconfig.app.json の、読むべき
+4 行</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;target&quot;</span><span class="er">:</span> <span class="st">&quot;es2023&quot;</span><span class="er">,</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;lib&quot;</span><span class="er">:</span> <span class="ot">[</span><span class="st">&quot;ES2023&quot;</span><span class="ot">,</span> <span class="st">&quot;DOM&quot;</span><span class="ot">]</span><span class="er">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;noUnusedLocals&quot;</span><span class="er">:</span> <span class="kw">true</span><span class="er">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;noUnusedParameters&quot;</span><span class="er">:</span> <span class="kw">true</span><span class="er">,</span></span></code></pre></div>
+<ul>
+<li><code>target</code> と <code>lib</code>: どの年代の JavaScript
+とブラウザ API を使えるとみなすか。<code>DOM</code> が入っているので
+<code>document</code> や <code>HTMLButtonElement</code>
+の型が使える。</li>
+<li><code>noUnusedLocals</code> / <code>noUnusedParameters</code>:
+使っていない変数や引数があると <strong>エラー</strong>。Python
+の「警告」より厳しい。消し忘れを型チェックが見つける。</li>
+</ul>
+<p>残りの行は Vite のための設定で、今は読まなくてよい。</p>
+<h2 id="viteconfigts">vite.config.ts</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="fu">defineConfig</span>({</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  base<span class="op">:</span> <span class="st">&#39;/gvlog/&#39;</span><span class="op">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  plugins<span class="op">:</span> [<span class="fu">react</span>()<span class="op">,</span> <span class="fu">tailwindcss</span>()<span class="op">,</span> <span class="op">...</span>(useSsl <span class="op">?</span> [<span class="fu">basicSsl</span>()] <span class="op">:</span> [])]<span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  server<span class="op">:</span> { host<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<ul>
+<li><code>base</code>: GitHub Pages の URL が <code>/gvlog/</code>
+配下なので、リンクの先頭に付ける。</li>
+<li><code>plugins</code>: React（JSX の変換）、Tailwind（クラスから CSS
+を作る）、HTTPS（スマホから開発サーバーを開くため）。</li>
+<li><code>...(useSsl ? [basicSsl()] : [])</code>:
+条件によって要素を足す書き方。Python の
+<code>*([basic_ssl()] if use_ssl else [])</code> と同じ。</li>
+</ul>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-1-1-全部動かす">演習 1-1 全部動かす</h3>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> ci</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run typecheck</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run lint</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> test</span></code></pre></div>
+<p>3
+つとも何も言わずに（またはテストの件数だけ出して）終わるのが正常。テストは
+29 ファイル、全部通る。</p>
+<h3 id="演習-1-2-テストを-1-つ壊す">演習 1-2 テストを 1 つ壊す</h3>
+<p><code>src/timeline/durations.test.ts</code> を開き、</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">maxItems</span>(<span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">15</span>)</span></code></pre></div>
+<p>の <code>15</code> を <code>14</code>
+にして保存する。<code>npm test</code> を走らせ、出力を読む。</p>
+<ul>
+<li>どのファイルの、どのテスト名が落ちたか（日本語の文で出る）。</li>
+<li><code>Expected</code> と <code>Received</code> が何か。</li>
+<li>行番号。</li>
+</ul>
+<p>読めたら元に戻す。<code>git diff</code>
+が空になることを確かめる。</p>
+<h3 id="演習-1-3-型チェックを-1-つ壊す">演習 1-3 型チェックを 1
+つ壊す</h3>
+<p><code>src/timeline/durations.ts</code> の <code>maxItems</code>
+の中に、使わない変数を 1 行足す。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> unused <span class="op">=</span> <span class="dv">1</span></span></code></pre></div>
+<p><code>npm run typecheck</code>
+が何と言うか読む。<code>npm test</code> は <strong>通る</strong>
+ことも確かめる（テストは型を見ない）。読めたら元に戻す。</p>
+<h3 id="演習-1-4-watch-モード">演習 1-4 watch モード</h3>
+<p><code>npm run test:watch</code> を動かしたまま、演習 1-2
+をもう一度やる。保存した瞬間に赤くなり、戻した瞬間に緑になるのを見る。以降の章はこの状態で進める。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>1-2:
+<code>FAIL src/timeline/durations.test.ts &gt; maxItems（素材数の上限） &gt; 15 秒（450 フレーム）なら最小尺 1 秒で 15 個まで</code>、<code>Expected: 14</code>、<code>Received: 15</code>
+が出る。</li>
+<li>1-3:
+<code>error TS6133: &#39;unused&#39; is declared but its value is never read.</code>
+が出る。<code>npm test</code> は通る。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>型チェック（tsc）、検査（oxlint）、テスト（vitest）は別の道具で、別のことを見る。3
+つとも通してからレビューに出す、がこのリポジトリの約束。</li>
+<li>テストの出力は「ファイル &gt; describe &gt; it の名前 &gt; Expected
+/ Received」の順に読む。</li>
+</ul>
+</main>
+</body>
+</html>

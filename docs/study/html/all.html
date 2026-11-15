@@ -1,0 +1,2943 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>gvlog で学ぶ TypeScript と Tailwind（全章）</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#gvlog-で学ぶ-typescript-と-tailwind--勉強プラン" id="toc-gvlog-で学ぶ-typescript-と-tailwind--勉強プラン">gvlog で学ぶ
+TypeScript と Tailwind — 勉強プラン</a></li>
+<li><a href="#第-1-章-道具をそろえる" id="toc-第-1-章-道具をそろえる">第
+1 章 道具をそろえる</a></li>
+<li><a href="#第-2-章-型を読む" id="toc-第-2-章-型を読む">第 2 章
+型を読む</a></li>
+<li><a href="#第-3-章-関数とテスト" id="toc-第-3-章-関数とテスト">第 3
+章 関数とテスト</a></li>
+<li><a href="#第-4-章-配列とオブジェクトを壊さずに変える" id="toc-第-4-章-配列とオブジェクトを壊さずに変える">第 4 章
+配列とオブジェクトを壊さずに変える</a></li>
+<li><a href="#第-5-章-非同期" id="toc-第-5-章-非同期">第 5 章
+非同期</a></li>
+<li><a href="#第-6-章-react-の部品を読む" id="toc-第-6-章-react-の部品を読む">第 6 章 React の部品を読む</a></li>
+<li><a href="#第-7-章-tailwind" id="toc-第-7-章-tailwind">第 7 章
+Tailwind</a></li>
+<li><a href="#第-8-章-状態とデータの流れ" id="toc-第-8-章-状態とデータの流れ">第 8 章 状態とデータの流れ</a></li>
+<li><a href="#第-9-章-仕上げと次の一歩" id="toc-第-9-章-仕上げと次の一歩">第 9 章 仕上げと次の一歩</a></li>
+<li><a href="#付録-python-と-typescript-の対照表" id="toc-付録-python-と-typescript-の対照表">付録 Python と TypeScript
+の対照表</a></li>
+</ul>
+</nav>
+<h1 id="gvlog-で学ぶ-typescript-と-tailwind--勉強プラン">gvlog で学ぶ
+TypeScript と Tailwind — 勉強プラン</h1>
+<blockquote>
+<p>作成日: 2026-11-14。対象は「Python は中級、TypeScript と Tailwind
+は初めて」の人。 題材はこのリポジトリのコードそのもの。読む → 動かす →
+テストを書いて直す、の順で進む。</p>
+</blockquote>
+<h2 id="ねらい">ねらい</h2>
+<ul>
+<li>gvlog のコードを、人に説明できる程度に読めるようになる。</li>
+<li>小さな機能なら、テストを先に書いてから自分で足せるようになる。</li>
+<li>Tailwind
+のクラスを見て、画面のどこがどう変わるか想像できるようになる。</li>
+</ul>
+<p>React
+そのものの深い理解は目標にしない。「関数が画面を返す」「状態が変わると関数がもう一度呼ばれる」の
+2 点だけ押さえる。</p>
+<h2 id="進め方の約束">進め方の約束</h2>
+<ul>
+<li><p><strong>本番と分ける。</strong> 演習は <code>study</code>
+ブランチで行う。イベント（2026-11-28）までは main
+に混ぜない。実機で使うときは <code>git checkout main</code> に戻す。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout <span class="at">-b</span> study        <span class="co"># 最初の 1 回</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout study           <span class="co"># 勉強を再開するとき</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout main            <span class="co"># 本番のアプリに戻るとき</span></span></code></pre></div></li>
+<li><p><strong>1 章 = 1 回（60〜90 分）。</strong> 週 2 回で 5
+週間。急がない。</p></li>
+<li><p><strong>読むだけで終わらせない。</strong> 各章の演習を最低 1
+つやる。テストを赤くしてから緑に戻す。</p></li>
+<li><p><strong>詰まったら記録する。</strong>
+<code>docs/study/notes.md</code>
+を自分で作り、「分からなかったこと」「調べて分かったこと」を 1
+行ずつ残す。これはあとで教科書の「つまずきやすい場所」の材料になる。</p></li>
+<li><p><strong>AI は辞書と相棒として使う。</strong> 「このファイルを
+Python
+で書くとどうなる？」「この関数のテストを先に書いて」と頼むのはよい。答えをまるごと貼るのは、自分で一度書いてから。</p></li>
+</ul>
+<h2 id="章立て">章立て</h2>
+<table>
+<thead>
+<tr>
+<th>章</th>
+<th>テキスト</th>
+<th>題材のファイル</th>
+<th>身につくこと</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="#第-1-章-道具をそろえる">道具をそろえる</a></td>
+<td><code>package.json</code>、<code>tsconfig.app.json</code></td>
+<td>npm スクリプト、Vite、vitest、型チェック、lint</td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="#第-2-章-型を読む">型を読む</a></td>
+<td><code>src/model/types.ts</code>、<code>src/model/validate.ts</code></td>
+<td>型エイリアス、リテラル型、union、<code>?</code>、<code>unknown</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="#第-3-章-関数とテスト">関数とテスト</a></td>
+<td><code>src/timeline/durations.ts</code>、<code>frameStep.ts</code></td>
+<td>関数の書き方、<code>number</code> の罠、vitest、TDD</td>
+</tr>
+<tr>
+<td>4</td>
+<td><a href="#第-4-章-配列とオブジェクトを壊さずに変える">配列とオブジェクトを壊さずに変える</a></td>
+<td><code>src/timeline/clamp.ts</code>、<code>compile.ts</code></td>
+<td><code>map</code>/<code>filter</code>、スプレッド、ジェネリクスの最小限</td>
+</tr>
+<tr>
+<td>5</td>
+<td><a href="#第-5-章-非同期">非同期</a></td>
+<td><code>src/export/withTimeout.ts</code></td>
+<td>Promise、<code>async</code>/<code>await</code>、中断</td>
+</tr>
+<tr>
+<td>6</td>
+<td><a href="#第-6-章-react-の部品を読む">React の部品を読む</a></td>
+<td><code>src/components/ui/</code>、<code>FrameSlider.tsx</code>、<code>TabBar.tsx</code></td>
+<td>JSX、props、条件描画、一覧の描画、<code>useState</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="#第-7-章-tailwind">Tailwind</a></td>
+<td><code>Section.tsx</code>、<code>Button.tsx</code>、<code>src/index.css</code></td>
+<td>ユーティリティクラス、数の意味、状態、並び順</td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="#第-8-章-状態とデータの流れ">状態とデータの流れ</a></td>
+<td><code>src/state/store.ts</code>、<code>projectActions.ts</code></td>
+<td>zustand、セレクタ、純粋関数に任せる設計</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="#第-9-章-仕上げと次の一歩">仕上げと次の一歩</a></td>
+<td><code>docs/adr/</code>、<code>docs/plan.md</code></td>
+<td>開発の流れ、AI との付き合い方、次に読む層</td>
+</tr>
+</tbody>
+</table>
+<p>付録: <a href="#付録-python-と-typescript-の対照表">Python と TypeScript
+の対照表</a></p>
+<h2 id="html-版">HTML 版</h2>
+<p>Markdown が元データで、同じ内容の HTML 版を
+<code>docs/study/html/</code> に置いている（章ごとの
+<code>01-tools.html</code> …、<code>index.html</code>
+がこのプラン、<code>all.html</code> が全章を 1
+ファイルにしたもの。どれも CSS を埋め込んだ 1
+ファイルで、画像や外部の読み込みは無い。ブラウザで開くか、印刷して使う）。
+本文を直したら <code>scripts/make-study-html.sh</code>
+で作り直す（pandoc が要る。<code>brew install pandoc</code>）。HTML
+を直接直さない。</p>
+<h2 id="読む順番の理由">読む順番の理由</h2>
+<p>1〜5 章は <strong>ブラウザも React
+も出てこない</strong>。純粋関数とテストだけなので、Python
+の知識がそのまま効く。TypeScript の文法に慣れるのはここで済ませる。</p>
+<p>6〜8 章で画面に入る。React、Tailwind、zustand は別々のものなので、1
+章ずつ分けた。6 章では見た目のクラスを読み飛ばし、7
+章で初めてクラスを見る。</p>
+<p><code>src/render/</code>、<code>src/export/</code>、<code>src/bgm/</code>
+は扱わない。Canvas、WebCodecs、mediabunny の知識が主で、TypeScript
+の勉強としては遠回りになる。9 章で入口だけ案内する。</p>
+<h2 id="毎回の手順">毎回の手順</h2>
+<ol type="1">
+<li><code>git checkout study</code>、<code>npm run dev</code>
+でアプリを開いておく（PC なら <code>NO_SSL=1 npm run dev</code>）。</li>
+<li>別のターミナルで <code>npm run test:watch</code>
+を動かしておく。ファイルを保存するたびにテストが走る。</li>
+<li>章のテキストを読みながら、題材のファイルをエディタで開く。</li>
+<li>演習をやる。終わったら
+<code>npm run lint</code>、<code>npm run typecheck</code>、<code>npm test</code>
+の 3 つを通す。</li>
+<li><code>docs/study/notes.md</code> に 1〜3 行書く。</li>
+</ol>
+<h2 id="先に知っておくとよいpython-との大きな違い">先に知っておくとよい、Python
+との大きな違い</h2>
+<ul>
+<li><strong>数は 1 種類。</strong> <code>number</code> に int と float
+の区別がない。<code>7 / 2</code> は <code>3.5</code>。整数にしたいときは
+<code>Math.floor</code>
+を自分で呼ぶ（このアプリはフレーム番号を整数で持つので、至るところで呼んでいる。ADR
+008）。</li>
+<li><strong>「無い」が 2 つある。</strong>
+<code>undefined</code>（未設定）と
+<code>null</code>（意図して空）。このアプリでは、省略できるフィールドは
+<code>undefined</code>、「選んでいない」は <code>null</code>
+と使い分けている。</li>
+<li><strong><code>const</code>
+は再代入禁止であって、不変ではない。</strong>
+<code>const items = []</code> でも <code>items.push(x)</code>
+はできる。不変にしたいなら、変えずに新しい値を作る（4 章）。</li>
+<li><strong>型は実行時に消える。</strong> 型チェックは <code>tsc</code>
+がビルド前にやるだけ。実行中には型情報は無い。外から来た値（JSON、ファイル）は
+<code>unknown</code> として受けて自分で確かめる（2 章の
+<code>validatePreset</code>）。</li>
+<li><strong>インデントではなく波括弧。</strong>
+セミコロンはこのリポジトリでは付けない（prettier の設定）。</li>
+</ul>
+<h1 id="第-1-章-道具をそろえる">第 1 章 道具をそろえる</h1>
+<blockquote>
+<p>題材:
+<code>package.json</code>、<code>tsconfig.app.json</code>、<code>vite.config.ts</code>
+目標: 5 つのコマンドの役割が言える。テストを 1
+つ壊して、その出力を読める。</p>
+</blockquote>
+<h2 id="python-との対応">Python との対応</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>このリポジトリ</th>
+<th>役割</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python</code> 3.x</td>
+<td>Node.js 22</td>
+<td>実行環境（開発時のみ。本番はブラウザ）</td>
+</tr>
+<tr>
+<td><code>pip</code> + <code>requirements.txt</code></td>
+<td><code>npm</code> + <code>package.json</code></td>
+<td>依存の管理</td>
+</tr>
+<tr>
+<td><code>pip install -r ...</code></td>
+<td><code>npm ci</code></td>
+<td>依存を入れる（<code>node_modules/</code>）</td>
+</tr>
+<tr>
+<td><code>venv</code></td>
+<td><code>node_modules/</code></td>
+<td>プロジェクトごとの依存の置き場</td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>vitest</code>（<code>npm test</code>）</td>
+<td>テスト</td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td><code>tsc</code>（<code>npm run typecheck</code>）</td>
+<td>型チェック</td>
+</tr>
+<tr>
+<td><code>ruff check</code></td>
+<td><code>oxlint</code>（<code>npm run lint</code>）</td>
+<td>静的検査</td>
+</tr>
+<tr>
+<td><code>ruff format</code> / <code>black</code></td>
+<td><code>prettier</code>（<code>npm run format</code>）</td>
+<td>整形</td>
+</tr>
+<tr>
+<td><code>python -m http.server</code></td>
+<td><code>vite</code>（<code>npm run dev</code>）</td>
+<td>開発サーバー（ホットリロード付き）</td>
+</tr>
+</tbody>
+</table>
+<p>Python では「実行＝型を見ない」だが、TypeScript では
+<strong>型チェックとビルドが別の工程</strong>
+として先に走る。<code>npm run build</code> が
+<code>tsc -b &amp;&amp; vite build</code>
+になっているのはそのため。型が合わないと、ブラウザに届く前に止まる。</p>
+<h2 id="packagejson-を読む">package.json を読む</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;scripts&quot;</span><span class="er">:</span> <span class="fu">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;dev&quot;</span><span class="fu">:</span> <span class="st">&quot;vite&quot;</span><span class="fu">,</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;build&quot;</span><span class="fu">:</span> <span class="st">&quot;tsc -b &amp;&amp; vite build&quot;</span><span class="fu">,</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;lint&quot;</span><span class="fu">:</span> <span class="st">&quot;oxlint&quot;</span><span class="fu">,</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;typecheck&quot;</span><span class="fu">:</span> <span class="st">&quot;tsc -b&quot;</span><span class="fu">,</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;test&quot;</span><span class="fu">:</span> <span class="st">&quot;vitest run&quot;</span><span class="fu">,</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;test:watch&quot;</span><span class="fu">:</span> <span class="st">&quot;vitest&quot;</span><span class="fu">,</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;format&quot;</span><span class="fu">:</span> <span class="st">&quot;prettier --write </span><span class="ch">\&quot;</span><span class="st">src/**/*.{ts,tsx,css}</span><span class="ch">\&quot;</span><span class="st">&quot;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><code>npm run &lt;名前&gt;</code>
+でここに書いたコマンドが動く。<code>test</code> だけは
+<code>npm test</code> と短く呼べる。</p>
+<p><code>dependencies</code>
+はブラウザに届くもの（React、zustand、mediabunny、Tailwind）。<code>devDependencies</code>
+は開発中だけ使うもの（TypeScript、Vite、vitest、prettier）。Python の
+<code>requirements.txt</code> と <code>requirements-dev.txt</code>
+の分け方と同じ。</p>
+<p>CLAUDE.md の約束どおり、外部ライブラリは <code>docs/plan.md</code>
+§10
+の表にあるものだけ。勉強中に「便利そうだから」とライブラリを足さない。</p>
+<h2 id="tsconfigappjson-の読むべき-4-行">tsconfig.app.json の、読むべき
+4 行</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;target&quot;</span><span class="er">:</span> <span class="st">&quot;es2023&quot;</span><span class="er">,</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;lib&quot;</span><span class="er">:</span> <span class="ot">[</span><span class="st">&quot;ES2023&quot;</span><span class="ot">,</span> <span class="st">&quot;DOM&quot;</span><span class="ot">]</span><span class="er">,</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;noUnusedLocals&quot;</span><span class="er">:</span> <span class="kw">true</span><span class="er">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;noUnusedParameters&quot;</span><span class="er">:</span> <span class="kw">true</span><span class="er">,</span></span></code></pre></div>
+<ul>
+<li><code>target</code> と <code>lib</code>: どの年代の JavaScript
+とブラウザ API を使えるとみなすか。<code>DOM</code> が入っているので
+<code>document</code> や <code>HTMLButtonElement</code>
+の型が使える。</li>
+<li><code>noUnusedLocals</code> / <code>noUnusedParameters</code>:
+使っていない変数や引数があると <strong>エラー</strong>。Python
+の「警告」より厳しい。消し忘れを型チェックが見つける。</li>
+</ul>
+<p>残りの行は Vite のための設定で、今は読まなくてよい。</p>
+<h2 id="viteconfigts">vite.config.ts</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="im">default</span> <span class="fu">defineConfig</span>({</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  base<span class="op">:</span> <span class="st">&#39;/gvlog/&#39;</span><span class="op">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  plugins<span class="op">:</span> [<span class="fu">react</span>()<span class="op">,</span> <span class="fu">tailwindcss</span>()<span class="op">,</span> <span class="op">...</span>(useSsl <span class="op">?</span> [<span class="fu">basicSsl</span>()] <span class="op">:</span> [])]<span class="op">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  server<span class="op">:</span> { host<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<ul>
+<li><code>base</code>: GitHub Pages の URL が <code>/gvlog/</code>
+配下なので、リンクの先頭に付ける。</li>
+<li><code>plugins</code>: React（JSX の変換）、Tailwind（クラスから CSS
+を作る）、HTTPS（スマホから開発サーバーを開くため）。</li>
+<li><code>...(useSsl ? [basicSsl()] : [])</code>:
+条件によって要素を足す書き方。Python の
+<code>*([basic_ssl()] if use_ssl else [])</code> と同じ。</li>
+</ul>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-1-1-全部動かす">演習 1-1 全部動かす</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> ci</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run typecheck</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run lint</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> test</span></code></pre></div>
+<p>3
+つとも何も言わずに（またはテストの件数だけ出して）終わるのが正常。テストは
+29 ファイル、全部通る。</p>
+<h3 id="演習-1-2-テストを-1-つ壊す">演習 1-2 テストを 1 つ壊す</h3>
+<p><code>src/timeline/durations.test.ts</code> を開き、</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">maxItems</span>(<span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">15</span>)</span></code></pre></div>
+<p>の <code>15</code> を <code>14</code>
+にして保存する。<code>npm test</code> を走らせ、出力を読む。</p>
+<ul>
+<li>どのファイルの、どのテスト名が落ちたか（日本語の文で出る）。</li>
+<li><code>Expected</code> と <code>Received</code> が何か。</li>
+<li>行番号。</li>
+</ul>
+<p>読めたら元に戻す。<code>git diff</code>
+が空になることを確かめる。</p>
+<h3 id="演習-1-3-型チェックを-1-つ壊す">演習 1-3 型チェックを 1
+つ壊す</h3>
+<p><code>src/timeline/durations.ts</code> の <code>maxItems</code>
+の中に、使わない変数を 1 行足す。</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> unused <span class="op">=</span> <span class="dv">1</span></span></code></pre></div>
+<p><code>npm run typecheck</code>
+が何と言うか読む。<code>npm test</code> は <strong>通る</strong>
+ことも確かめる（テストは型を見ない）。読めたら元に戻す。</p>
+<h3 id="演習-1-4-watch-モード">演習 1-4 watch モード</h3>
+<p><code>npm run test:watch</code> を動かしたまま、演習 1-2
+をもう一度やる。保存した瞬間に赤くなり、戻した瞬間に緑になるのを見る。以降の章はこの状態で進める。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>1-2:
+<code>FAIL src/timeline/durations.test.ts &gt; maxItems（素材数の上限） &gt; 15 秒（450 フレーム）なら最小尺 1 秒で 15 個まで</code>、<code>Expected: 14</code>、<code>Received: 15</code>
+が出る。</li>
+<li>1-3:
+<code>error TS6133: &#39;unused&#39; is declared but its value is never read.</code>
+が出る。<code>npm test</code> は通る。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>型チェック（tsc）、検査（oxlint）、テスト（vitest）は別の道具で、別のことを見る。3
+つとも通してからレビューに出す、がこのリポジトリの約束。</li>
+<li>テストの出力は「ファイル &gt; describe &gt; it の名前 &gt; Expected
+/ Received」の順に読む。</li>
+</ul>
+<h1 id="第-2-章-型を読む">第 2 章 型を読む</h1>
+<blockquote>
+<p>題材:
+<code>src/model/types.ts</code>、<code>src/model/validate.ts</code>
+目標: <code>types.ts</code> の型を Python の <code>dataclass</code> と
+<code>Literal</code> に置き換えて説明できる。<code>validatePreset</code>
+がなぜ <code>unknown</code> を受けるか言える。</p>
+</blockquote>
+<h2 id="型エイリアスは-dataclass-に近い">型エイリアスは dataclass
+に近い</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> GroupPreset <span class="op">=</span> {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  id<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  aspect<span class="op">:</span> <span class="st">&#39;16:9&#39;</span> <span class="op">|</span> <span class="st">&#39;9:16&#39;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  width<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  height<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  fps<span class="op">:</span> <span class="dv">30</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  maxFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python で書くなら:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GroupPreset:</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">id</span>: <span class="bu">str</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    name: <span class="bu">str</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    aspect: Literal[<span class="st">&#39;16:9&#39;</span>, <span class="st">&#39;9:16&#39;</span>]</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    width: <span class="bu">float</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    height: <span class="bu">float</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    fps: Literal[<span class="dv">30</span>]</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    max_frames: <span class="bu">float</span></span></code></pre></div>
+<p>違いが 3 つある。</p>
+<ol type="1">
+<li><strong>クラスではない。</strong> <code>type</code>
+は「この形のオブジェクト」という名前を付けるだけで、コンストラクタもメソッドも無い。作るときは
+<code>{ id: &#39;default&#39;, name: &#39;Vlog&#39;, ... }</code>
+と書く（<code>src/model/defaults.ts</code>）。</li>
+<li><strong><code>number</code> は float。</strong>
+<code>width: number</code> に <code>1080.5</code>
+も入る。整数であることは型では言えないので、<code>Number.isInteger</code>
+で実行時に確かめる（<code>validate.ts</code>）。</li>
+<li><strong>フィールド名は camelCase。</strong>
+<code>maxFrames</code>。Python の snake_case とは違う。</li>
+</ol>
+<h2 id="リテラル型と-union">リテラル型と union</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>aspect<span class="op">:</span> <span class="st">&#39;16:9&#39;</span> <span class="op">|</span> <span class="st">&#39;9:16&#39;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fps<span class="op">:</span> <span class="dv">30</span></span></code></pre></div>
+<p><code>|</code> は「どちらか」。Python の
+<code>Literal[&#39;16:9&#39;, &#39;9:16&#39;]</code> と同じ。<code>fps: 30</code> は「30
+という値しか入らない」型。v1 では fps を固定している（ADR
+009）ので、型で縛っている。</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> Transition <span class="op">=</span> {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> <span class="st">&#39;cut&#39;</span> <span class="op">|</span> <span class="st">&#39;crossfade&#39;</span> <span class="op">|</span> <span class="st">&#39;fadeWhite&#39;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  durationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python なら <code>Enum</code> を作るところだが、TypeScript
+では文字列リテラルの union
+で済ませることが多い。値がそのまま文字列なので、JSON
+に保存しても読み戻しても変わらない。</p>
+<h2 id="-は無くてもよい"><code>?</code> は「無くてもよい」</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> TimelineItem <span class="op">=</span> {</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  itemId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  durationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  transitionOut<span class="op">?:</span> Transition</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  caption<span class="op">?:</span> CaptionTiming</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>transitionOut?</code> は「無いかもしれない」。無いときの値は
+<code>undefined</code>。Python の
+<code>Optional[Transition] = None</code> に近いが、2 点違う。</p>
+<ul>
+<li>無いときは <code>None</code> ではなく <code>undefined</code>。</li>
+<li>フィールド自体が
+<strong>存在しなくてもよい</strong>。<code>{ itemId: &#39;a&#39;, durationFrames: 150 }</code>
+はこの型を満たす。</li>
+</ul>
+<p>使う側は <code>if (item.transitionOut)</code>
+で確かめてから触る。<code>item.transitionOut.type</code>
+と無確認で書くと型エラーになる（<code>&#39;item.transitionOut&#39; is possibly &#39;undefined&#39;</code>）。</p>
+<h2 id="-で型を合体する"><code>&amp;</code> で型を合体する</h2>
+<div class="sourceCode" id="cb13"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> Caption <span class="op">=</span> CaptionTiming <span class="op">&amp;</span> {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  text<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  presetId<span class="op">:</span> <span class="st">&#39;band&#39;</span> <span class="op">|</span> <span class="st">&#39;outline&#39;</span> <span class="op">|</span> <span class="st">&#39;box&#39;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>&amp;</code> は「両方のフィールドを持つ」。Python
+の継承（<code>class Caption(CaptionTiming)</code>）に近いが、親子関係は無く、単にフィールドが足し合わさる。</p>
+<h2 id="kind-で見分ける-unionこのアプリで一番大事な型"><code>kind</code>
+で見分ける union（このアプリで一番大事な型）</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> PhotoItem <span class="op">=</span> ItemBase <span class="op">&amp;</span> { kind<span class="op">:</span> <span class="st">&#39;photo&#39;</span><span class="op">;</span> kenBurns<span class="op">:</span> KenBurns }</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> VideoItem <span class="op">=</span> ItemBase <span class="op">&amp;</span> {</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  kind<span class="op">:</span> <span class="st">&#39;video&#39;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  sourceDurationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  trimStartFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> MediaItem <span class="op">=</span> PhotoItem <span class="op">|</span> VideoItem</span></code></pre></div>
+<p><code>MediaItem</code> は写真か動画のどちらか。どちらかは
+<code>kind</code> を見れば分かる。TypeScript は <code>if</code> で
+<code>kind</code> を調べると、その中では型を絞り込む。</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// src/timeline/trim.ts</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (item<span class="op">.</span><span class="at">kind</span> <span class="op">!==</span> <span class="st">&#39;video&#39;</span>) <span class="cf">return</span> item</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">// ここから下では item は VideoItem。trimStartFrames に触れる</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> trimStartFrames <span class="op">=</span> <span class="fu">clampTrimStart</span>(</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  item<span class="op">.</span><span class="at">trimStartFrames</span><span class="op">,</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  item<span class="op">.</span><span class="at">sourceDurationFrames</span><span class="op">,</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  visibleLength<span class="op">,</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Python 3.10 の <code>match item: case VideoItem(): ...</code>
+に相当する。<code>isinstance</code>
+の代わりにフィールドの値で見分ける、と覚える。</p>
+<h2 id="構造的な型-形が合えば通る">構造的な型: 「形が合えば通る」</h2>
+<p><code>types.ts</code> のコメントにこうある。</p>
+<blockquote>
+<p>MediaItem はこの型（TimelineItem）を含むので、そのまま渡せる。</p>
+</blockquote>
+<p><code>compileTimeline(items: TimelineItem[])</code> に
+<code>MediaItem[]</code> を渡せるのは、<code>MediaItem</code> が
+<code>TimelineItem</code>
+の全フィールドを持っているから。継承の宣言は要らない。Python の
+<code>Protocol</code>（静的なダックタイピング）と同じ考え方。</p>
+<p>この性質を使って、<code>src/timeline/</code> の関数は
+<strong>必要な最小限のフィールドだけを持つ型</strong>
+を受ける。テストでは <code>{ itemId: &#39;a&#39;, durationFrames: 40 }</code>
+のような小さいオブジェクトを渡せばよく、写真の寸法やファイル名を書く必要がない（<code>clamp.test.ts</code>
+を見る）。</p>
+<h2 id="unknown-と-as-外から来た値"><code>unknown</code> と
+<code>as</code>: 外から来た値</h2>
+<div class="sourceCode" id="cb16"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">validatePreset</span>(value<span class="op">:</span> <span class="dt">unknown</span>)<span class="op">:</span> ValidationResult {</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="kw">typeof</span> value <span class="op">!==</span> <span class="st">&#39;object&#39;</span> <span class="op">||</span> value <span class="op">===</span> <span class="kw">null</span>) {</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { ok<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> errors<span class="op">:</span> [<span class="st">&#39;プリセットの形式が不正です。&#39;</span>] }</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> p <span class="op">=</span> value <span class="im">as</span> <span class="bu">Record</span><span class="op">&lt;</span><span class="dt">string</span><span class="op">,</span> <span class="dt">unknown</span><span class="op">&gt;</span></span></code></pre></div>
+<ul>
+<li><code>unknown</code> は「何が来るか分からない」。Python の
+<code>Any</code>
+と違い、<strong>確かめるまで何もできない</strong>。<code>value.id</code>
+と書くと型エラー。</li>
+<li><code>typeof value !== &#39;object&#39;</code>
+で絞り込んでから、<code>as Record&lt;string, unknown&gt;</code>
+で「文字列キーの辞書として扱う」と宣言する。<code>Record&lt;K, V&gt;</code>
+は Python の <code>dict[K, V]</code>。</li>
+<li>各フィールドを <code>typeof p.id !== &#39;string&#39;</code> のように 1
+つずつ確かめ、最後にそろった値で <code>GroupPreset</code>
+を組み立てる。</li>
+</ul>
+<p><code>as</code>
+は「私が責任を持つのでこの型として扱って」という宣言で、実行時には何もしない。確かめた直後にだけ使う。確かめずに
+<code>as</code> で黙らせるのは、Python で <code># type: ignore</code>
+を貼るのと同じ。</p>
+<p>戻り値の型も union になっている。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> ValidationResult <span class="op">=</span> { ok<span class="op">:</span> <span class="kw">true</span><span class="op">;</span> preset<span class="op">:</span> GroupPreset } <span class="op">|</span> { ok<span class="op">:</span> <span class="kw">false</span><span class="op">;</span> errors<span class="op">:</span> <span class="dt">string</span>[] }</span></code></pre></div>
+<p><code>ok</code> が <code>true</code> なら <code>preset</code>
+がある、<code>false</code> なら <code>errors</code> がある。呼ぶ側は
+<code>if (result.ok)</code>
+で分岐すれば、それぞれの中で正しいフィールドだけが見える。例外を投げずに結果を型で返す書き方で、Python
+の <code>Result</code> 型を自作するのに似ている。</p>
+<h2 id="as-const"><code>as const</code></h2>
+<div class="sourceCode" id="cb18"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> SIZE_BY_ASPECT <span class="op">=</span> {</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;16:9&#39;</span><span class="op">:</span> { width<span class="op">:</span> <span class="dv">1920</span><span class="op">,</span> height<span class="op">:</span> <span class="dv">1080</span> }<span class="op">,</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;9:16&#39;</span><span class="op">:</span> { width<span class="op">:</span> <span class="dv">1080</span><span class="op">,</span> height<span class="op">:</span> <span class="dv">1920</span> }<span class="op">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>} <span class="im">as</span> <span class="kw">const</span></span></code></pre></div>
+<p><code>as const</code> を付けると、<code>width</code> の型が
+<code>number</code> ではなく <code>1920</code>
+という値そのものになり、キーも <code>&#39;16:9&#39; | &#39;9:16&#39;</code>
+に固定される。これで <code>SIZE_BY_ASPECT[aspect]</code> が「aspect
+はこの 2 つのどちらか」と確かめたあとだけ通る。</p>
+<h2 id="import-type"><code>import type</code></h2>
+<div class="sourceCode" id="cb19"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="im">type</span> { GroupPreset } <span class="im">from</span> <span class="st">&#39;./types&#39;</span></span></code></pre></div>
+<p>型だけを読み込むときは
+<code>import type</code>。型は実行時に消えるので、このファイルからの依存も消える。値（関数や定数）を読み込むときは普通の
+<code>import</code>。</p>
+<h2 id="やってみる-1">やってみる</h2>
+<h3 id="演習-2-1-python-に書き直す">演習 2-1 Python に書き直す</h3>
+<p><code>types.ts</code> の <code>KenBurns</code> と
+<code>Caption</code> を Python の dataclass
+で書く。<code>overrides?: { textColor?: string; ... }</code>
+をどう表すか考える（入れ子の dataclass
+か、<code>TypedDict(total=False)</code> か）。</p>
+<h3 id="演習-2-2-絞り込みを壊す">演習 2-2 絞り込みを壊す</h3>
+<p><code>src/timeline/trim.ts</code> の <code>clampTrims</code>
+で、<code>if (item.kind !== &#39;video&#39;) return item</code>
+の行をコメントアウトして
+<code>npm run typecheck</code>。何行目で何と言われるか読む。元に戻す。</p>
+<h3 id="演習-2-3-検証を-1-つ足す">演習 2-3 検証を 1 つ足す</h3>
+<p><code>validatePreset</code> は <code>name</code>
+が空かどうかしか見ていない。「<code>name</code> が 20
+文字を超えたらエラー」を足す。先に
+<code>src/model/validate.test.ts</code> にテストを書く。</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;プリセット名が 20 文字を超えたらエラー&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="fu">validatePreset</span>({ <span class="op">...</span>DEFAULT_PRESET<span class="op">,</span> name<span class="op">:</span> <span class="st">&#39;あ&#39;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="dv">21</span>) })</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(result<span class="op">.</span><span class="at">ok</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="kw">false</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>result<span class="op">.</span><span class="at">ok</span>) <span class="fu">expect</span>(result<span class="op">.</span><span class="at">errors</span>)<span class="op">.</span><span class="fu">toContain</span>(<span class="st">&#39;プリセット名は 20 文字までです。&#39;</span>)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>DEFAULT_PRESET</code> はこのテストファイルの冒頭ですでに import
+されている。赤くなるのを見てから、<code>validate.ts</code> に 1
+行足して緑にする。</p>
+<h2 id="答え合わせ-1">答え合わせ</h2>
+<ul>
+<li>2-2:
+<code>error TS2339: Property &#39;trimStartFrames&#39; does not exist on type &#39;MediaItem&#39;.</code>
+が 2 か所と、<code>sourceDurationFrames</code> について同じエラーが 1
+か所、合わせて 3 つ出る。<code>MediaItem</code>
+のまま（絞り込まずに）動画だけのフィールドに触ったため。</li>
+<li>2-3: <code>validate.ts</code> の名前の検査の次に
+<code>else if (p.name.length &gt; 20) errors.push(&#39;プリセット名は 20 文字までです。&#39;)</code>
+を足す。<code>typeof p.name !== &#39;string&#39;</code>
+の確認が先にあるので、<code>else if</code> の中では <code>p.name</code>
+は <code>string</code> として扱える。テストの
+<code>if (!result.ok)</code> は、<code>errors</code> が
+<code>ok: false</code> のときにしか無いための絞り込み。</li>
+</ul>
+<h2 id="この章のまとめ-1">この章のまとめ</h2>
+<ul>
+<li><code>type</code> は形の名前。クラスではない。</li>
+<li>「どちらか」は <code>|</code>、「両方」は
+<code>&amp;</code>、「無くてもよい」は <code>?</code>。</li>
+<li><code>kind</code> のようなフィールドで union
+を見分けると、型が絞り込まれる。</li>
+<li>外から来た値は <code>unknown</code>
+で受け、確かめてから使う。<code>as</code> は確かめた直後にだけ。</li>
+</ul>
+<h1 id="第-3-章-関数とテスト">第 3 章 関数とテスト</h1>
+<blockquote>
+<p>題材: <code>src/timeline/durations.ts</code>
+とそのテスト、<code>src/components/frameStep.ts</code> とそのテスト
+目標: 関数とテストを 1 組、自分で先にテストを書いてから足せる。</p>
+</blockquote>
+<h2 id="関数の書き方">関数の書き方</h2>
+<div class="sourceCode" id="cb21"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">maxItems</span>(maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(maxFrames <span class="op">/</span> MIN_ITEM_FRAMES)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python との対応:</p>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>def f(x: int) -&gt; int:</code></td>
+<td><code>function f(x: number): number {</code></td>
+</tr>
+<tr>
+<td><code>lambda x: x + 1</code></td>
+<td><code>(x) =&gt; x + 1</code></td>
+</tr>
+<tr>
+<td><code>def f(x, y=10):</code></td>
+<td><code>function f(x: number, y = 10)</code></td>
+</tr>
+<tr>
+<td><code>x // 2</code></td>
+<td><code>Math.floor(x / 2)</code></td>
+</tr>
+<tr>
+<td><code>x ** 2</code></td>
+<td><code>x ** 2</code></td>
+</tr>
+<tr>
+<td><code>x if cond else y</code></td>
+<td><code>cond ? x : y</code></td>
+</tr>
+<tr>
+<td><code>f&quot;{a} と {b}&quot;</code></td>
+<td><code>`${a} と ${b}`</code>（バッククォート）</td>
+</tr>
+<tr>
+<td><code>a or default</code></td>
+<td><code>a ?? default</code>（<code>a</code> が
+<code>null</code>/<code>undefined</code> のときだけ）</td>
+</tr>
+<tr>
+<td><code>from m import f</code></td>
+<td><code>import { f } from &#39;./m&#39;</code></td>
+</tr>
+<tr>
+<td>先頭に <code>_</code> で非公開</td>
+<td><code>export</code> を付けないと非公開</td>
+</tr>
+</tbody>
+</table>
+<p><code>export</code> を付けた関数だけが、他のファイルから
+<code>import</code> できる。<code>durations.ts</code> の全部に
+<code>export</code>
+が付いているのは、他のファイルやテストから使うため。<code>clamp.ts</code>
+の <code>toFrames</code>
+には付いていないので、そのファイルの中だけで使う関数。</p>
+<h2 id="-と--は違う"><code>??</code> と <code>||</code> は違う</h2>
+<div class="sourceCode" id="cb22"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> limit <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(maxFrames<span class="op">,</span> sourceDurationFrames <span class="op">??</span> maxFrames)</span></code></pre></div>
+<p><code>??</code> は左が <code>null</code> か <code>undefined</code>
+のときだけ右を使う。Python の <code>or</code> に近い <code>||</code>
+もあるが、<code>||</code> は <code>0</code> や <code>&#39;&#39;</code>
+でも右を使ってしまう。フレーム数のように <code>0</code>
+が意味を持つ値には <code>??</code> を使う。</p>
+<h2 id="変数">変数</h2>
+<div class="sourceCode" id="cb23"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> errors<span class="op">:</span> <span class="dt">string</span>[] <span class="op">=</span> []</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cursor <span class="op">=</span> <span class="dv">0</span></span></code></pre></div>
+<ul>
+<li><code>const</code>:
+再代入しない。<strong>ほぼこれだけ使う。</strong>
+ただし中身（配列の要素、オブジェクトのフィールド）は変えられる。<code>errors.push(...)</code>
+は通る。</li>
+<li><code>let</code>: 再代入する。ループのカウンタや累積に使う。</li>
+<li><code>var</code>: 使わない（古い書き方）。</li>
+</ul>
+<p>型は多くの場合書かなくてよい。<code>let cursor = 0</code> で
+<code>number</code>
+と推論される。<code>const errors: string[] = []</code>
+に型を書いているのは、空の配列からは要素の型が分からないため。</p>
+<h2 id="number-の罠"><code>number</code> の罠</h2>
+<p>Python 中級者が最初にはまる場所。</p>
+<ul>
+<li><code>7 / 2</code> は <code>3.5</code>。整数除算が無い。</li>
+<li><code>Number.isInteger(150.5)</code> は
+<code>false</code>。整数かどうかは実行時に確かめる。</li>
+<li><code>Number.NaN</code>（非数）、<code>Number.POSITIVE_INFINITY</code>
+も <code>number</code>。<code>Number.isFinite(x)</code>
+で両方をはじける。</li>
+<li><code>Math.max(0, Math.min(x, limit))</code> は「0 以上 limit
+以下に収める」の定型。このアプリの至るところにある。</li>
+</ul>
+<p><code>clampDuration</code> を読む。</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">clampDuration</span>(frames<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> <span class="op">|</span> <span class="dt">null</span> {</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="bu">Number</span><span class="op">.</span><span class="fu">isFinite</span>(frames)) <span class="cf">return</span> <span class="kw">null</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(MIN_ITEM_FRAMES<span class="op">,</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(frames)<span class="op">,</span> maxFrames))</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>戻り値の <code>number | null</code>
+は「数か、意味のある空」。数でない入力（空の入力欄）は <code>null</code>
+で返し、呼ぶ側に「無視して」と伝える。例外を投げない。</p>
+<h2 id="配列の操作">配列の操作</h2>
+<div class="sourceCode" id="cb25"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">sumFrames</span>(durations<span class="op">:</span> <span class="dt">number</span>[])<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> durations<span class="op">.</span><span class="fu">reduce</span>((sum<span class="op">,</span> d) <span class="kw">=&gt;</span> sum <span class="op">+</span> d<span class="op">,</span> <span class="dv">0</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python の <code>sum(durations)</code>
+に当たる組み込みは無いので、<code>reduce</code>
+で書く。<code>reduce(fn, 初期値)</code> は <code>functools.reduce</code>
+と同じ。</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>durations<span class="op">.</span><span class="fu">forEach</span>((d<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="bu">Number</span><span class="op">.</span><span class="fu">isInteger</span>(d)) errors<span class="op">.</span><span class="fu">push</span>(<span class="vs">`素材 </span><span class="sc">${</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs"> の尺（</span><span class="sc">${</span>d<span class="sc">}</span><span class="vs">）が整数ではありません。`</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>forEach((要素, 添字) =&gt; ...)</code> は
+<code>for i, d in enumerate(durations):</code>。要素が先、添字が後。</p>
+<h2 id="テストを読む">テストを読む</h2>
+<div class="sourceCode" id="cb27"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { describe<span class="op">,</span> expect<span class="op">,</span> it } <span class="im">from</span> <span class="st">&#39;vitest&#39;</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { maxItems } <span class="im">from</span> <span class="st">&#39;./durations&#39;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(<span class="st">&#39;maxItems（素材数の上限）&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">it</span>(<span class="st">&#39;15 秒（450 フレーム）なら最小尺 1 秒で 15 個まで&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">maxItems</span>(<span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">15</span>)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>pytest</th>
+<th>vitest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>class TestMaxItems:</code></td>
+<td><code>describe(&#39;...&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>def test_...(self):</code></td>
+<td><code>it(&#39;...&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>assert f(x) == 15</code></td>
+<td><code>expect(f(x)).toBe(15)</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（辞書・リスト）</td>
+<td><code>expect(a).toEqual(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a is b</code></td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert x in xs</code></td>
+<td><code>expect(xs).toContain(x)</code></td>
+</tr>
+<tr>
+<td><code>assert x is None</code></td>
+<td><code>expect(x).toBeNull()</code></td>
+</tr>
+<tr>
+<td><code>with pytest.raises(E):</code></td>
+<td><code>expect(() =&gt; f()).toThrow(&#39;...&#39;)</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>toBe</code> と <code>toEqual</code>
+の違いは大事。<code>toBe</code> は同一性（Python の
+<code>is</code>）、<code>toEqual</code>
+は中身の比較（<code>==</code>）。配列やオブジェクトは
+<code>toEqual</code>。「変えていないので同じオブジェクトが返る」を確かめたいときだけ
+<code>toBe</code>（<code>projectActions.test.ts</code> の
+<code>expect(removeItem(p, &#39;nope&#39;)).toBe(p)</code>）。</p>
+<p>テスト名が日本語の文なのは CLAUDE.md
+の約束。読めば仕様が分かる名前にする。</p>
+<h2 id="tdd-の手順このリポジトリの約束">TDD
+の手順（このリポジトリの約束）</h2>
+<ol type="1">
+<li>テストファイルに <code>it(&#39;...&#39;)</code>
+を書く。期待値を先に決める。</li>
+<li><code>npm run test:watch</code>
+で赤くなるのを見る（関数が無いので、import のエラーで落ちる）。</li>
+<li>関数を書く。緑になる。</li>
+<li>境界の値（0、最小、最大、NaN）のテストを足す。赤くなったら直す。</li>
+</ol>
+<p>「先に赤を見る」のが肝。緑しか見ていないテストは、何も確かめていないことがある。</p>
+<h2 id="やってみる-2">やってみる</h2>
+<h3 id="演習-3-1-読んで予想する">演習 3-1 読んで予想する</h3>
+<p><code>frameStep.ts</code> の
+<code>stepFrames(152, 1, 3, 30, 450)</code>
+の戻り値を、コードを読んで予想する。<code>frameStep.test.ts</code>
+で確かめる。</p>
+<h3 id="演習-3-2-05-秒刻み">演習 3-2 0.5 秒刻み</h3>
+<p><code>framesPerStep(30, 0.5)</code>
+はいくつか。<code>stepFrames(152, 1, 15, 30, 450)</code> と
+<code>stepFrames(152, -1, 15, 30, 450)</code> はいくつか。予想してから
+<code>frameStep.test.ts</code> に 3 行足して確かめる。</p>
+<h3 id="演習-3-3-tdd-で-1-つ足す">演習 3-3 TDD で 1 つ足す</h3>
+<p>「上限まであと何フレーム入るか」を返す
+<code>remainingFrames(durations, maxFrames)</code> を
+<code>durations.ts</code> に足す。超えているときは 0。</p>
+<p>先にテスト（<code>durations.test.ts</code> の末尾）:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(<span class="st">&#39;remainingFrames（上限まであと何フレーム入るか）&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">it</span>(<span class="st">&#39;合計が上限以下なら差分、超えていれば 0、空なら上限そのまま&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([<span class="dv">150</span><span class="op">,</span> <span class="dv">150</span>]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">150</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([<span class="dv">300</span><span class="op">,</span> <span class="dv">300</span>]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">0</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">450</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>import の行にも <code>remainingFrames</code>
+を足す。赤を見てから実装する。</p>
+<h3 id="演習-3-4-lint-と型チェック">演習 3-4 lint と型チェック</h3>
+<p>3-3 のあと <code>npm run lint</code> と
+<code>npm run typecheck</code> を通す。JSDoc
+コメント（<code>/** ... */</code>）を関数の上に 1 行書く。</p>
+<h2 id="答え合わせ-2">答え合わせ</h2>
+<ul>
+<li>3-1: <code>153</code>。152 は 3
+の格子に乗っていないので、<code>Math.floor(152 / 3) * 3 = 150</code>
+に戻してから <code>+ 3</code>。</li>
+<li>3-2: <code>15</code>、<code>165</code>、<code>150</code>。</li>
+<li>3-3:
+<div class="sourceCode" id="cb29"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** 上限まであと何フレーム入るか。超えているときは 0 */</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">remainingFrames</span>(durations<span class="op">:</span> <span class="dt">number</span>[]<span class="op">,</span> maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="dv">0</span><span class="op">,</span> maxFrames <span class="op">-</span> <span class="fu">sumFrames</span>(durations))</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<code>overflowFrames</code> と対になる形。<code>sumFrames</code>
+を使い回す。</li>
+</ul>
+<h2 id="この章のまとめ-2">この章のまとめ</h2>
+<ul>
+<li><code>function f(x: number): number</code>、<code>const</code>、<code>=&gt;</code>、バッククォートの
+4 つで大半のコードが読める。</li>
+<li><code>number</code> は float。整数は <code>Math.floor</code> と
+<code>Number.isInteger</code> で自分で守る。</li>
+<li><code>toBe</code> は <code>is</code>、<code>toEqual</code> は
+<code>==</code>。</li>
+<li>赤を見てから書く。</li>
+</ul>
+<h1 id="第-4-章-配列とオブジェクトを壊さずに変える">第 4 章
+配列とオブジェクトを壊さずに変える</h1>
+<blockquote>
+<p>題材:
+<code>src/timeline/clamp.ts</code>、<code>src/timeline/compile.ts</code>
+とそのテスト 目標:
+「入力を変えず、新しい値を返す」書き方を読める・書ける。<code>map</code>、<code>filter</code>、スプレッドが使える。</p>
+</blockquote>
+<h2 id="なぜ壊さないか">なぜ壊さないか</h2>
+<p>このアプリの状態（プロジェクト）は、変更のたびに
+<strong>新しいオブジェクト</strong> に置き換えられる（8 章）。React
+は「前と同じオブジェクトか」で再描画するかを決めるので、中身だけ書き換えると画面が更新されない。だから
+<code>src/timeline/</code> と <code>src/state/projectActions.ts</code>
+の関数は、どれも入力を変えずに新しい値を返す。</p>
+<p><code>clamp.test.ts</code> にそれを確かめるテストがある。</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;元の配列と要素は変更しない&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> items <span class="op">=</span> [ <span class="op">...</span> ]</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clampAfterResize</span>(items)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(items[<span class="dv">0</span>]<span class="op">.</span><span class="at">transitionOut</span><span class="op">?.</span><span class="at">durationFrames</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">30</span>)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>Python で言えば「リストを <code>sorted()</code>
+で返すか、<code>.sort()</code> で書き換えるか」の違いを、常に
+<code>sorted()</code> 側に寄せる。</p>
+<h2 id="スプレッド--コピーして一部を変える">スプレッド <code>...</code>:
+コピーして一部を変える</h2>
+<div class="sourceCode" id="cb31"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> next <span class="op">=</span> { <span class="op">...</span>item }</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>next<span class="op">.</span><span class="at">transitionOut</span> <span class="op">=</span> { <span class="op">...</span>item<span class="op">.</span><span class="at">transitionOut</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">0</span> }</span></code></pre></div>
+<p><code>{ ...item }</code> は <code>item</code>
+の全フィールドを持つ新しいオブジェクト。Python の <code>{**item}</code>
+や
+<code>dataclasses.replace(item, ...)</code>。後ろに書いたフィールドが上書きする。</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>{ <span class="op">...</span>item<span class="op">.</span><span class="at">caption</span><span class="op">,</span> <span class="op">...</span><span class="fu">clampCaptionOffsets</span>(item<span class="op">.</span><span class="at">caption</span><span class="op">,</span> item<span class="op">.</span><span class="at">durationFrames</span>) }</span></code></pre></div>
+<p>2 つを重ねると、後ろの関数が返した <code>inOffsetFrames</code> と
+<code>outOffsetFrames</code> だけが差し替わり、<code>text</code> や
+<code>position</code> は残る。</p>
+<p>コピーは <strong>1
+段だけ</strong>（浅いコピー）。<code>{ ...item }</code> をしても
+<code>item.transitionOut</code> は同じオブジェクトを指す。だから
+<code>next.transitionOut = { ...item.transitionOut, ... }</code>
+と、変える段ごとにコピーしている。</p>
+<p>配列にも使える。<code>[...items, newItem]</code>
+は末尾に足した新しい配列（<code>items + [new_item]</code>）。</p>
+<h2 id="map-と-filter-リスト内包の代わり"><code>map</code> と
+<code>filter</code>: リスト内包の代わり</h2>
+<div class="sourceCode" id="cb33"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> items<span class="op">.</span><span class="fu">map</span>((item<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> next <span class="op">=</span> { <span class="op">...</span>item }</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> next</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>items.map(fn)</code> は
+<code>[fn(x) for x in items]</code>。添字が要るときは第 2
+引数で受ける。</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">itemsAt</span>(compiled<span class="op">:</span> CompiledItem[]<span class="op">,</span> frame<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> CompiledItem[] {</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> compiled<span class="op">.</span><span class="fu">filter</span>((c) <span class="kw">=&gt;</span> frame <span class="op">&gt;=</span> c<span class="op">.</span><span class="at">visibleStart</span> <span class="op">&amp;&amp;</span> frame <span class="op">&lt;</span> c<span class="op">.</span><span class="at">visibleEnd</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>filter(fn)</code> は
+<code>[x for x in xs if fn(x)]</code>。</p>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[f(x) for x in xs]</code></td>
+<td><code>xs.map((x) =&gt; f(x))</code></td>
+</tr>
+<tr>
+<td><code>[x for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>[f(x) for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x)).map((x) =&gt; f(x))</code></td>
+</tr>
+<tr>
+<td><code>any(p(x) for x in xs)</code></td>
+<td><code>xs.some((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>all(p(x) for x in xs)</code></td>
+<td><code>xs.every((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>next((x for x in xs if p(x)), None)</code></td>
+<td><code>xs.find((x) =&gt; p(x))</code>（無ければ
+<code>undefined</code>）</td>
+</tr>
+<tr>
+<td><code>xs.index(v)</code></td>
+<td><code>xs.indexOf(v)</code>（無ければ <code>-1</code>）</td>
+</tr>
+<tr>
+<td><code>xs[1:3]</code></td>
+<td><code>xs.slice(1, 3)</code></td>
+</tr>
+<tr>
+<td><code>len(xs)</code></td>
+<td><code>xs.length</code></td>
+</tr>
+<tr>
+<td><code>for x in xs:</code></td>
+<td><code>for (const x of xs) {</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="for-文を使うとき"><code>for</code> 文を使うとき</h2>
+<p><code>compileTimeline</code> は <code>map</code> ではなく
+<code>for</code> で書いてある。</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cursor <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> leadIn <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> items<span class="op">.</span><span class="at">length</span><span class="op">;</span> i<span class="op">++</span>) {</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> item <span class="op">=</span> items[i]</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> following <span class="op">=</span> items[i <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  cursor <span class="op">=</span> coreEnd</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  leadIn <span class="op">=</span> <span class="op">...</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>前の要素の結果（<code>cursor</code>、<code>leadIn</code>）を次に持ち越すので、各要素が独立な
+<code>map</code> では書きにくい。こういうときは素直に <code>for</code>
+と <code>let</code> を使う。「賢く書かない」が CLAUDE.md の方針。</p>
+<p><code>items[i + 1]</code> は末尾で <code>undefined</code>
+になる（Python なら
+<code>IndexError</code>）。<code>if (item.transitionOut &amp;&amp; ... &amp;&amp; following)</code>
+と、<code>following</code> が無いことを条件に入れている。</p>
+<h2 id="-無いかもしれないものを安全に読む"><code>?.</code>:
+無いかもしれないものを安全に読む</h2>
+<div class="sourceCode" id="cb36"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> overlaps <span class="op">=</span> transitionOut<span class="op">?.</span><span class="at">type</span> <span class="op">===</span> <span class="st">&#39;crossfade&#39;</span></span></code></pre></div>
+<p><code>transitionOut</code> が <code>null</code> なら
+<code>transitionOut?.type</code> は <code>undefined</code>
+になり、エラーにならない。Python
+には無い書き方（<code>getattr(x, &#39;type&#39;, None)</code> に近い）。</p>
+<h2 id="set"><code>Set</code></h2>
+<div class="sourceCode" id="cb37"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> seen <span class="op">=</span> <span class="kw">new</span> <span class="bu">Set</span><span class="op">&lt;</span><span class="dt">string</span><span class="op">&gt;</span>()</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (seen<span class="op">.</span><span class="fu">has</span>(item<span class="op">.</span><span class="at">itemId</span>)) errors<span class="op">.</span><span class="fu">push</span>(<span class="op">...</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>seen<span class="op">.</span><span class="fu">add</span>(item<span class="op">.</span><span class="at">itemId</span>)</span></code></pre></div>
+<p>Python の <code>set()</code>。<code>in</code> は
+<code>.has()</code>、<code>add</code> は
+<code>.add()</code>。<code>&lt;string&gt;</code> は要素の型。</p>
+<h2 id="ジェネリクスは最小限">ジェネリクスは「最小限」</h2>
+<div class="sourceCode" id="cb38"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">clampAfterResize</span><span class="op">&lt;</span>T <span class="kw">extends</span> TimelineItem<span class="op">&gt;</span>(items<span class="op">:</span> T[])<span class="op">:</span> T[] {</span></code></pre></div>
+<p><code>T</code> は「<code>TimelineItem</code>
+の形を持つ何かの型」。Python の
+<code>TypeVar(&#39;T&#39;, bound=TimelineItem)</code>。</p>
+<p>なぜ要るか。引数を <code>TimelineItem[]</code> と書くと、戻り値も
+<code>TimelineItem[]</code> になり、<code>MediaItem</code> が持っていた
+<code>fileName</code> や <code>kind</code>
+の型情報が消える。<code>T</code>
+を使うと「入れた型のまま返す」と言える。コメントにもその理由が書いてある。</p>
+<p>CLAUDE.md は「ジェネリクスの多用を避ける」としている。このように
+<strong>理由がコメントにある 1 か所</strong> に限る。6 章の
+<code>TabBar&lt;T extends string&gt;</code> も同じ考え。</p>
+<h2 id="テストで小さいオブジェクトを渡す">テストで小さいオブジェクトを渡す</h2>
+<div class="sourceCode" id="cb39"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> [</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    itemId<span class="op">:</span> <span class="st">&#39;a&#39;</span><span class="op">,</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    durationFrames<span class="op">:</span> <span class="dv">40</span><span class="op">,</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    transitionOut<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;crossfade&#39;</span> <span class="im">as</span> <span class="kw">const</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">30</span> }<span class="op">,</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  { itemId<span class="op">:</span> <span class="st">&#39;b&#39;</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">260</span> }<span class="op">,</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<p><code>&#39;crossfade&#39; as const</code> は、<code>type</code> の型を
+<code>string</code> ではなく <code>&#39;crossfade&#39;</code>
+に固定するため。無いと <code>Transition[&#39;type&#39;]</code>
+に合わずエラーになる。2 章の <code>as const</code> と同じ。</p>
+<h2 id="やってみる-3">やってみる</h2>
+<h3 id="演習-4-1-読んで予想する">演習 4-1 読んで予想する</h3>
+<p>150 フレームの素材 a に 30 フレームの crossfade、次に 150 フレームの
+b。<code>compileTimeline</code> の結果の <code>compiled[0]</code> と
+<code>compiled[1].visibleStart</code>
+を紙に書く。<code>compile.test.ts</code> に <code>toEqual</code>
+のテストとして足して確かめる。</p>
+<h3 id="演習-4-2-itemsat">演習 4-2 <code>itemsAt</code></h3>
+<p>4-1 の <code>compiled</code> で、<code>itemsAt(compiled, 140)</code>
+と <code>itemsAt(compiled, 100)</code> が返す <code>itemId</code>
+の並びを予想し、テストに足す。</p>
+<h3 id="演習-4-3-tdd-で-1-つ足す">演習 4-3 TDD で 1 つ足す</h3>
+<p>「タイムライン全体の長さ（最後に見えているフレームの次）」を返す
+<code>timelineEnd(compiled)</code> を <code>compile.ts</code>
+に足す。<code>reduce</code> と <code>Math.max</code> で書く。4-1
+の例では 300。空なら 0。</p>
+<h3 id="演習-4-4-壊してみる">演習 4-4 壊してみる</h3>
+<p><code>clampAfterResize</code> の
+<code>const next = { ...item }</code> を <code>const next = item</code>
+に変えて
+<code>npm test</code>。「元の配列と要素は変更しない」のテストが落ちることを確かめ、戻す。</p>
+<h2 id="答え合わせ-3">答え合わせ</h2>
+<ul>
+<li>4-1: <code>compiled[0]</code> は
+<code>{ itemId: &#39;a&#39;, coreStart: 0, coreEnd: 150, visibleStart: 0, visibleEnd: 165, transitionOut: { type: &#39;crossfade&#39;, start: 135, end: 165 } }</code>。30
+を前に <code>floor(30/2) = 15</code>、後ろに
+<code>ceil(30/2) = 15</code> 割る。crossfade なので a は 165 まで見え、b
+は 135 から見え始める。<code>compiled[1].visibleStart</code> は
+<code>135</code>。</li>
+<li>4-2: <code>[&#39;a&#39;, &#39;b&#39;]</code> と <code>[&#39;a&#39;]</code>。</li>
+<li>4-3:
+<div class="sourceCode" id="cb40"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** タイムライン全体の長さ（最後に見えているフレームの次）。空なら 0 */</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">timelineEnd</span>(compiled<span class="op">:</span> CompiledItem[])<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> compiled<span class="op">.</span><span class="fu">reduce</span>((end<span class="op">,</span> c) <span class="kw">=&gt;</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(end<span class="op">,</span> c<span class="op">.</span><span class="at">visibleEnd</span>)<span class="op">,</span> <span class="dv">0</span>)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div></li>
+</ul>
+<h2 id="この章のまとめ-3">この章のまとめ</h2>
+<ul>
+<li>変えずに新しい値を返す。<code>{ ...x, field: v }</code>、<code>[...xs, y]</code>、<code>map</code>、<code>filter</code>。</li>
+<li>コピーは浅い。変える段ごとに <code>...</code> する。</li>
+<li>持ち越しがあるループは <code>for</code> と <code>let</code>
+で素直に書く。</li>
+<li>ジェネリクスは「入れた型のまま返す」ための 1 か所に限る。</li>
+</ul>
+<h1 id="第-5-章-非同期">第 5 章 非同期</h1>
+<blockquote>
+<p>題材: <code>src/export/withTimeout.ts</code> とそのテスト 目標:
+<code>Promise</code> と <code>async</code>/<code>await</code> を asyncio
+に対応づけて読める。中断（AbortSignal）の仕組みが分かる。</p>
+</blockquote>
+<h2 id="ブラウザは-1-本のスレッド">ブラウザは 1 本のスレッド</h2>
+<p>JavaScript は基本的に 1
+本のスレッドで動き、待ち時間（ファイル読み込み、動画のデコード、タイマー）はイベントループに任せる。Python
+の <code>asyncio</code>
+と同じモデル。違いは、<strong>最初から全部が非同期</strong>
+であること。同期で待つ手段（<code>time.sleep</code>）が無い。</p>
+<h2 id="promise--future">Promise ≒ Future</h2>
+<table>
+<thead>
+<tr>
+<th>asyncio</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async def f():</code></td>
+<td><code>async function f() {</code></td>
+</tr>
+<tr>
+<td><code>await g()</code></td>
+<td><code>await g()</code></td>
+</tr>
+<tr>
+<td><code>asyncio.Future</code></td>
+<td><code>Promise</code></td>
+</tr>
+<tr>
+<td><code>future.set_result(v)</code></td>
+<td><code>resolve(v)</code></td>
+</tr>
+<tr>
+<td><code>future.set_exception(e)</code></td>
+<td><code>reject(e)</code></td>
+</tr>
+<tr>
+<td><code>asyncio.wait_for(coro, timeout)</code></td>
+<td>自作（<code>withTimeout</code>）</td>
+</tr>
+<tr>
+<td><code>task.cancel()</code></td>
+<td><code>AbortController.abort()</code>（協力的な中断）</td>
+</tr>
+<tr>
+<td><code>asyncio.sleep(1)</code></td>
+<td><code>new Promise((r) =&gt; setTimeout(r, 1000))</code></td>
+</tr>
+<tr>
+<td><code>asyncio.gather(a, b)</code></td>
+<td><code>Promise.all([a, b])</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>async function</code> は呼ぶと必ず <code>Promise</code>
+を返す。<code>await</code> は <code>Promise</code>
+が終わるまで、その関数の続きを後回しにする。Python と同じ。</p>
+<h2 id="new-promise-で手作りする"><code>new Promise</code>
+で手作りする</h2>
+<p><code>withTimeout.ts</code> は <code>async</code> ではなく
+<code>new Promise</code> で書いてある。</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">withTimeout</span><span class="op">&lt;</span>T<span class="op">&gt;</span>(promise<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>T<span class="op">&gt;,</span> ms<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> signal<span class="op">?:</span> AbortSignal)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span>T<span class="op">&gt;</span> {</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="bu">Promise</span>((resolve<span class="op">,</span> reject) <span class="kw">=&gt;</span> {</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>new Promise((resolve, reject) =&gt; { ... })</code>
+は「結果を後で入れる箱」を作る。<code>resolve(v)</code>
+を呼ぶと成功、<code>reject(e)</code> で失敗。箱の中で 3
+つの出口を待っている。</p>
+<ol type="1">
+<li>元の <code>promise</code> が終わる → その結果をそのまま流す。</li>
+<li><code>ms</code> ミリ秒たつ → タイムアウトのエラー。</li>
+<li><code>signal</code> が中断される → 「中断されました」のエラー。</li>
+</ol>
+<div class="sourceCode" id="cb42"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>promise<span class="op">.</span><span class="fu">then</span>(</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  (value) <span class="kw">=&gt;</span> <span class="fu">finish</span>(() <span class="kw">=&gt;</span> <span class="fu">resolve</span>(value))<span class="op">,</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  (error) <span class="kw">=&gt;</span> <span class="fu">finish</span>(() <span class="kw">=&gt;</span> <span class="fu">reject</span>(error))<span class="op">,</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p><code>.then(成功時, 失敗時)</code> は <code>await</code>
+を使わない書き方。<code>async</code> にすると「元の promise
+が失敗したあともタイマーを片付ける」が書きにくいので、ここでは
+<code>.then</code> を選んでいる。</p>
+<h2 id="1-回だけ終わるを守る">「1 回だけ終わる」を守る</h2>
+<div class="sourceCode" id="cb43"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> settled <span class="op">=</span> <span class="kw">false</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">finish</span>(settle<span class="op">:</span> () <span class="kw">=&gt;</span> <span class="dt">void</span>) {</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (settled) <span class="cf">return</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  settled <span class="op">=</span> <span class="kw">true</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="pp">clearTimeout</span>(timer)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  signal<span class="op">?.</span><span class="fu">removeEventListener</span>(<span class="st">&#39;abort&#39;</span><span class="op">,</span> onAbort)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">settle</span>()</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>3 つの出口のどれが先に来ても、<code>finish</code> を通して <strong>1
+回だけ</strong>
+結果を入れ、タイマーとイベントの登録を片付ける。<code>Promise</code> は
+2 回目の <code>resolve</code>
+を黙って無視するが、タイマーの片付けは自分でやらないと残る。</p>
+<p>Python で <code>asyncio.wait_for</code> を自作するときの
+<code>done</code> フラグと同じ。</p>
+<h2 id="abortsignal-協力的な中断">AbortSignal: 協力的な中断</h2>
+<div class="sourceCode" id="cb44"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (signal<span class="op">?.</span><span class="at">aborted</span>) {</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">onAbort</span>()</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  signal<span class="op">?.</span><span class="fu">addEventListener</span>(<span class="st">&#39;abort&#39;</span><span class="op">,</span> onAbort)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>AbortController</code> を作った側が
+<code>controller.abort()</code> を呼ぶと、<code>signal</code> に
+<code>&#39;abort&#39;</code>
+イベントが飛ぶ。受ける側はそれを聞いて自分で止まる。Python の
+<code>task.cancel()</code> が <code>CancelledError</code>
+を投げ込むのに対し、こちらは「お願い」なので、聞いていない処理は止まらない。</p>
+<p>「すでに中断済みの signal を渡されたら、イベントは来ない」ので先に
+<code>aborted</code> を見る。テストの最後の <code>it</code>
+がこの場合を確かめている。</p>
+<h2 id="非同期のテスト">非同期のテスト</h2>
+<div class="sourceCode" id="cb45"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;期限内に終われば値をそのまま返す&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(<span class="fu">withTimeout</span>(<span class="bu">Promise</span><span class="op">.</span><span class="fu">resolve</span>(<span class="dv">42</span>)<span class="op">,</span> <span class="dv">1000</span>))<span class="op">.</span><span class="at">resolves</span><span class="op">.</span><span class="fu">toBe</span>(<span class="dv">42</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;元の Promise が失敗したらその失敗をそのまま返す&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(<span class="fu">withTimeout</span>(<span class="bu">Promise</span><span class="op">.</span><span class="fu">reject</span>(<span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;元の失敗&#39;</span>))<span class="op">,</span> <span class="dv">1000</span>))<span class="op">.</span><span class="at">rejects</span><span class="op">.</span><span class="fu">toThrow</span>(<span class="st">&#39;元の失敗&#39;</span>)</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<ul>
+<li><code>it</code> の関数を <code>async</code>
+にし、<code>await expect(...)</code> と書く。</li>
+<li><code>.resolves.toBe(v)</code>
+は成功を、<code>.rejects.toThrow(&#39;...&#39;)</code>
+は失敗とそのメッセージを確かめる。pytest の <code>await</code> と
+<code>pytest.raises</code> に当たる。</li>
+</ul>
+<div class="sourceCode" id="cb46"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>vi<span class="op">.</span><span class="fu">useFakeTimers</span>()</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span> {</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="fu">withTimeout</span>(never<span class="op">,</span> <span class="dv">4000</span>)</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  vi<span class="op">.</span><span class="fu">advanceTimersByTime</span>(<span class="dv">4000</span>)</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">expect</span>(result)<span class="op">.</span><span class="at">rejects</span><span class="op">.</span><span class="fu">toThrow</span>(<span class="st">&#39;固まった可能性&#39;</span>)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>} <span class="cf">finally</span> {</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  vi<span class="op">.</span><span class="fu">useRealTimers</span>()</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>本当に 4 秒待たず、偽のタイマーで時間を進める。<code>try</code> /
+<code>finally</code> で必ず本物に戻す。Python の <code>freezegun</code>
+や <code>asyncio</code> の <code>loop.time</code>
+差し替えに相当する。</p>
+<h2 id="このアプリでどこに使っているか">このアプリでどこに使っているか</h2>
+<p>書き出し（<code>src/export/</code>）は WebCodecs と mediabunny
+の非同期 API を <code>await</code> でつないでいる。1
+フレームのエンコードが固まったときに全体が止まらないよう、<code>withTimeout</code>
+で包んでいる。「中断」は書き出しの「やめる」ボタンにつながっている。読むのは
+9 章以降でよい。</p>
+<h2 id="やってみる-4">やってみる</h2>
+<h3 id="演習-5-1-sleep-を書く">演習 5-1 <code>sleep</code> を書く</h3>
+<p><code>src/export/sleep.ts</code> に
+<code>sleep(ms): Promise&lt;void&gt;</code> を書く。先にテスト:</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;指定した時間のあとに終わる&#39;</span><span class="op">,</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> start <span class="op">=</span> <span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>()</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">await</span> <span class="fu">sleep</span>(<span class="dv">20</span>)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(<span class="bu">Date</span><span class="op">.</span><span class="fu">now</span>() <span class="op">-</span> start)<span class="op">.</span><span class="fu">toBeGreaterThanOrEqual</span>(<span class="dv">15</span>)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>（15 にしているのはタイマーの誤差のため。）</p>
+<h3 id="演習-5-2-withtimeout-で包む">演習 5-2 <code>withTimeout</code>
+で包む</h3>
+<p>5-1 の <code>sleep(100)</code> を
+<code>withTimeout(sleep(100), 10)</code>
+で包むと何が起きるか予想し、テストに足す。</p>
+<h3 id="演習-5-3-読む">演習 5-3 読む</h3>
+<p><code>withTimeout.ts</code> から <code>if (settled) return</code>
+を消すと、どのテストが落ちるか予想する。実際に消して
+<code>npm test</code>、戻す。</p>
+<h2 id="答え合わせ-4">答え合わせ</h2>
+<ul>
+<li>5-1:
+<div class="sourceCode" id="cb48"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** ms ミリ秒待つ */</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">sleep</span>(ms<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="bu">Promise</span><span class="op">&lt;</span><span class="dt">void</span><span class="op">&gt;</span> {</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="bu">Promise</span>((resolve) <span class="kw">=&gt;</span> <span class="pp">setTimeout</span>(resolve<span class="op">,</span> ms))</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div></li>
+<li>5-2:
+<code>await expect(withTimeout(sleep(100), 10)).rejects.toThrow(&#39;固まった可能性&#39;)</code>。</li>
+<li>5-3: 落ちるテストは無い（<code>Promise</code> が 2 回目の
+<code>resolve</code>/<code>reject</code> を無視するため）。ただし
+<code>clearTimeout</code> や <code>removeEventListener</code> が 2
+回呼ばれるようになり、片付けの意図が崩れる。テストが通ることと設計が正しいことは別、という例。</li>
+</ul>
+<h2 id="この章のまとめ-4">この章のまとめ</h2>
+<ul>
+<li><code>Promise</code> は
+Future、<code>async</code>/<code>await</code>
+は同じ。全部が非同期。</li>
+<li><code>new Promise((resolve, reject) =&gt; ...)</code>
+は箱を手作りするとき。出口が複数あるなら「1
+回だけ終わる」を自分で守る。</li>
+<li>中断は <code>AbortSignal</code> を聞いて自分で止まる。</li>
+<li>非同期のテストは
+<code>async () =&gt; { await expect(...).resolves / .rejects }</code>。</li>
+</ul>
+<h1 id="第-6-章-react-の部品を読む">第 6 章 React の部品を読む</h1>
+<blockquote>
+<p>題材:
+<code>src/components/ui/SmallButton.tsx</code>、<code>Section.tsx</code>、<code>FrameSlider.tsx</code>、<code>TabBar.tsx</code>、<code>TotalDuration.tsx</code>、<code>App.tsx</code>
+目標: 「関数が画面を返す」「props
+は引数」「状態が変わると関数がもう一度呼ばれる」の 3 点で部品を読める。
+この章では <code>className=&quot;...&quot;</code> の中身は
+<strong>読み飛ばす</strong>。7 章で見る。</p>
+</blockquote>
+<h2 id="部品--画面の一部を返す関数">部品 = 画面の一部を返す関数</h2>
+<div class="sourceCode" id="cb49"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">SmallButton</span>({ label<span class="op">,</span> variant <span class="op">=</span> <span class="st">&#39;primary&#39;</span><span class="op">,</span> title<span class="op">,</span> disabled<span class="op">,</span> onClick }<span class="op">:</span> Props) {</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> look <span class="op">=</span> variant <span class="op">===</span> <span class="st">&#39;primary&#39;</span> <span class="op">?</span> <span class="st">&#39;...&#39;</span> <span class="op">:</span> <span class="st">&#39;...&#39;</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>button <span class="kw">type</span><span class="op">=</span><span class="st">&quot;button&quot;</span> className<span class="op">=</span>{<span class="vs">`...`</span>} aria<span class="op">-</span>label<span class="op">=</span>{title} title<span class="op">=</span>{title} disabled<span class="op">=</span>{disabled} onClick<span class="op">=</span>{<span class="op">...</span>}<span class="op">&gt;</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>      {label}</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<ul>
+<li>関数の名前は大文字で始める（<code>SmallButton</code>）。小文字は
+HTML の要素（<code>button</code>）。</li>
+<li>戻り値の <code>&lt;button&gt;...&lt;/button&gt;</code> は
+<strong>JSX</strong>。HTML
+に似た見た目で、実際には「要素を作る関数呼び出し」に変換される。拡張子が
+<code>.tsx</code> なのはそのため。</li>
+<li>JSX の中で <code>{ }</code> を書くと TypeScript
+の式に戻る。<code>{label}</code> は変数の値、<code>onClick={...}</code>
+は関数を渡している。</li>
+</ul>
+<p>Python に無理に対応づけるなら、Jinja のテンプレートを「引数を受けて
+HTML を返す関数」として書いたもの。</p>
+<h2 id="props-は引数型を付ける">props は引数、型を付ける</h2>
+<div class="sourceCode" id="cb50"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> {</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  label<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  variant<span class="op">?:</span> <span class="st">&#39;primary&#39;</span> <span class="op">|</span> <span class="st">&#39;secondary&#39;</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  title<span class="op">?:</span> <span class="dt">string</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  disabled<span class="op">?:</span> <span class="dt">boolean</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  onClick<span class="op">:</span> () <span class="kw">=&gt;</span> <span class="dt">void</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>使う側は
+<code>&lt;SmallButton label=&quot;▲&quot; onClick={() =&gt; moveItem(...)} /&gt;</code>
+と、HTML の属性のように渡す。関数側は
+<code>{ label, variant = &#39;primary&#39;, ... }: Props</code>
+と分割代入で受け、既定値を <code>=</code> で書く。Python の
+<code>def small_button(*, label, variant=&#39;primary&#39;, ...)</code>
+と同じ。</p>
+<p><code>onClick: () =&gt; void</code>
+は「引数なし、戻り値なしの関数」。部品はボタンが押されたことだけ伝え、何をするかは呼ぶ側が決める。</p>
+<h2 id="children-中身を受け取る"><code>children</code>:
+中身を受け取る</h2>
+<div class="sourceCode" id="cb51"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> { title<span class="op">:</span> ReactNode<span class="op">;</span> icon<span class="op">?:</span> IconName<span class="op">;</span> children<span class="op">:</span> ReactNode }</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">Section</span>({ title<span class="op">,</span> icon<span class="op">,</span> children }<span class="op">:</span> Props) {</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>section className<span class="op">=</span><span class="st">&quot;mb-12&quot;</span><span class="op">&gt;</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>      <span class="op">&lt;</span>h2 <span class="op">...&gt;</span>{icon <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>Icon name<span class="op">=</span>{icon} <span class="op">.../&gt;</span>}<span class="op">&lt;</span>span<span class="op">&gt;</span>{title}<span class="op">&lt;/</span>span<span class="op">&gt;&lt;/</span>h2<span class="op">&gt;</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>      <span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;space-y-2&quot;</span><span class="op">&gt;</span>{children}<span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>section<span class="op">&gt;</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>Section title<span class="op">=</span><span class="st">&quot;素材&quot;</span> icon<span class="op">=</span><span class="st">&quot;film&quot;</span><span class="op">&gt;</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>MediaList <span class="op">/&gt;</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>Section<span class="op">&gt;</span></span></code></pre></div>
+<p>開きタグと閉じタグの間に書いたものが <code>children</code>
+として渡る。<code>ReactNode</code> は「JSX
+として置けるもの何でも」（文字列、要素、配列、<code>null</code>）。</p>
+<h2 id="条件で出す出さない">条件で出す・出さない</h2>
+<div class="sourceCode" id="cb53"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  icon <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>Icon name<span class="op">=</span>{icon} <span class="op">/&gt;</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  selected <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>div<span class="op">&gt;...&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>  cutNote <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>span className<span class="op">=</span><span class="st">&quot;text-red-700&quot;</span><span class="op">&gt;</span> {cutNote}<span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>A &amp;&amp; B</code> は A が偽なら A（<code>undefined</code>
+や <code>&#39;&#39;</code>）、真なら B。JSX は
+<code>undefined</code>、<code>null</code>、<code>false</code>、<code>&#39;&#39;</code>
+を <strong>何も描かない</strong> ので、「A のときだけ B
+を出す」になる。Python の <code>B if A else None</code> に当たる。</p>
+<p>3 択以上なら <code>? :</code> を重ねる（<code>MediaList.tsx</code> の
+<code>cutNote</code>）。</p>
+<p><code>App.tsx</code>
+のタブは別の方法で、要素を消さずに隠している。</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span>{tab <span class="op">===</span> <span class="st">&#39;editor&#39;</span> <span class="op">?</span> <span class="st">&#39;&#39;</span> <span class="op">:</span> <span class="st">&#39;hidden&#39;</span>}<span class="op">&gt;</span></span></code></pre></div>
+<p>理由はコメントにある。「取り込んだ画像や <code>&lt;video&gt;</code>
+を作り直さないため」。条件で消すと中身の状態も消える。</p>
+<h2 id="一覧は-map-で描く">一覧は <code>map</code> で描く</h2>
+<div class="sourceCode" id="cb55"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>{tabs<span class="op">.</span><span class="fu">map</span>((tab) <span class="kw">=&gt;</span> {</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> active <span class="op">=</span> tab<span class="op">.</span><span class="at">id</span> <span class="op">===</span> value</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>button key<span class="op">=</span>{tab<span class="op">.</span><span class="at">id</span>} <span class="op">...</span> onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">onChange</span>(tab<span class="op">.</span><span class="at">id</span>)}<span class="op">&gt;</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>      {tab<span class="op">.</span><span class="at">label</span>}</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>})}</span></code></pre></div>
+<p>配列を JSX の配列に変換して置く。<code>key</code>
+は各要素を見分けるための印で、<strong>一覧には必ず付ける</strong>（無いと警告が出て、並べ替えで表示が崩れることがある）。ID
+のように変わらない値を使う。添字は並べ替えで変わるので避ける。</p>
+<h2 id="イベント">イベント</h2>
+<div class="sourceCode" id="cb56"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>onClick<span class="op">=</span>{(e) <span class="kw">=&gt;</span> {</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  e<span class="op">.</span><span class="fu">stopPropagation</span>()</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">onClick</span>()</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>}}</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>onChange<span class="op">=</span>{(e) <span class="kw">=&gt;</span> <span class="fu">onChange</span>(<span class="bu">Number</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>))}</span></code></pre></div>
+<p><code>onClick</code>、<code>onChange</code>
+に関数を渡す。<code>e</code> はイベント。<code>e.target.value</code>
+は入力欄の値で <strong>文字列</strong> なので、<code>Number()</code>
+で数に直している（スライダーの値も文字列で来る）。</p>
+<p><code>e.stopPropagation()</code>
+は「親の要素にクリックを伝えない」。<code>SmallButton</code>
+は一覧の行の中にあるので、親の行がクリックを受け取らないようにしている。</p>
+<h2 id="状態-usestate">状態: <code>useState</code></h2>
+<div class="sourceCode" id="cb57"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> [tab<span class="op">,</span> setTab] <span class="op">=</span> <span class="fu">useState</span><span class="op">&lt;</span>Tab<span class="op">&gt;</span>(<span class="st">&#39;guide&#39;</span>)</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> [splash<span class="op">,</span> setSplash] <span class="op">=</span> <span class="fu">useState</span>(<span class="kw">true</span>)</span></code></pre></div>
+<p><code>useState(初期値)</code> は <code>[今の値, 変える関数]</code>
+の組を返す。<code>setTab(&#39;editor&#39;)</code>
+を呼ぶと、<strong>この関数（App）がもう一度呼ばれて</strong>、新しい
+<code>tab</code> で JSX が作り直される。これが React
+の全部と言ってよい。</p>
+<ul>
+<li>値を直接書き換えても（<code>tab = &#39;editor&#39;</code>）画面は変わらない。必ず
+<code>set</code> 関数を使う。</li>
+<li><code>&lt;Tab&gt;</code> は型の指定。<code>&#39;guide&#39;</code>
+から推論すると <code>string</code> になってしまうので、<code>Tab</code>
+だと明示している。</li>
+</ul>
+<h2 id="store-から読む-useappstore">store から読む:
+<code>useAppStore</code></h2>
+<div class="sourceCode" id="cb58"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">items</span>)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> preset <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">preset</span>)</span></code></pre></div>
+<p><code>TotalDuration.tsx</code>
+はアプリ全体の状態（store）から値を取り出している。<code>(s) =&gt; s.project.items</code>
+は「状態のうちこの部分だけ見る」という関数（セレクタ）。その部分が変わったときだけ、この部品が描き直される。詳しくは
+8 章。</p>
+<p><code>TotalDuration</code> は、取り出した値を 3
+章の純粋関数（<code>sumFrames</code>、<code>overflowFrames</code>）に渡して、結果を文で出すだけ。計算は部品の外にある。これがこのアプリの基本形。</p>
+<h2 id="props-を素通しする-rest">props を素通しする:
+<code>...rest</code></h2>
+<div class="sourceCode" id="cb59"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> ButtonHTMLAttributes<span class="op">&lt;</span><span class="bu">HTMLButtonElement</span><span class="op">&gt;</span> <span class="op">&amp;</span> { variant<span class="op">?:</span> <span class="op">...;</span> size<span class="op">?:</span> <span class="op">...</span> }</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">Button</span>({ variant <span class="op">=</span> <span class="st">&#39;primary&#39;</span><span class="op">,</span> size <span class="op">=</span> <span class="st">&#39;normal&#39;</span><span class="op">,</span> className <span class="op">=</span> <span class="st">&#39;&#39;</span><span class="op">,</span> <span class="op">...</span>rest }<span class="op">:</span> Props) {</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">&lt;</span>button className<span class="op">=</span>{<span class="vs">`... </span><span class="sc">${</span>className<span class="sc">}</span><span class="vs">`</span>} {<span class="op">...</span>rest} <span class="op">/&gt;</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>Button.tsx</code> は、自分で使う 3
+つだけ取り出し、残り（<code>onClick</code>、<code>disabled</code>、<code>aria-expanded</code>
+など）を <code>...rest</code> でまとめて <code>&lt;button&gt;</code>
+に渡す。Python の <code>**kwargs</code>
+を下に流すのと同じ。<code>ButtonHTMLAttributes&lt;HTMLButtonElement&gt;</code>
+は「<code>&lt;button&gt;</code> が受け付ける全属性」の型で、React
+が用意している。</p>
+<h2 id="tabbart-extends-string"><code>TabBar&lt;T extends string&gt;</code></h2>
+<div class="sourceCode" id="cb60"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">TabBar</span><span class="op">&lt;</span>T <span class="kw">extends</span> <span class="dt">string</span><span class="op">&gt;</span>({ tabs<span class="op">,</span> value<span class="op">,</span> onChange }<span class="op">:</span> Props<span class="op">&lt;</span>T<span class="op">&gt;</span>)</span></code></pre></div>
+<p>タブの ID は <code>App</code> では
+<code>&#39;guide&#39; | &#39;tips&#39; | &#39;editor&#39; | &#39;join&#39;</code>。<code>T</code>
+のおかげで <code>onChange</code> に渡る ID
+もその型になり、<code>switchTab(next: Tab)</code> が受け取れる。4
+章と同じ「入れた型のまま返す」ための最小限のジェネリクス。</p>
+<h2 id="やってみる-5">やってみる</h2>
+<h3 id="演習-6-1-読んで答える">演習 6-1 読んで答える</h3>
+<p><code>FrameSlider.tsx</code> で、◀ ボタンが押せなくなる条件を 2
+つ挙げる。</p>
+<h3 id="演習-6-2-1-行足す">演習 6-2 1 行足す</h3>
+<p><code>TotalDuration.tsx</code>
+で、上限内のときの文に素材の数を足す。「合計 12.0 秒（3 個、上限 15.0
+秒）。…」のように。<code>items.length</code>
+を使う。開発サーバーで写真を 3 枚入れて確かめる。</p>
+<h3 id="演習-6-3-条件描画">演習 6-3 条件描画</h3>
+<p>6-2 で、素材が 1 個のときは「（1
+個、」ではなく個数を出さないようにする。<code>? :</code> で書く。</p>
+<h3 id="演習-6-4-key-を外す">演習 6-4 key を外す</h3>
+<p><code>TabBar.tsx</code> の <code>key={tab.id}</code>
+を消して開発サーバーを開き、ブラウザの開発者ツールのコンソールに何が出るか読む。戻す。</p>
+<h2 id="答え合わせ-5">答え合わせ</h2>
+<ul>
+<li>6-1: <code>disabled</code>（親が無効にしている。書き出し中）または
+<code>value &lt;= min</code>（もう下限）。</li>
+<li>6-2: <code>const count = items.length</code>
+を足し、<code>合計 {sec(total)} 秒（{count} 個、上限 {sec(preset.maxFrames)} 秒）。</code>
+のように <code>{count}</code> を文に入れる。</li>
+<li>6-3: <code>{count &gt; 1 ? </code>${count} 個、<code> : &#39;&#39;}</code>
+のように、文字列を返す三項演算子を <code>{ }</code> に入れる。</li>
+<li>6-4:
+<code>Each child in a list should have a unique &quot;key&quot; prop.</code>
+の警告が出る。</li>
+</ul>
+<h2 id="この章のまとめ-5">この章のまとめ</h2>
+<ul>
+<li>部品は props を受けて JSX を返す関数。大文字で始める。</li>
+<li><code>{cond &amp;&amp; &lt;X /&gt;}</code>
+で条件描画、<code>xs.map(...)</code> と <code>key</code> で一覧。</li>
+<li>値は <code>useState</code> の set 関数か store の action
+で変える。変わると関数がもう一度呼ばれる。</li>
+<li>計算は部品の外（<code>src/timeline/</code>
+など）に置き、部品は値を文や要素にするだけ。</li>
+</ul>
+<h1 id="第-7-章-tailwind">第 7 章 Tailwind</h1>
+<blockquote>
+<p>題材:
+<code>src/components/Section.tsx</code>、<code>ui/Button.tsx</code>、<code>ui/SmallButton.tsx</code>、<code>TabBar.tsx</code>、<code>MediaList.tsx</code>、<code>src/index.css</code>
+目標:
+このアプリで使っているクラスを見て、位置・大きさ・色を言える。CLAUDE.md
+の並び順で自分でも書ける。</p>
+</blockquote>
+<h2 id="考え方-css-をクラス名で書く">考え方: CSS をクラス名で書く</h2>
+<p>Tailwind では、CSS を別ファイルに書く代わりに、<strong>1 つの CSS
+プロパティ = 1 つのクラス</strong> を要素に並べる。</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">p</span><span class="ot"> class</span><span class="op">=</span><span class="st">&quot;rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700&quot;</span><span class="dt">&gt;&lt;/</span><span class="kw">p</span><span class="dt">&gt;</span></span></code></pre></div>
+<p>は、ふつうの CSS で書くと:</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>border-radius<span class="in">:</span> 0<span class="fu">.25rem</span>;</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>border-width<span class="in">:</span> 1px;</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>border-color<span class="in">:</span> <span class="in">(</span>赤の薄い色<span class="in">)</span>;</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>background-color<span class="in">:</span> <span class="in">(</span>赤のごく薄い色<span class="in">)</span>;</span>
+<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>padding-left<span class="in">:</span> 0<span class="fu">.75rem</span>;</span>
+<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>padding-right<span class="in">:</span> 0<span class="fu">.75rem</span>;</span>
+<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>padding-top<span class="in">:</span> 0<span class="fu">.5rem</span>;</span>
+<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>padding-bottom<span class="in">:</span> 0<span class="fu">.5rem</span>;</span>
+<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>font-size<span class="in">:</span> 0<span class="fu">.875rem</span>;</span>
+<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>color<span class="in">:</span> <span class="in">(</span>赤の濃い色<span class="in">)</span>;</span></code></pre></div>
+<p>利点は、要素とその見た目が同じ場所にあること。欠点は、クラスの名前と数の規則を覚えるまで読めないこと。この章はその規則を、このアプリにあるクラスだけで覚える。</p>
+<h2 id="数の規則-1--025rem--4px">数の規則: 1 = 0.25rem = 4px</h2>
+<p><code>p-2</code>、<code>gap-3</code>、<code>mb-12</code>、<code>w-12</code>、<code>min-h-11</code>
+の数字はすべて同じ目盛り。<strong>4 倍すると px</strong> になる。</p>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>値</th>
+<th>px</th>
+<th>このアプリでの使われ方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gap-1</code></td>
+<td>0.25rem</td>
+<td>4</td>
+<td>スライダーと矢印の間</td>
+</tr>
+<tr>
+<td><code>p-2</code></td>
+<td>0.5rem</td>
+<td>8</td>
+<td>素材の行の内側</td>
+</tr>
+<tr>
+<td><code>gap-3</code></td>
+<td>0.75rem</td>
+<td>12</td>
+<td>サムネイルと文字の間</td>
+</tr>
+<tr>
+<td><code>px-4</code></td>
+<td>1rem</td>
+<td>16</td>
+<td>画面の左右の余白（<code>App</code> の <code>main</code>）</td>
+</tr>
+<tr>
+<td><code>min-h-10</code></td>
+<td>2.5rem</td>
+<td>40</td>
+<td><code>Button</code> の高さ</td>
+</tr>
+<tr>
+<td><code>min-h-11</code></td>
+<td>2.75rem</td>
+<td>44</td>
+<td>指で押す部品の最小の高さ（Apple の指針の 44pt）</td>
+</tr>
+<tr>
+<td><code>w-12</code></td>
+<td>3rem</td>
+<td>48</td>
+<td>秒の表示の幅</td>
+</tr>
+<tr>
+<td><code>mb-12</code></td>
+<td>3rem</td>
+<td>48</td>
+<td>区切り（<code>Section</code>）どうしの間</td>
+</tr>
+</tbody>
+</table>
+<p><code>min-h-11</code>
+がやたら多いのは、スマホで指で押すための約束。<code>SmallButton</code>
+は <code>min-h-11 min-w-11</code> で 44px 角を確保している。</p>
+<p>分数もある。<code>w-4/5</code> は幅 80%。<code>Button</code> の
+normal サイズ。</p>
+<h2 id="向きの文字">向きの文字</h2>
+<table>
+<thead>
+<tr>
+<th>文字</th>
+<th>意味</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>p</code></td>
+<td>padding（内側）</td>
+<td><code>p-2</code> 全方向、<code>px-4</code> 左右、<code>py-2</code>
+上下、<code>pt-3</code> 上だけ</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>margin（外側）</td>
+<td><code>mt-2</code> 上、<code>mb-4</code> 下、<code>mx-auto</code>
+左右を自動（中央寄せ）</td>
+</tr>
+<tr>
+<td><code>-m</code></td>
+<td>負の margin</td>
+<td><code>-mx-4</code> 左右に外へ 16px はみ出す</td>
+</tr>
+<tr>
+<td><code>w</code></td>
+<td>width</td>
+<td><code>w-12</code>、<code>w-4/5</code>、<code>min-w-0</code></td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>height</td>
+<td><code>h-6 w-6</code> アイコンの 24px 角、<code>min-h-11</code></td>
+</tr>
+<tr>
+<td><code>gap</code></td>
+<td>子どうしの間</td>
+<td>flex や grid の中で</td>
+</tr>
+<tr>
+<td><code>space-y-2</code></td>
+<td>子の縦の間</td>
+<td>子要素の上に margin を付ける（<code>Section</code> の中身）</td>
+</tr>
+</tbody>
+</table>
+<p><code>-mx-4</code> は読み方に注意。<code>Section</code> の見出しと
+<code>TabBar</code> が使っている。<code>main</code> が <code>px-4</code>
+で左右に 16px
+の余白を持つので、その分だけ外にはみ出し、画面の幅いっぱいにする。コメントに理由が書いてある。</p>
+<h2 id="並べる-flex">並べる: flex</h2>
+<div class="sourceCode" id="cb63"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex items-center gap-1 text-xs&quot;</span><span class="op">&gt;</span>     <span class="co">// FrameSlider: 横に並べて上下中央</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex flex-col gap-1&quot;</span><span class="op">&gt;</span>                 <span class="co">// MediaList: 縦に並べる（▲▼削除）</span></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;flex flex-wrap gap-2&quot;</span><span class="op">&gt;</span>                <span class="co">// ChipGroup: 横に並べ、あふれたら折り返す</span></span></code></pre></div>
+<ul>
+<li><code>flex</code>: 子を横に並べる。<code>flex-col</code> で縦。</li>
+<li><code>items-center</code>:
+並べる方向と直角の向きで中央にそろえる（横並びなら上下中央）。</li>
+<li><code>gap-N</code>: 子どうしの間隔。</li>
+<li><code>flex-1</code>: 余った幅を取る。<code>FrameSlider</code> の
+<code>&lt;input&gt;</code> が矢印の間を埋める。<code>TabBar</code>
+の各タブが等幅になる。</li>
+<li><code>min-w-0</code>: <code>flex-1</code>
+の子が、中身（長いファイル名）に押されて縮まなくなるのを防ぐ。<code>MediaList</code>
+の <code>&lt;p className=&quot;min-w-0 flex-1 ...&quot;&gt;</code> と
+<code>FrameSlider</code> の
+<code>&lt;input className=&quot;flex-1 min-w-0&quot;&gt;</code>。セットで覚える。</li>
+<li><code>shrink-0</code>: 縮めない。<code>Section</code>
+のアイコン、当日の流れの時刻の列。</li>
+</ul>
+<p><code>block w-4/5 mx-auto</code>（<code>Button</code>）は flex
+ではなく、ブロック要素を幅 80% にして <code>mx-auto</code>
+で中央に置く定型。</p>
+<h2 id="文字">文字</h2>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text-xs</code></td>
+<td>0.75rem（12px）。小さなボタン、スライダーの行</td>
+</tr>
+<tr>
+<td><code>text-sm</code></td>
+<td>0.875rem（14px）。本文のほとんど</td>
+</tr>
+<tr>
+<td><code>text-base</code></td>
+<td>1rem（16px）。キャッチコピー</td>
+</tr>
+<tr>
+<td><code>text-lg</code></td>
+<td>1.125rem（18px）。見出しの帯</td>
+</tr>
+<tr>
+<td><code>font-bold</code></td>
+<td>太字</td>
+</tr>
+<tr>
+<td><code>text-right</code></td>
+<td>右寄せ（秒の表示）</td>
+</tr>
+<tr>
+<td><code>tabular-nums</code></td>
+<td>数字を等幅に（秒の表示が動いても幅が揺れない）</td>
+</tr>
+<tr>
+<td><code>break-all</code></td>
+<td>長いファイル名をどこでも折り返す</td>
+</tr>
+</tbody>
+</table>
+<h2 id="色">色</h2>
+<p><code>色名-濃さ</code> の形。濃さは 50、100、200 …
+900、950。数が大きいほど濃い。</p>
+<p>このアプリの色は <strong>2 系統</strong> だけ。</p>
+<ul>
+<li><code>stone</code>: 灰色（やや暖色）。背景 <code>#f5f5f4</code> は
+<code>stone-100</code>、本文の文字 <code>#1c1917</code> は
+<code>stone-900</code>。</li>
+<li><code>blue-700</code>: 押せるもの（ボタン、リンク）。</li>
+<li><code>red</code>: 注意（上限を超えたとき）。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>クラス</th>
+<th>どこ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bg-blue-700 text-white</code></td>
+<td>primary のボタン</td>
+</tr>
+<tr>
+<td><code>border border-blue-700 text-blue-700</code></td>
+<td>secondary のボタン、Chip の非選択</td>
+</tr>
+<tr>
+<td><code>bg-stone-600 text-white</code></td>
+<td>見出しの帯（黒は強すぎるとの感想で 600）</td>
+</tr>
+<tr>
+<td><code>text-stone-600</code></td>
+<td>補足の文</td>
+</tr>
+<tr>
+<td><code>border-stone-300</code></td>
+<td>素材の行の枠。選択中は <code>border-stone-900</code></td>
+</tr>
+<tr>
+<td><code>bg-stone-400</code></td>
+<td>押せないボタン</td>
+</tr>
+<tr>
+<td><code>opacity-50</code></td>
+<td>上限を超えて入らない素材</td>
+</tr>
+</tbody>
+</table>
+<p><code>border</code> は「枠線 1px」、<code>border-blue-700</code>
+はその色。2 つで 1 組。<code>border-b</code>
+は下だけ、<code>border-t</code> は上だけ（<code>MediaList</code>
+の編集欄の区切り）。</p>
+<h2 id="状態と画面幅-接頭辞">状態と画面幅: <code>接頭辞:</code></h2>
+<div class="sourceCode" id="cb64"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;bg-blue-700 text-white disabled:bg-stone-400&#39;</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;min-h-11 flex-1 rounded-t border px-1 text-xs sm:text-sm&#39;</span></span></code></pre></div>
+<ul>
+<li><code>disabled:bg-stone-400</code>: 要素が <code>disabled</code>
+のときだけ背景を灰色に。</li>
+<li><code>sm:text-sm</code>: 画面幅 640px 以上のときだけ
+<code>text-sm</code>（それ未満は
+<code>text-xs</code>）。スマホ優先で、広い画面のときの上書きを後ろに足す。</li>
+</ul>
+<p><code>hover:</code> はこのアプリではほぼ使わない。タッチ端末では
+hover が無いため。</p>
+<h2 id="並び順の約束claudemd">並び順の約束（CLAUDE.md）</h2>
+<blockquote>
+<p>レイアウト → サイズ → 余白 → 文字 → 色 → 状態</p>
+</blockquote>
+<div class="sourceCode" id="cb65"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>className <span class="op">=</span> <span class="st">&#39;flex items-center gap-1 text-xs&#39;</span> <span class="co">// レイアウト → 文字</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>className <span class="op">=</span> <span class="st">&#39;min-h-11 min-w-11 rounded px-2 text-xs bg-blue-700 text-white disabled:bg-stone-400&#39;</span></span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a><span class="co">//         サイズ            形      余白 文字    色                    状態</span></span></code></pre></div>
+<p>読む側が「どこに置くか → どのくらいの大きさか → 周りとの間 → 文字 →
+色 → 特別なとき」の順に追えるようにするための順。prettier
+は並び順を直さないので、自分で守る。</p>
+<h2 id="条件で変える">条件で変える</h2>
+<div class="sourceCode" id="cb66"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>className<span class="op">=</span>{<span class="vs">`rounded border p-2 </span><span class="sc">${</span>selected <span class="op">?</span> <span class="st">&#39;border-stone-900&#39;</span> <span class="op">:</span> <span class="st">&#39;border-stone-300&#39;</span><span class="sc">}</span><span class="vs"> </span><span class="sc">${</span>outside <span class="op">?</span> <span class="st">&#39;opacity-50&#39;</span> <span class="op">:</span> <span class="st">&#39;&#39;</span><span class="sc">}</span><span class="vs">`</span>}</span></code></pre></div>
+<p>バッククォートの中に <code>${}</code>
+で三項演算子を入れる。共通のクラスを前に、変わるクラスを後ろに。<code>Button.tsx</code>
+は <code>look</code> と <code>width</code>
+を変数に出してから組み立てている。長くなったらこの形。</p>
+<p><strong>やってはいけないこと</strong>: <code>bg-${color}-700</code>
+のようにクラス名を文字列でつなぐ。Tailwind
+はソースを文字列検索して使われているクラスの CSS
+だけを作るので、組み立てたクラスは見つからず、スタイルが出ない。候補をすべて書き出す（<code>active ? &#39;border-blue-700 bg-blue-700 text-white&#39; : &#39;border-blue-700 text-blue-700&#39;</code>）。</p>
+<h2 id="3-回書いたら部品にする">3 回書いたら部品にする</h2>
+<p>CLAUDE.md
+の約束。<code>bg-blue-700 text-white disabled:bg-stone-400</code> は
+<code>Button</code> と <code>SmallButton</code> の 2
+か所にあるが、<code>ExternalLink.tsx</code> のコメントのように、3
+か所目が出たら切り出す。<code>@apply</code> で CSS
+側にまとめるのはしない（部品に寄せる）。</p>
+<h2 id="tailwind-v4-の設定">Tailwind v4 の設定</h2>
+<p><code>src/index.css</code> の 1 行目:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode css"><code class="sourceCode css"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="im">@import</span> <span class="st">&#39;tailwindcss&#39;</span><span class="op">;</span></span></code></pre></div>
+<p>と、<code>vite.config.ts</code> の <code>tailwindcss()</code>
+プラグイン。これだけ。v3 までにあった <code>tailwind.config.js</code>
+は無い。使っているクラスは Vite がソースから拾う。</p>
+<h2 id="ふつうの-css-を書くとき">ふつうの CSS を書くとき</h2>
+<p><code>index.css</code>
+の残りは、スライダー（<code>input[type=&#39;range&#39;]</code>）の見た目。つまみの大きさや溝の色は擬似要素（<code>::-webkit-slider-thumb</code>）で指定するしかなく、Tailwind
+のクラスでは届かない。こういうときだけ CSS
+を書く。コメントに「指で操作できるように 44px、つまみ
+28px」と理由がある。</p>
+<h2 id="やってみる-6">やってみる</h2>
+<p>開発サーバーを開き、ブラウザの開発者ツール（要素の検査）で、クラスを足したり消したりして見る。保存しなくても試せる。</p>
+<h3 id="演習-7-1-読んで答える">演習 7-1 読んで答える</h3>
+<p><code>TabBar.tsx</code> の選択中のタブに付く
+<code>-mb-px border-b-stone-100</code>
+は何をしているか。コメントと見比べて説明する。</p>
+<h3 id="演習-7-2-色を変える">演習 7-2 色を変える</h3>
+<p><code>Section.tsx</code> の <code>bg-stone-600</code> を
+<code>bg-stone-800</code>、<code>bg-blue-700</code>
+に変えて見比べる。元に戻す。</p>
+<h3 id="演習-7-3-選択中の枠を青に">演習 7-3 選択中の枠を青に</h3>
+<p><code>MediaList.tsx</code> で、「この素材を編集する」を押した行の枠を
+<code>border-stone-900</code> から <code>border-blue-700</code>
+に変える。ボタンの色と同じ系統になるのを確かめる。これは勉強ブランチだけに留めるか、本番に入れたいなら利用者（自分）として判断して
+ADR ではなく devlog に 1 行書く。</p>
+<h3 id="演習-7-4-並び順を直す">演習 7-4 並び順を直す</h3>
+<p>次のクラス列を CLAUDE.md の順に並べ直す。</p>
+<pre><code>text-sm bg-red-50 px-3 rounded border-red-300 py-2 text-red-700 border</code></pre>
+<h3 id="演習-7-5-壊してみる">演習 7-5 壊してみる</h3>
+<p><code>SmallButton.tsx</code> で <code>min-h-11 min-w-11</code>
+を消し、スマホ幅（開発者ツールの端末モード、390px）で ▲▼
+がどれだけ小さくなるか見る。戻す。</p>
+<h2 id="答え合わせ-6">答え合わせ</h2>
+<ul>
+<li>7-1:
+タブの帯の下線（<code>border-b border-stone-400</code>）に、選択中のタブの下辺を
+1px 重ね（<code>-mb-px</code>）、その下辺の色を画面の地色と同じ
+<code>stone-100</code>
+にする。線が消えて、タブと中身がつながって見える。</li>
+<li>7-4:
+<code>rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700</code>（形
+→ 枠 → 色 → 余白 → 文字 → 色。<code>TotalDuration.tsx</code>
+の実物と同じ）。「形」は「サイズ」の仲間として前に置く。</li>
+</ul>
+<h2 id="この章のまとめ-6">この章のまとめ</h2>
+<ul>
+<li>数は 4 倍で px。<code>min-h-11</code> は 44px、指のための約束。</li>
+<li><code>flex</code> + <code>gap</code> + <code>flex-1 min-w-0</code>
+が横並びの定型。</li>
+<li>色は <code>stone</code>（灰）と <code>blue-700</code>（押せる）と
+<code>red</code>（注意）だけ。</li>
+<li><code>disabled:</code>、<code>sm:</code> は接頭辞。</li>
+<li>クラス名を文字列でつなげない。候補を全部書く。</li>
+<li>並び順はレイアウト → サイズ → 余白 → 文字 → 色 → 状態。</li>
+</ul>
+<h1 id="第-8-章-状態とデータの流れ">第 8 章 状態とデータの流れ</h1>
+<blockquote>
+<p>題材:
+<code>src/state/store.ts</code>、<code>src/state/projectActions.ts</code>
+とそのテスト、<code>src/components/MediaList.tsx</code> 目標:
+スライダーを動かしたときに、どのファイルのどの関数を通って画面が変わるかを追える。</p>
+</blockquote>
+<h2 id="全体像">全体像</h2>
+<pre><code>[部品]  FrameSlider の onChange
+  ↓ setItemDuration(itemId, frames)
+[store] useAppStore の setItemDuration
+  ↓ actions.setItemDuration(project, itemId, frames)
+[純粋関数] projectActions.ts → timeline/durations.ts、clamp.ts、trim.ts
+  ↓ 新しい project
+[store] set({ project })
+  ↓ 変わった部分を見ている部品だけが再描画
+[部品]  MediaList、TotalDuration、PreviewCanvas …</code></pre>
+<p>考え方は Python でも書ける。「状態は 1 つの dict。変更は
+<code>new = f(old, ...)</code> を返す純粋関数。dict
+を差し替えたら、購読している関数を呼び直す」。zustand
+はその「購読」の部分を React 用に用意したライブラリ。</p>
+<h2 id="store-の形">store の形</h2>
+<div class="sourceCode" id="cb70"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> useAppStore <span class="op">=</span> <span class="fu">create</span><span class="op">&lt;</span>AppState<span class="op">&gt;</span>((<span class="kw">set</span><span class="op">,</span> <span class="kw">get</span>) <span class="kw">=&gt;</span> ({</span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>  project<span class="op">:</span> actions<span class="op">.</span><span class="fu">createProject</span>(DEFAULT_PRESET)<span class="op">,</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  images<span class="op">:</span> {}<span class="op">,</span></span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>  videos<span class="op">:</span> {}<span class="op">,</span></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>  ui<span class="op">:</span> { selectedItemId<span class="op">:</span> <span class="dt">null</span><span class="op">,</span> playheadFrame<span class="op">:</span> <span class="dv">0</span><span class="op">,</span> isPlaying<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> importing<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> exporting<span class="op">:</span> <span class="kw">false</span> }<span class="op">,</span></span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a>  setItemDuration<span class="op">:</span> (itemId<span class="op">,</span> frames) <span class="kw">=&gt;</span> { <span class="op">...</span> }<span class="op">,</span></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>  select<span class="op">:</span> (itemId) <span class="kw">=&gt;</span> <span class="kw">set</span>((s) <span class="kw">=&gt;</span> ({ ui<span class="op">:</span> { <span class="op">...</span>s<span class="op">.</span><span class="at">ui</span><span class="op">,</span> selectedItemId<span class="op">:</span> itemId } }))<span class="op">,</span></span>
+<span id="cb70-9"><a href="#cb70-9" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb70-10"><a href="#cb70-10" aria-hidden="true" tabindex="-1"></a>}))</span></code></pre></div>
+<ul>
+<li><code>AppState</code>
+の型（ファイル冒頭）に、<strong>データ</strong> と
+<strong>操作（action）</strong> の両方が並んでいる。Python
+のクラスで言えば属性とメソッドだが、クラスは使わない。</li>
+<li><code>create</code> に渡した関数が初期状態を返す。<code>set</code>
+は状態を差し替える関数、<code>get</code> は今の状態を読む関数。</li>
+<li>action の中で <code>set({ project })</code> や
+<code>set((s) =&gt; ({ ui: { ...s.ui, selectedItemId } }))</code>
+と呼ぶ。渡したフィールドだけが差し替わる（浅い merge）。<code>ui</code>
+の中の 1 つを変えるときは、4 章のスプレッドで <code>ui</code>
+を作り直す。</li>
+</ul>
+<h2 id="action-は純粋関数に任せる">action は純粋関数に任せる</h2>
+<p><code>store.ts</code> の冒頭コメント:</p>
+<blockquote>
+<p>プロジェクトの変更は projectActions
+の純粋関数に任せ、ここでは画像の所有と UI 状態だけを扱う。</p>
+</blockquote>
+<p><code>projectActions.ts</code> の関数は
+<code>(project, ...) =&gt; project</code> の形で、store も React
+も知らない。だから <code>projectActions.test.ts</code> は vitest
+だけで動き、ブラウザが要らない。テストを読むと「追加した素材は 5
+秒」「上限を超えたら追加しない」「同じ値なら元のまま（<code>toBe(p)</code>）」といった仕様がそのまま書いてある。</p>
+<p>store 側に残っているのは、</p>
+<ul>
+<li>画像や動画の <strong>所有</strong>（<code>ImageBitmap</code>
+を閉じる、使い終わった動画を解放する）。これは副作用なので純粋関数に入れない。</li>
+<li><code>ui</code>（選択中、再生中、取り込み中、書き出し中）。</li>
+</ul>
+<h2 id="部品からの読み方-セレクタ">部品からの読み方: セレクタ</h2>
+<div class="sourceCode" id="cb71"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">items</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exporting <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">ui</span><span class="op">.</span><span class="at">exporting</span>)</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> setItemDuration <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">setItemDuration</span>)</span></code></pre></div>
+<p><code>useAppStore(セレクタ)</code>
+は「状態のこの部分」を返し、<strong>その部分が変わったときだけ</strong>
+部品を描き直す。<code>useAppStore()</code>
+と引数なしで全体を取ると、何が変わっても描き直されて遅くなるので、必ず必要な部分だけ取る。action
+も同じ書き方で取る。</p>
+<h2 id="追ってみる-尺のスライダー">追ってみる: 尺のスライダー</h2>
+<ol type="1">
+<li><code>MediaList.tsx</code>:
+<code>&lt;FrameSlider ... onChange={(frames) =&gt; setItemDuration(item.itemId, frames)} /&gt;</code></li>
+<li><code>FrameSlider.tsx</code>: スライダーを動かすと
+<code>onChange(Number(e.target.value))</code>。矢印なら
+<code>onChange(stepFrames(...))</code>。</li>
+<li><code>store.ts</code>:
+<code>setItemDuration: (itemId, frames) =&gt; set((s) =&gt; withProject(s, actions.setItemDuration(s.project, itemId, frames)))</code>。<code>withProject</code>
+はファイルの下にある補助関数で、新しい <code>project</code>
+が元と同じオブジェクトならそのまま返し、違えば再生位置（<code>ui.playheadFrame</code>）も新しい尺の範囲に収めて返す。</li>
+<li><code>projectActions.ts</code> の <code>setItemDuration</code>:
+<code>clampDuration</code> で整え、同じ値なら元の <code>project</code>
+を返す。違えば <code>items</code> を <code>map</code>
+で作り直し、<code>clampAfterResize</code>（つなぎとテロップを尺に収める）、<code>clampTrims</code>（動画の開始位置を収める）を通す。</li>
+<li><code>set</code> で差し替わる。<code>s.project.items</code>
+を見ている
+<code>MediaList</code>、<code>TotalDuration</code>、<code>PreviewCanvas</code>
+が描き直される。<code>s.ui.exporting</code>
+だけを見ている部品は、その値が変わらない限り動かない。</li>
+</ol>
+<p>テスト <code>projectActions.test.ts</code>
+の「変えたあとはトランジションとキャプションが切り詰められる」が、4
+の仕様をそのまま書いている。</p>
+<h2 id="同じなら元を返すの意味">「同じなら元を返す」の意味</h2>
+<div class="sourceCode" id="cb72"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">setItemDuration</span>(p<span class="op">,</span> <span class="st">&#39;p1&#39;</span><span class="op">,</span> <span class="dv">150</span>))<span class="op">.</span><span class="fu">toBe</span>(p)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a><span class="fu">expect</span>(<span class="fu">removeItem</span>(p<span class="op">,</span> <span class="st">&#39;nope&#39;</span>))<span class="op">.</span><span class="fu">toBe</span>(p)</span></code></pre></div>
+<p>変化が無いときは <strong>同じオブジェクト</strong> を返す。store
+はそれを見て <code>set</code> を呼ばず、部品は描き直されない。4
+章の「壊さずに変える」の裏返しで、「変えないときは新しく作らない」。Python
+で <code>if new == old: return old</code> と書くのと同じだが、ここでは
+<code>==</code> ではなく同一性で判定するので速い。</p>
+<h2 id="排他-importing-と-exporting">排他: <code>importing</code> と
+<code>exporting</code></h2>
+<div class="sourceCode" id="cb73"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> exporting <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">ui</span><span class="op">.</span><span class="at">exporting</span>)</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>SmallButton label<span class="op">=</span><span class="st">&quot;削除&quot;</span> disabled<span class="op">=</span>{exporting} <span class="op">...</span> <span class="op">/&gt;</span></span></code></pre></div>
+<p>書き出し中に素材を消すと、使っている画像が閉じられて書き出しが壊れる。store
+に「今は書き出し中」を 1
+つ置き、関係する部品がそれを見て自分を無効にする。フラグを 1
+か所に置き、部品は読むだけ。</p>
+<h2 id="やってみる-7">やってみる</h2>
+<h3 id="演習-8-1-追う">演習 8-1 追う</h3>
+<p>▲ ボタン（並べ替え）を押したときの経路を、1〜5
+の形で書く。<code>moveItem</code> を <code>MediaList.tsx</code> →
+<code>store.ts</code> → <code>projectActions.ts</code>
+と読む。「範囲外なら元のまま」がどこで判定されているか。</p>
+<h3 id="演習-8-2-どこで立つか">演習 8-2 どこで立つか</h3>
+<p><code>ui.exporting</code> を <code>true</code> にしている場所と
+<code>false</code> に戻している場所を <code>grep</code>
+で探す。戻し忘れたら何が起きるか考える。</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">grep</span> <span class="at">-rn</span> <span class="st">&quot;setExporting&quot;</span> src</span></code></pre></div>
+<h3 id="演習-8-3-テストから仕様を言う">演習 8-3
+テストから仕様を言う</h3>
+<p><code>projectActions.test.ts</code> の
+<code>describe(&#39;addPhoto / addItems ...&#39;)</code>
+を読み、素材の追加の規則を 4 つ、日本語の箇条書きにする。</p>
+<h3 id="演習-8-4-1-つ足す勉強ブランチだけ">演習 8-4 1
+つ足す（勉強ブランチだけ）</h3>
+<p><code>ui</code> に <code>showHelp: boolean</code>
+を足し、<code>toggleHelp()</code> という action
+を足す。<code>MediaList</code>
+の案内文（「この素材を編集する」を押すと…）を、<code>showHelp</code>
+が真のときだけ出すようにする。手順:</p>
+<ol type="1">
+<li><code>AppState</code> の型に 2
+つ足す（型エラーで、初期値と実装を書く場所を教えてくれる）。</li>
+<li>初期値 <code>showHelp: true</code>
+と、<code>toggleHelp: () =&gt; set((s) =&gt; ({ ui: { ...s.ui, showHelp: !s.ui.showHelp } }))</code>。</li>
+<li><code>store.test.ts</code> に「<code>toggleHelp</code>
+で反転する」のテスト。</li>
+<li><code>MediaList</code> で読んで条件描画。</li>
+</ol>
+<h2 id="答え合わせ-7">答え合わせ</h2>
+<ul>
+<li>8-1: <code>MediaList</code> の
+<code>onClick={() =&gt; moveItem(item.itemId, index - 1)}</code> → store
+の <code>moveItem</code> →
+<code>actions.moveItem(project, itemId, toIndex)</code>。範囲外・無い
+ID・同じ位置は <code>actions.moveItem</code> の冒頭で
+<code>return project</code>（テスト「範囲外の位置や無い
+ID、同じ位置への移動なら元のまま」）。</li>
+<li>8-2: <code>src/components/ExportPanel.tsx</code> の 1
+か所だけ。書き出しの開始で <code>true</code>、<code>finally</code> で
+<code>false</code>。戻し忘れると削除・並べ替え・尺の変更がずっと押せなくなる。</li>
+<li>8-3: 新しい素材の尺は 5 秒で、既存の尺は変えない／写真は Ken Burns
+が none、テロップ無し、cut でつなぐ／個数の上限（15 秒なら 15
+個）を超えたら追加しない／同じ ID
+は拒否し、まとめて追加でも飛ばす。</li>
+<li>8-4: テストは
+<code>useAppStore.getState().toggleHelp(); expect(useAppStore.getState().ui.showHelp).toBe(false)</code>
+の形（<code>store.test.ts</code>
+の既存のテストに書き方の例がある）。</li>
+</ul>
+<h2 id="この章のまとめ-7">この章のまとめ</h2>
+<ul>
+<li>状態は 1 つの store。部品はセレクタで必要な部分だけ読む。</li>
+<li>変更は <code>projectActions.ts</code> の純粋関数が新しい
+<code>project</code> を返し、store が <code>set</code>
+で差し替える。</li>
+<li>変化が無いときは同じオブジェクトを返す。描き直しが起きない。</li>
+<li>排他のフラグは store に 1
+つ置き、部品は読んで自分を無効にする。</li>
+</ul>
+<h1 id="第-9-章-仕上げと次の一歩">第 9 章 仕上げと次の一歩</h1>
+<blockquote>
+<p>題材:
+<code>docs/adr/</code>、<code>docs/plan.md</code>、<code>docs/devlog/</code>、<code>CLAUDE.md</code>
+目標:
+このリポジトリの開発の流れを自分で一周できる。次に読む層が分かる。</p>
+</blockquote>
+<h2 id="18-章で読んだもの読んでいないもの">1〜8
+章で読んだもの、読んでいないもの</h2>
+<p>読んだ:
+<code>model</code>、<code>timeline</code>、<code>state</code>、<code>components</code>
+の一部、<code>export/withTimeout</code>、<code>guide</code>。
+読んでいない: <code>render</code>（Canvas に 1
+フレームを描く）、<code>export</code>（WebCodecs と mediabunny で MP4
+にする）、<code>preview</code>（<code>&lt;video&gt;</code> と Canvas
+で再生）、<code>media</code>（ファイルの取り込み）、<code>bgm</code>（音声のデコードと
+AAC）、<code>join</code>（つなげる）。</p>
+<p>読んでいない層は、TypeScript
+の文法としては新しいものがほとんど無い。難しさはブラウザ API
+の仕様にある。入口を 3 つだけ案内する。</p>
+<ul>
+<li><strong><code>src/render/renderFrame.ts</code></strong>:
+「フレーム番号 → Canvas に描く」の 1
+関数。<code>timeline/compile.ts</code>
+の結果（<code>itemsAt</code>、<code>transitionAt</code>）を受け、写真の動き（<code>kenBurns.ts</code>）とテロップ（<code>drawCaption.ts</code>）を描く。Canvas
+の <code>drawImage</code> を知っていれば読める。テストは
+<code>@napi-rs/canvas</code> で Node 上で描いて確かめている。</li>
+<li><strong><code>src/export/exportVideo.ts</code></strong>: 1
+フレームずつ <code>renderFrame</code> で描き、WebCodecs の
+<code>VideoEncoder</code> に渡し、mediabunny で MP4
+に詰める。<code>withTimeout</code> と <code>AbortSignal</code>（5
+章）がここで使われている。</li>
+<li><strong>ADR 008、015、016、019</strong>:
+フレームを整数で持つ理由、尺の規則、白フェードの決め方、BGM
+の扱い。コードを読む前に ADR
+を読むと、「なぜそうなっているか」が先に分かる。</li>
+</ul>
+<h2 id="開発の一周このリポジトリの約束">開発の一周（このリポジトリの約束）</h2>
+<p>勉強の仕上げとして、小さな変更を本番の流れで一周する。題材は 6
+章の演習 6-2（合計の文に素材の数を出す）か、7 章の
+7-3（選択中の枠を青に）がよい。見た目だけの変更なので二重レビューは省略できる（devlog
+に明記）。</p>
+<ol type="1">
+<li><strong>ブランチ</strong>:
+<code>git checkout main &amp;&amp; git checkout -b total-count</code></li>
+<li><strong>テスト</strong>（純粋関数を触るなら先に）</li>
+<li><strong>実装</strong></li>
+<li><strong>3 つ通す</strong>:
+<code>npm run lint</code>、<code>npm run typecheck</code>、<code>npm test</code>。それから
+<code>npm run format</code>。</li>
+<li><strong>目で見る</strong>: <code>npm run dev</code>
+でスマホ幅にして確かめる。</li>
+<li><strong>devlog</strong>: <code>docs/devlog/YYYY-MM-DD.md</code> に
+3〜5 行。「何を、なぜ、どう確かめたか、レビューを省いた理由」。</li>
+<li><strong>コミット</strong>: メッセージは日本語 1〜2
+行で「何を、なぜ」。</li>
+<li><strong>main に合流</strong>:
+<code>git checkout main &amp;&amp; git merge --no-ff total-count &amp;&amp; git branch -d total-count</code></li>
+<li><strong>プッシュ</strong>: <code>git push origin main</code>。GitHub
+Actions が Pages に配る。<code>gh run watch</code>
+で終わるのを見る。</li>
+</ol>
+<p>新しい機能や構造の変更なら、4 と 5 の間に
+<strong>二重レビュー</strong>（Claude の <code>/code-review</code> →
+Codex → 自分の判断。<code>docs/plan.md</code> §14）を入れ、結果を
+<code>docs/reviews/</code> に残す。設計の判断を伴うなら ADR を 1
+本書く。</p>
+<h2 id="ai-との付き合い方勉強の場面で">AI
+との付き合い方（勉強の場面で）</h2>
+<p>このリポジトリは「AI
+との開発の教科書」になる。勉強中の使い方も、その記録の一部になる。</p>
+<p>よい頼み方:</p>
+<ul>
+<li>「<code>src/timeline/clamp.ts</code> を Python で書き直して、違いを
+3 つ説明して」</li>
+<li>「<code>remainingFrames</code> のテストを先に 3
+つ書いて。実装はまだ書かないで」</li>
+<li>「この <code>className</code> の各クラスが何をしているか、1
+行ずつ」</li>
+<li>「自分で書いたこの関数をレビューして。CLAUDE.md
+の平易さのルールに照らして」</li>
+</ul>
+<p>避けたい頼み方:</p>
+<ul>
+<li>「この章の演習を全部やって」（自分で赤を見ないと身につかない）</li>
+<li>「もっと賢い書き方にして」（CLAUDE.md
+の方針に反する。賢くない書き方が正解）</li>
+</ul>
+<p>分からない用語は、まず
+<code>docs/study/python-to-typescript.md</code>（付録）を見る。無ければ
+AI に「Python の ○○ に当たるものは？」と聞き、分かったら付録に 1
+行足す。</p>
+<h2 id="勉強の記録を教科書に戻す">勉強の記録を教科書に戻す</h2>
+<p><code>docs/study/notes.md</code>
+に残した「詰まった場所」は、読者が詰まる場所でもある。章立てが終わったら、</p>
+<ul>
+<li>各章の「答え合わせ」に足す</li>
+<li>本文の説明を直す</li>
+<li>CLAUDE.md の「平易さのルール」に項目を足す</li>
+</ul>
+<p>のどれかに戻す。これも 1 ブランチ 1 変更で。</p>
+<h2 id="次に学ぶなら">次に学ぶなら</h2>
+<ul>
+<li><strong>React をもう少し</strong>:
+<code>useEffect</code>（副作用）、<code>useRef</code>（DOM
+への参照）、<code>useMemo</code>。<code>PreviewCanvas.tsx</code> と
+<code>usePreview.ts</code> に全部出てくる。</li>
+<li><strong>Canvas</strong>: <code>src/render/</code> を
+<code>renderFrame.test.ts</code> から読む。</li>
+<li><strong>WebCodecs</strong>: <code>docs/plan.md</code>
+の「技術調査の結論」と ADR 002、009
+を先に読み、<code>src/export/encoder.ts</code> へ。</li>
+<li><strong>Tailwind をもう少し</strong>: 公式ドキュメントの「Core
+concepts」だけ読む。このアプリで使っていないグリッド、アニメーション、ダークモードは必要になるまで読まない。</li>
+</ul>
+<h2 id="この章のまとめ-8">この章のまとめ</h2>
+<ul>
+<li>開発の一周（ブランチ → テスト → 実装 → 3 つ通す → 目で見る → devlog
+→ コミット → 合流 → プッシュ）を自分でやる。</li>
+<li>次の層は、ADR を先に読んでからコードへ。</li>
+<li>詰まった記録は教科書の材料。戻す。</li>
+</ul>
+<h1 id="付録-python-と-typescript-の対照表">付録 Python と TypeScript
+の対照表</h1>
+<blockquote>
+<p>このアプリに出てくる書き方だけ。分からない用語が出たら、ここに 1
+行足す。</p>
+</blockquote>
+<h2 id="値と型">値と型</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code>、<code>float</code></td>
+<td><code>number</code></td>
+<td>区別なし。<code>7 / 2</code> は <code>3.5</code>。整数は
+<code>Math.floor</code></td>
+</tr>
+<tr>
+<td><code>str</code></td>
+<td><code>string</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>boolean</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>None</code></td>
+<td><code>undefined</code>（未設定）／<code>null</code>（意図して空）</td>
+<td>2 つある</td>
+</tr>
+<tr>
+<td><code>list[int]</code></td>
+<td><code>number[]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>dict[str, V]</code></td>
+<td><code>Record&lt;string, V&gt;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>set[str]</code></td>
+<td><code>Set&lt;string&gt;</code></td>
+<td><code>.has()</code>、<code>.add()</code></td>
+</tr>
+<tr>
+<td><code>tuple[int, int]</code></td>
+<td><code>[number, number]</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Any</code></td>
+<td><code>unknown</code></td>
+<td><code>unknown</code> は確かめるまで何もできない</td>
+</tr>
+<tr>
+<td><code>Literal[&#39;a&#39;, &#39;b&#39;]</code></td>
+<td><code>&#39;a&#39; | &#39;b&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Optional[T]</code></td>
+<td><code>T | undefined</code>、フィールドなら
+<code>name?: T</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Union[A, B]</code></td>
+<td><code>A | B</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>@dataclass class P:</code></td>
+<td><code>type P = { ... }</code></td>
+<td>クラスではない。<code>{ ... }</code> で作る</td>
+</tr>
+<tr>
+<td><code>class B(A):</code>（フィールドの合体）</td>
+<td><code>type B = A &amp; { ... }</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Protocol</code></td>
+<td>（何も書かない）</td>
+<td>形が合えば通る（構造的な型）</td>
+</tr>
+<tr>
+<td><code>TypeVar(&#39;T&#39;, bound=A)</code></td>
+<td><code>&lt;T extends A&gt;</code></td>
+<td>最小限にする</td>
+</tr>
+<tr>
+<td><code>isinstance(x, Video)</code></td>
+<td><code>x.kind === &#39;video&#39;</code></td>
+<td>フィールドの値で見分ける</td>
+</tr>
+<tr>
+<td><code>match x: case ...</code></td>
+<td><code>if (x.kind === ...)</code>、<code>switch</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x: int = cast(int, y)</code></td>
+<td><code>y as number</code></td>
+<td>確かめた直後にだけ</td>
+</tr>
+<tr>
+<td><code>Final</code>／定数</td>
+<td><code>as const</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="文法">文法</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x = 1</code>（再代入する）</td>
+<td><code>let x = 1</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x = 1</code>（再代入しない）</td>
+<td><code>const x = 1</code></td>
+<td>中身は変えられる</td>
+</tr>
+<tr>
+<td><code>def f(x: int) -&gt; int:</code></td>
+<td><code>function f(x: number): number {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>lambda x: x + 1</code></td>
+<td><code>(x) =&gt; x + 1</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>def f(x, y=10):</code></td>
+<td><code>function f(x: number, y = 10)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>def f(**kwargs):</code></td>
+<td><code>function f({ a, b, ...rest }: Props)</code></td>
+<td>分割代入と <code>...rest</code></td>
+</tr>
+<tr>
+<td><code>f&quot;{a} と {b}&quot;</code></td>
+<td><code>`${a} と {b}`</code></td>
+<td>バッククォート</td>
+</tr>
+<tr>
+<td><code>x if c else y</code></td>
+<td><code>c ? x : y</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>a or b</code></td>
+<td><code>a ?? b</code>（<code>null</code>/<code>undefined</code>
+のときだけ）、<code>a || b</code>（偽のとき）</td>
+<td><code>0</code> や <code>&#39;&#39;</code> には <code>??</code></td>
+</tr>
+<tr>
+<td><code>a and b</code></td>
+<td><code>a &amp;&amp; b</code></td>
+<td>JSX では「a のときだけ b を出す」</td>
+</tr>
+<tr>
+<td><code>x == y</code></td>
+<td><code>x === y</code></td>
+<td><code>==</code> は使わない</td>
+</tr>
+<tr>
+<td><code>x is y</code></td>
+<td><code>x === y</code>（オブジェクト）</td>
+<td></td>
+</tr>
+<tr>
+<td><code>x in d</code>（dict のキー）</td>
+<td><code>&#39;x&#39; in d</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>x in xs</code>（list）</td>
+<td><code>xs.includes(x)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>getattr(x, &#39;a&#39;, None)</code></td>
+<td><code>x?.a</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>for x in xs:</code></td>
+<td><code>for (const x of xs) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>for i, x in enumerate(xs):</code></td>
+<td><code>xs.forEach((x, i) =&gt; ...)</code></td>
+<td>要素が先、添字が後</td>
+</tr>
+<tr>
+<td><code>for i in range(n):</code></td>
+<td><code>for (let i = 0; i &lt; n; i++) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>while c:</code></td>
+<td><code>while (c) {</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>try: ... except E as e: ... finally:</code></td>
+<td><code>try { } catch (e) { } finally { }</code></td>
+<td><code>e</code> の型は <code>unknown</code></td>
+</tr>
+<tr>
+<td><code>raise ValueError(&#39;...&#39;)</code></td>
+<td><code>throw new Error(&#39;...&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>pass</code></td>
+<td><code>{}</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>from m import f</code></td>
+<td><code>import { f } from &#39;./m&#39;</code></td>
+<td>相対パス、拡張子なし</td>
+</tr>
+<tr>
+<td><code>from m import T</code>（型だけ）</td>
+<td><code>import type { T } from &#39;./m&#39;</code></td>
+<td></td>
+</tr>
+<tr>
+<td>先頭 <code>_</code> で非公開</td>
+<td><code>export</code> を付けない</td>
+<td></td>
+</tr>
+<tr>
+<td><code># コメント</code></td>
+<td><code>// コメント</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&quot;&quot;&quot;docstring&quot;&quot;&quot;</code></td>
+<td><code>/** JSDoc */</code>（関数の上）</td>
+<td>エディタがホバーで表示する</td>
+</tr>
+<tr>
+<td><code>print(x)</code></td>
+<td><code>console.log(x)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="配列辞書文字列">配列・辞書・文字列</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[f(x) for x in xs]</code></td>
+<td><code>xs.map((x) =&gt; f(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>[x for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>any(p(x) for x in xs)</code></td>
+<td><code>xs.some((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>all(p(x) for x in xs)</code></td>
+<td><code>xs.every((x) =&gt; p(x))</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>next((x for x in xs if p(x)), None)</code></td>
+<td><code>xs.find((x) =&gt; p(x))</code></td>
+<td>無ければ <code>undefined</code></td>
+</tr>
+<tr>
+<td><code>sum(xs)</code></td>
+<td><code>xs.reduce((s, x) =&gt; s + x, 0)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>functools.reduce(f, xs, init)</code></td>
+<td><code>xs.reduce(f, init)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>len(xs)</code></td>
+<td><code>xs.length</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs[1:3]</code></td>
+<td><code>xs.slice(1, 3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs[-1]</code></td>
+<td><code>xs[xs.length - 1]</code>、<code>xs.at(-1)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>xs + [y]</code></td>
+<td><code>[...xs, y]</code></td>
+<td>新しい配列</td>
+</tr>
+<tr>
+<td><code>xs.append(y)</code></td>
+<td><code>xs.push(y)</code></td>
+<td>書き換える</td>
+</tr>
+<tr>
+<td><code>{**d, &#39;k&#39;: v}</code></td>
+<td><code>{ ...d, k: v }</code></td>
+<td>新しいオブジェクト（浅い）</td>
+</tr>
+<tr>
+<td><code>dataclasses.replace(x, k=v)</code></td>
+<td><code>{ ...x, k: v }</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>d.get(&#39;k&#39;)</code></td>
+<td><code>d[&#39;k&#39;]</code>、<code>d.k</code></td>
+<td>無ければ <code>undefined</code></td>
+</tr>
+<tr>
+<td><code>d.items()</code></td>
+<td><code>Object.entries(d)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>d.keys()</code>／<code>d.values()</code></td>
+<td><code>Object.keys(d)</code>／<code>Object.values(d)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.strip()</code></td>
+<td><code>s.trim()</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.split(&#39;:&#39;)</code></td>
+<td><code>s.split(&#39;:&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>&#39;:&#39;.join(xs)</code></td>
+<td><code>xs.join(&#39;:&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.zfill(2)</code></td>
+<td><code>s.padStart(2, &#39;0&#39;)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>s.replace(a, b)</code>（全部）</td>
+<td><code>s.replace(/a/g, b)</code>、<code>s.replaceAll(a, b)</code></td>
+<td><code>replace</code> は最初の 1 つだけ</td>
+</tr>
+<tr>
+<td><code>&#39;あ&#39; * 3</code></td>
+<td><code>&#39;あ&#39;.repeat(3)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>str(n)</code></td>
+<td><code>String(n)</code>、<code>`${n}`</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>int(s)</code>／<code>float(s)</code></td>
+<td><code>Number(s)</code></td>
+<td>失敗すると <code>NaN</code></td>
+</tr>
+<tr>
+<td><code>round(x, 1)</code></td>
+<td><code>x.toFixed(1)</code>（文字列になる）</td>
+<td></td>
+</tr>
+<tr>
+<td><code>math.floor</code>／<code>ceil</code></td>
+<td><code>Math.floor</code>／<code>Math.ceil</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>min(a, b)</code>／<code>max(a, b)</code></td>
+<td><code>Math.min(a, b)</code>／<code>Math.max(a, b)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>math.isfinite(x)</code></td>
+<td><code>Number.isFinite(x)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>isinstance(x, int)</code>（整数か）</td>
+<td><code>Number.isInteger(x)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="非同期">非同期</h2>
+<table>
+<thead>
+<tr>
+<th>asyncio</th>
+<th>JavaScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>async def</code> / <code>await</code></td>
+<td><code>async function</code> / <code>await</code></td>
+</tr>
+<tr>
+<td><code>asyncio.Future</code></td>
+<td><code>Promise</code></td>
+</tr>
+<tr>
+<td><code>asyncio.sleep(1)</code></td>
+<td><code>new Promise((r) =&gt; setTimeout(r, 1000))</code></td>
+</tr>
+<tr>
+<td><code>asyncio.gather(a, b)</code></td>
+<td><code>Promise.all([a, b])</code></td>
+</tr>
+<tr>
+<td><code>asyncio.wait_for(c, t)</code></td>
+<td>自作（<code>src/export/withTimeout.ts</code>）</td>
+</tr>
+<tr>
+<td><code>task.cancel()</code></td>
+<td><code>AbortController</code> /
+<code>AbortSignal</code>（協力的）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="テスト">テスト</h2>
+<table>
+<thead>
+<tr>
+<th>pytest</th>
+<th>vitest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>class TestX:</code></td>
+<td><code>describe(&#39;X&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>def test_y():</code></td>
+<td><code>it(&#39;y&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（値）</td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（配列・辞書）</td>
+<td><code>expect(a).toEqual(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a is b</code></td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert x in xs</code></td>
+<td><code>expect(xs).toContain(x)</code></td>
+</tr>
+<tr>
+<td><code>assert x is None</code></td>
+<td><code>expect(x).toBeNull()</code> /
+<code>.toBeUndefined()</code></td>
+</tr>
+<tr>
+<td><code>assert len(xs) == 3</code></td>
+<td><code>expect(xs).toHaveLength(3)</code></td>
+</tr>
+<tr>
+<td><code>with pytest.raises(E, match=m):</code></td>
+<td><code>expect(() =&gt; f()).toThrow(m)</code></td>
+</tr>
+<tr>
+<td><code>await</code> のテスト</td>
+<td><code>it(&#39;...&#39;, async () =&gt; { await expect(p).resolves.toBe(v) })</code></td>
+</tr>
+<tr>
+<td>失敗する <code>await</code></td>
+<td><code>await expect(p).rejects.toThrow(m)</code></td>
+</tr>
+<tr>
+<td><code>freezegun</code></td>
+<td><code>vi.useFakeTimers()</code> /
+<code>vi.advanceTimersByTime()</code></td>
+</tr>
+<tr>
+<td><code>unittest.mock.patch</code></td>
+<td><code>vi.spyOn(obj, &#39;method&#39;)</code></td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>npm test</code></td>
+</tr>
+<tr>
+<td><code>pytest path/to/test.py</code></td>
+<td><code>npx vitest run src/path/to/x.test.ts</code></td>
+</tr>
+<tr>
+<td><code>pytest-watch</code></td>
+<td><code>npm run test:watch</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="道具">道具</h2>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>このリポジトリ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pip</code> / <code>requirements.txt</code></td>
+<td><code>npm</code> / <code>package.json</code></td>
+</tr>
+<tr>
+<td><code>pip install -r</code></td>
+<td><code>npm ci</code></td>
+</tr>
+<tr>
+<td><code>venv</code></td>
+<td><code>node_modules/</code></td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td><code>tsc</code>（<code>npm run typecheck</code>）</td>
+</tr>
+<tr>
+<td><code>ruff check</code></td>
+<td><code>oxlint</code>（<code>npm run lint</code>）</td>
+</tr>
+<tr>
+<td><code>ruff format</code> / <code>black</code></td>
+<td><code>prettier</code>（<code>npm run format</code>）</td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td><code>vitest</code>（<code>npm test</code>）</td>
+</tr>
+<tr>
+<td><code>python -m http.server</code></td>
+<td><code>vite</code>（<code>npm run dev</code>）</td>
+</tr>
+</tbody>
+</table>
+</main>
+</body>
+</html>

@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 3 章 関数とテスト</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="02-types.html">← 第 2 章 型を読む</a><a href="04-immutable.html">第 4 章 配列とオブジェクトを壊さずに変える →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-3-章-関数とテスト" id="toc-第-3-章-関数とテスト">第 3
+章 関数とテスト</a>
+<ul>
+<li><a href="#関数の書き方" id="toc-関数の書き方">関数の書き方</a></li>
+<li><a href="#-と--は違う" id="toc--と--は違う"><code>??</code> と
+<code>||</code> は違う</a></li>
+<li><a href="#変数" id="toc-変数">変数</a></li>
+<li><a href="#number-の罠" id="toc-number-の罠"><code>number</code>
+の罠</a></li>
+<li><a href="#配列の操作" id="toc-配列の操作">配列の操作</a></li>
+<li><a href="#テストを読む" id="toc-テストを読む">テストを読む</a></li>
+<li><a href="#tdd-の手順このリポジトリの約束" id="toc-tdd-の手順このリポジトリの約束">TDD
+の手順（このリポジトリの約束）</a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-3-章-関数とテスト">第 3 章 関数とテスト</h1>
+<blockquote>
+<p>題材: <code>src/timeline/durations.ts</code>
+とそのテスト、<code>src/components/frameStep.ts</code> とそのテスト
+目標: 関数とテストを 1 組、自分で先にテストを書いてから足せる。</p>
+</blockquote>
+<h2 id="関数の書き方">関数の書き方</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">maxItems</span>(maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(maxFrames <span class="op">/</span> MIN_ITEM_FRAMES)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python との対応:</p>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>def f(x: int) -&gt; int:</code></td>
+<td><code>function f(x: number): number {</code></td>
+</tr>
+<tr>
+<td><code>lambda x: x + 1</code></td>
+<td><code>(x) =&gt; x + 1</code></td>
+</tr>
+<tr>
+<td><code>def f(x, y=10):</code></td>
+<td><code>function f(x: number, y = 10)</code></td>
+</tr>
+<tr>
+<td><code>x // 2</code></td>
+<td><code>Math.floor(x / 2)</code></td>
+</tr>
+<tr>
+<td><code>x ** 2</code></td>
+<td><code>x ** 2</code></td>
+</tr>
+<tr>
+<td><code>x if cond else y</code></td>
+<td><code>cond ? x : y</code></td>
+</tr>
+<tr>
+<td><code>f&quot;{a} と {b}&quot;</code></td>
+<td><code>`${a} と ${b}`</code>（バッククォート）</td>
+</tr>
+<tr>
+<td><code>a or default</code></td>
+<td><code>a ?? default</code>（<code>a</code> が
+<code>null</code>/<code>undefined</code> のときだけ）</td>
+</tr>
+<tr>
+<td><code>from m import f</code></td>
+<td><code>import { f } from &#39;./m&#39;</code></td>
+</tr>
+<tr>
+<td>先頭に <code>_</code> で非公開</td>
+<td><code>export</code> を付けないと非公開</td>
+</tr>
+</tbody>
+</table>
+<p><code>export</code> を付けた関数だけが、他のファイルから
+<code>import</code> できる。<code>durations.ts</code> の全部に
+<code>export</code>
+が付いているのは、他のファイルやテストから使うため。<code>clamp.ts</code>
+の <code>toFrames</code>
+には付いていないので、そのファイルの中だけで使う関数。</p>
+<h2 id="-と--は違う"><code>??</code> と <code>||</code> は違う</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> limit <span class="op">=</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(maxFrames<span class="op">,</span> sourceDurationFrames <span class="op">??</span> maxFrames)</span></code></pre></div>
+<p><code>??</code> は左が <code>null</code> か <code>undefined</code>
+のときだけ右を使う。Python の <code>or</code> に近い <code>||</code>
+もあるが、<code>||</code> は <code>0</code> や <code>&#39;&#39;</code>
+でも右を使ってしまう。フレーム数のように <code>0</code>
+が意味を持つ値には <code>??</code> を使う。</p>
+<h2 id="変数">変数</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> errors<span class="op">:</span> <span class="dt">string</span>[] <span class="op">=</span> []</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cursor <span class="op">=</span> <span class="dv">0</span></span></code></pre></div>
+<ul>
+<li><code>const</code>:
+再代入しない。<strong>ほぼこれだけ使う。</strong>
+ただし中身（配列の要素、オブジェクトのフィールド）は変えられる。<code>errors.push(...)</code>
+は通る。</li>
+<li><code>let</code>: 再代入する。ループのカウンタや累積に使う。</li>
+<li><code>var</code>: 使わない（古い書き方）。</li>
+</ul>
+<p>型は多くの場合書かなくてよい。<code>let cursor = 0</code> で
+<code>number</code>
+と推論される。<code>const errors: string[] = []</code>
+に型を書いているのは、空の配列からは要素の型が分からないため。</p>
+<h2 id="number-の罠"><code>number</code> の罠</h2>
+<p>Python 中級者が最初にはまる場所。</p>
+<ul>
+<li><code>7 / 2</code> は <code>3.5</code>。整数除算が無い。</li>
+<li><code>Number.isInteger(150.5)</code> は
+<code>false</code>。整数かどうかは実行時に確かめる。</li>
+<li><code>Number.NaN</code>（非数）、<code>Number.POSITIVE_INFINITY</code>
+も <code>number</code>。<code>Number.isFinite(x)</code>
+で両方をはじける。</li>
+<li><code>Math.max(0, Math.min(x, limit))</code> は「0 以上 limit
+以下に収める」の定型。このアプリの至るところにある。</li>
+</ul>
+<p><code>clampDuration</code> を読む。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">clampDuration</span>(frames<span class="op">:</span> <span class="dt">number</span><span class="op">,</span> maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> <span class="op">|</span> <span class="dt">null</span> {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="bu">Number</span><span class="op">.</span><span class="fu">isFinite</span>(frames)) <span class="cf">return</span> <span class="kw">null</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(MIN_ITEM_FRAMES<span class="op">,</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">min</span>(<span class="bu">Math</span><span class="op">.</span><span class="fu">floor</span>(frames)<span class="op">,</span> maxFrames))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>戻り値の <code>number | null</code>
+は「数か、意味のある空」。数でない入力（空の入力欄）は <code>null</code>
+で返し、呼ぶ側に「無視して」と伝える。例外を投げない。</p>
+<h2 id="配列の操作">配列の操作</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">sumFrames</span>(durations<span class="op">:</span> <span class="dt">number</span>[])<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> durations<span class="op">.</span><span class="fu">reduce</span>((sum<span class="op">,</span> d) <span class="kw">=&gt;</span> sum <span class="op">+</span> d<span class="op">,</span> <span class="dv">0</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python の <code>sum(durations)</code>
+に当たる組み込みは無いので、<code>reduce</code>
+で書く。<code>reduce(fn, 初期値)</code> は <code>functools.reduce</code>
+と同じ。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>durations<span class="op">.</span><span class="fu">forEach</span>((d<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span><span class="bu">Number</span><span class="op">.</span><span class="fu">isInteger</span>(d)) errors<span class="op">.</span><span class="fu">push</span>(<span class="vs">`素材 </span><span class="sc">${</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="vs"> の尺（</span><span class="sc">${</span>d<span class="sc">}</span><span class="vs">）が整数ではありません。`</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>forEach((要素, 添字) =&gt; ...)</code> は
+<code>for i, d in enumerate(durations):</code>。要素が先、添字が後。</p>
+<h2 id="テストを読む">テストを読む</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { describe<span class="op">,</span> expect<span class="op">,</span> it } <span class="im">from</span> <span class="st">&#39;vitest&#39;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { maxItems } <span class="im">from</span> <span class="st">&#39;./durations&#39;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(<span class="st">&#39;maxItems（素材数の上限）&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">it</span>(<span class="st">&#39;15 秒（450 フレーム）なら最小尺 1 秒で 15 個まで&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">maxItems</span>(<span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">15</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>pytest</th>
+<th>vitest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>class TestMaxItems:</code></td>
+<td><code>describe(&#39;...&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>def test_...(self):</code></td>
+<td><code>it(&#39;...&#39;, () =&gt; { ... })</code></td>
+</tr>
+<tr>
+<td><code>assert f(x) == 15</code></td>
+<td><code>expect(f(x)).toBe(15)</code></td>
+</tr>
+<tr>
+<td><code>assert a == b</code>（辞書・リスト）</td>
+<td><code>expect(a).toEqual(b)</code></td>
+</tr>
+<tr>
+<td><code>assert a is b</code></td>
+<td><code>expect(a).toBe(b)</code></td>
+</tr>
+<tr>
+<td><code>assert x in xs</code></td>
+<td><code>expect(xs).toContain(x)</code></td>
+</tr>
+<tr>
+<td><code>assert x is None</code></td>
+<td><code>expect(x).toBeNull()</code></td>
+</tr>
+<tr>
+<td><code>with pytest.raises(E):</code></td>
+<td><code>expect(() =&gt; f()).toThrow(&#39;...&#39;)</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>toBe</code> と <code>toEqual</code>
+の違いは大事。<code>toBe</code> は同一性（Python の
+<code>is</code>）、<code>toEqual</code>
+は中身の比較（<code>==</code>）。配列やオブジェクトは
+<code>toEqual</code>。「変えていないので同じオブジェクトが返る」を確かめたいときだけ
+<code>toBe</code>（<code>projectActions.test.ts</code> の
+<code>expect(removeItem(p, &#39;nope&#39;)).toBe(p)</code>）。</p>
+<p>テスト名が日本語の文なのは CLAUDE.md
+の約束。読めば仕様が分かる名前にする。</p>
+<h2 id="tdd-の手順このリポジトリの約束">TDD
+の手順（このリポジトリの約束）</h2>
+<ol type="1">
+<li>テストファイルに <code>it(&#39;...&#39;)</code>
+を書く。期待値を先に決める。</li>
+<li><code>npm run test:watch</code>
+で赤くなるのを見る（関数が無いので、import のエラーで落ちる）。</li>
+<li>関数を書く。緑になる。</li>
+<li>境界の値（0、最小、最大、NaN）のテストを足す。赤くなったら直す。</li>
+</ol>
+<p>「先に赤を見る」のが肝。緑しか見ていないテストは、何も確かめていないことがある。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-3-1-読んで予想する">演習 3-1 読んで予想する</h3>
+<p><code>frameStep.ts</code> の
+<code>stepFrames(152, 1, 3, 30, 450)</code>
+の戻り値を、コードを読んで予想する。<code>frameStep.test.ts</code>
+で確かめる。</p>
+<h3 id="演習-3-2-05-秒刻み">演習 3-2 0.5 秒刻み</h3>
+<p><code>framesPerStep(30, 0.5)</code>
+はいくつか。<code>stepFrames(152, 1, 15, 30, 450)</code> と
+<code>stepFrames(152, -1, 15, 30, 450)</code> はいくつか。予想してから
+<code>frameStep.test.ts</code> に 3 行足して確かめる。</p>
+<h3 id="演習-3-3-tdd-で-1-つ足す">演習 3-3 TDD で 1 つ足す</h3>
+<p>「上限まであと何フレーム入るか」を返す
+<code>remainingFrames(durations, maxFrames)</code> を
+<code>durations.ts</code> に足す。超えているときは 0。</p>
+<p>先にテスト（<code>durations.test.ts</code> の末尾）:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">describe</span>(<span class="st">&#39;remainingFrames（上限まであと何フレーム入るか）&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">it</span>(<span class="st">&#39;合計が上限以下なら差分、超えていれば 0、空なら上限そのまま&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([<span class="dv">150</span><span class="op">,</span> <span class="dv">150</span>]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">150</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([<span class="dv">300</span><span class="op">,</span> <span class="dv">300</span>]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">0</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">expect</span>(<span class="fu">remainingFrames</span>([]<span class="op">,</span> <span class="dv">450</span>))<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">450</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>import の行にも <code>remainingFrames</code>
+を足す。赤を見てから実装する。</p>
+<h3 id="演習-3-4-lint-と型チェック">演習 3-4 lint と型チェック</h3>
+<p>3-3 のあと <code>npm run lint</code> と
+<code>npm run typecheck</code> を通す。JSDoc
+コメント（<code>/** ... */</code>）を関数の上に 1 行書く。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>3-1: <code>153</code>。152 は 3
+の格子に乗っていないので、<code>Math.floor(152 / 3) * 3 = 150</code>
+に戻してから <code>+ 3</code>。</li>
+<li>3-2: <code>15</code>、<code>165</code>、<code>150</code>。</li>
+<li>3-3:
+<div class="sourceCode" id="cb9"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** 上限まであと何フレーム入るか。超えているときは 0 */</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">remainingFrames</span>(durations<span class="op">:</span> <span class="dt">number</span>[]<span class="op">,</span> maxFrames<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(<span class="dv">0</span><span class="op">,</span> maxFrames <span class="op">-</span> <span class="fu">sumFrames</span>(durations))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<code>overflowFrames</code> と対になる形。<code>sumFrames</code>
+を使い回す。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li><code>function f(x: number): number</code>、<code>const</code>、<code>=&gt;</code>、バッククォートの
+4 つで大半のコードが読める。</li>
+<li><code>number</code> は float。整数は <code>Math.floor</code> と
+<code>Number.isInteger</code> で自分で守る。</li>
+<li><code>toBe</code> は <code>is</code>、<code>toEqual</code> は
+<code>==</code>。</li>
+<li>赤を見てから書く。</li>
+</ul>
+</main>
+</body>
+</html>

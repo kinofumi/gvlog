@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 9 章 仕上げと次の一歩</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="08-state.html">← 第 8 章 状態とデータの流れ</a><a href="python-to-typescript.html">付録 Python と TypeScript の対照表 →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-9-章-仕上げと次の一歩" id="toc-第-9-章-仕上げと次の一歩">第 9 章 仕上げと次の一歩</a>
+<ul>
+<li><a href="#18-章で読んだもの読んでいないもの" id="toc-18-章で読んだもの読んでいないもの">1〜8
+章で読んだもの、読んでいないもの</a></li>
+<li><a href="#開発の一周このリポジトリの約束" id="toc-開発の一周このリポジトリの約束">開発の一周（このリポジトリの約束）</a></li>
+<li><a href="#ai-との付き合い方勉強の場面で" id="toc-ai-との付き合い方勉強の場面で">AI
+との付き合い方（勉強の場面で）</a></li>
+<li><a href="#勉強の記録を教科書に戻す" id="toc-勉強の記録を教科書に戻す">勉強の記録を教科書に戻す</a></li>
+<li><a href="#次に学ぶなら" id="toc-次に学ぶなら">次に学ぶなら</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-9-章-仕上げと次の一歩">第 9 章 仕上げと次の一歩</h1>
+<blockquote>
+<p>題材:
+<code>docs/adr/</code>、<code>docs/plan.md</code>、<code>docs/devlog/</code>、<code>CLAUDE.md</code>
+目標:
+このリポジトリの開発の流れを自分で一周できる。次に読む層が分かる。</p>
+</blockquote>
+<h2 id="18-章で読んだもの読んでいないもの">1〜8
+章で読んだもの、読んでいないもの</h2>
+<p>読んだ:
+<code>model</code>、<code>timeline</code>、<code>state</code>、<code>components</code>
+の一部、<code>export/withTimeout</code>、<code>guide</code>。
+読んでいない: <code>render</code>（Canvas に 1
+フレームを描く）、<code>export</code>（WebCodecs と mediabunny で MP4
+にする）、<code>preview</code>（<code>&lt;video&gt;</code> と Canvas
+で再生）、<code>media</code>（ファイルの取り込み）、<code>bgm</code>（音声のデコードと
+AAC）、<code>join</code>（つなげる）。</p>
+<p>読んでいない層は、TypeScript
+の文法としては新しいものがほとんど無い。難しさはブラウザ API
+の仕様にある。入口を 3 つだけ案内する。</p>
+<ul>
+<li><strong><code>src/render/renderFrame.ts</code></strong>:
+「フレーム番号 → Canvas に描く」の 1
+関数。<code>timeline/compile.ts</code>
+の結果（<code>itemsAt</code>、<code>transitionAt</code>）を受け、写真の動き（<code>kenBurns.ts</code>）とテロップ（<code>drawCaption.ts</code>）を描く。Canvas
+の <code>drawImage</code> を知っていれば読める。テストは
+<code>@napi-rs/canvas</code> で Node 上で描いて確かめている。</li>
+<li><strong><code>src/export/exportVideo.ts</code></strong>: 1
+フレームずつ <code>renderFrame</code> で描き、WebCodecs の
+<code>VideoEncoder</code> に渡し、mediabunny で MP4
+に詰める。<code>withTimeout</code> と <code>AbortSignal</code>（5
+章）がここで使われている。</li>
+<li><strong>ADR 008、015、016、019</strong>:
+フレームを整数で持つ理由、尺の規則、白フェードの決め方、BGM
+の扱い。コードを読む前に ADR
+を読むと、「なぜそうなっているか」が先に分かる。</li>
+</ul>
+<h2 id="開発の一周このリポジトリの約束">開発の一周（このリポジトリの約束）</h2>
+<p>勉強の仕上げとして、小さな変更を本番の流れで一周する。題材は 6
+章の演習 6-2（合計の文に素材の数を出す）か、7 章の
+7-3（選択中の枠を青に）がよい。見た目だけの変更なので二重レビューは省略できる（devlog
+に明記）。</p>
+<ol type="1">
+<li><strong>ブランチ</strong>:
+<code>git checkout main &amp;&amp; git checkout -b total-count</code></li>
+<li><strong>テスト</strong>（純粋関数を触るなら先に）</li>
+<li><strong>実装</strong></li>
+<li><strong>3 つ通す</strong>:
+<code>npm run lint</code>、<code>npm run typecheck</code>、<code>npm test</code>。それから
+<code>npm run format</code>。</li>
+<li><strong>目で見る</strong>: <code>npm run dev</code>
+でスマホ幅にして確かめる。</li>
+<li><strong>devlog</strong>: <code>docs/devlog/YYYY-MM-DD.md</code> に
+3〜5 行。「何を、なぜ、どう確かめたか、レビューを省いた理由」。</li>
+<li><strong>コミット</strong>: メッセージは日本語 1〜2
+行で「何を、なぜ」。</li>
+<li><strong>main に合流</strong>:
+<code>git checkout main &amp;&amp; git merge --no-ff total-count &amp;&amp; git branch -d total-count</code></li>
+<li><strong>プッシュ</strong>: <code>git push origin main</code>。GitHub
+Actions が Pages に配る。<code>gh run watch</code>
+で終わるのを見る。</li>
+</ol>
+<p>新しい機能や構造の変更なら、4 と 5 の間に
+<strong>二重レビュー</strong>（Claude の <code>/code-review</code> →
+Codex → 自分の判断。<code>docs/plan.md</code> §14）を入れ、結果を
+<code>docs/reviews/</code> に残す。設計の判断を伴うなら ADR を 1
+本書く。</p>
+<h2 id="ai-との付き合い方勉強の場面で">AI
+との付き合い方（勉強の場面で）</h2>
+<p>このリポジトリは「AI
+との開発の教科書」になる。勉強中の使い方も、その記録の一部になる。</p>
+<p>よい頼み方:</p>
+<ul>
+<li>「<code>src/timeline/clamp.ts</code> を Python で書き直して、違いを
+3 つ説明して」</li>
+<li>「<code>remainingFrames</code> のテストを先に 3
+つ書いて。実装はまだ書かないで」</li>
+<li>「この <code>className</code> の各クラスが何をしているか、1
+行ずつ」</li>
+<li>「自分で書いたこの関数をレビューして。CLAUDE.md
+の平易さのルールに照らして」</li>
+</ul>
+<p>避けたい頼み方:</p>
+<ul>
+<li>「この章の演習を全部やって」（自分で赤を見ないと身につかない）</li>
+<li>「もっと賢い書き方にして」（CLAUDE.md
+の方針に反する。賢くない書き方が正解）</li>
+</ul>
+<p>分からない用語は、まず
+<code>docs/study/python-to-typescript.md</code>（付録）を見る。無ければ
+AI に「Python の ○○ に当たるものは？」と聞き、分かったら付録に 1
+行足す。</p>
+<h2 id="勉強の記録を教科書に戻す">勉強の記録を教科書に戻す</h2>
+<p><code>docs/study/notes.md</code>
+に残した「詰まった場所」は、読者が詰まる場所でもある。章立てが終わったら、</p>
+<ul>
+<li>各章の「答え合わせ」に足す</li>
+<li>本文の説明を直す</li>
+<li>CLAUDE.md の「平易さのルール」に項目を足す</li>
+</ul>
+<p>のどれかに戻す。これも 1 ブランチ 1 変更で。</p>
+<h2 id="次に学ぶなら">次に学ぶなら</h2>
+<ul>
+<li><strong>React をもう少し</strong>:
+<code>useEffect</code>（副作用）、<code>useRef</code>（DOM
+への参照）、<code>useMemo</code>。<code>PreviewCanvas.tsx</code> と
+<code>usePreview.ts</code> に全部出てくる。</li>
+<li><strong>Canvas</strong>: <code>src/render/</code> を
+<code>renderFrame.test.ts</code> から読む。</li>
+<li><strong>WebCodecs</strong>: <code>docs/plan.md</code>
+の「技術調査の結論」と ADR 002、009
+を先に読み、<code>src/export/encoder.ts</code> へ。</li>
+<li><strong>Tailwind をもう少し</strong>: 公式ドキュメントの「Core
+concepts」だけ読む。このアプリで使っていないグリッド、アニメーション、ダークモードは必要になるまで読まない。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>開発の一周（ブランチ → テスト → 実装 → 3 つ通す → 目で見る → devlog
+→ コミット → 合流 → プッシュ）を自分でやる。</li>
+<li>次の層は、ADR を先に読んでからコードへ。</li>
+<li>詰まった記録は教科書の材料。戻す。</li>
+</ul>
+</main>
+</body>
+</html>

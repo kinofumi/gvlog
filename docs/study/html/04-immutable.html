@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 4 章 配列とオブジェクトを壊さずに変える</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="03-functions-and-tests.html">← 第 3 章 関数とテスト</a><a href="05-async.html">第 5 章 非同期 →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-4-章-配列とオブジェクトを壊さずに変える" id="toc-第-4-章-配列とオブジェクトを壊さずに変える">第 4 章
+配列とオブジェクトを壊さずに変える</a>
+<ul>
+<li><a href="#なぜ壊さないか" id="toc-なぜ壊さないか">なぜ壊さないか</a></li>
+<li><a href="#スプレッド--コピーして一部を変える" id="toc-スプレッド--コピーして一部を変える">スプレッド <code>...</code>:
+コピーして一部を変える</a></li>
+<li><a href="#map-と-filter-リスト内包の代わり" id="toc-map-と-filter-リスト内包の代わり"><code>map</code> と
+<code>filter</code>: リスト内包の代わり</a></li>
+<li><a href="#for-文を使うとき" id="toc-for-文を使うとき"><code>for</code> 文を使うとき</a></li>
+<li><a href="#-無いかもしれないものを安全に読む" id="toc--無いかもしれないものを安全に読む"><code>?.</code>:
+無いかもしれないものを安全に読む</a></li>
+<li><a href="#set" id="toc-set"><code>Set</code></a></li>
+<li><a href="#ジェネリクスは最小限" id="toc-ジェネリクスは最小限">ジェネリクスは「最小限」</a></li>
+<li><a href="#テストで小さいオブジェクトを渡す" id="toc-テストで小さいオブジェクトを渡す">テストで小さいオブジェクトを渡す</a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-4-章-配列とオブジェクトを壊さずに変える">第 4 章
+配列とオブジェクトを壊さずに変える</h1>
+<blockquote>
+<p>題材:
+<code>src/timeline/clamp.ts</code>、<code>src/timeline/compile.ts</code>
+とそのテスト 目標:
+「入力を変えず、新しい値を返す」書き方を読める・書ける。<code>map</code>、<code>filter</code>、スプレッドが使える。</p>
+</blockquote>
+<h2 id="なぜ壊さないか">なぜ壊さないか</h2>
+<p>このアプリの状態（プロジェクト）は、変更のたびに
+<strong>新しいオブジェクト</strong> に置き換えられる（8 章）。React
+は「前と同じオブジェクトか」で再描画するかを決めるので、中身だけ書き換えると画面が更新されない。だから
+<code>src/timeline/</code> と <code>src/state/projectActions.ts</code>
+の関数は、どれも入力を変えずに新しい値を返す。</p>
+<p><code>clamp.test.ts</code> にそれを確かめるテストがある。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;元の配列と要素は変更しない&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> items <span class="op">=</span> [ <span class="op">...</span> ]</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clampAfterResize</span>(items)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(items[<span class="dv">0</span>]<span class="op">.</span><span class="at">transitionOut</span><span class="op">?.</span><span class="at">durationFrames</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="dv">30</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p>Python で言えば「リストを <code>sorted()</code>
+で返すか、<code>.sort()</code> で書き換えるか」の違いを、常に
+<code>sorted()</code> 側に寄せる。</p>
+<h2 id="スプレッド--コピーして一部を変える">スプレッド <code>...</code>:
+コピーして一部を変える</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> next <span class="op">=</span> { <span class="op">...</span>item }</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>next<span class="op">.</span><span class="at">transitionOut</span> <span class="op">=</span> { <span class="op">...</span>item<span class="op">.</span><span class="at">transitionOut</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">0</span> }</span></code></pre></div>
+<p><code>{ ...item }</code> は <code>item</code>
+の全フィールドを持つ新しいオブジェクト。Python の <code>{**item}</code>
+や
+<code>dataclasses.replace(item, ...)</code>。後ろに書いたフィールドが上書きする。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>{ <span class="op">...</span>item<span class="op">.</span><span class="at">caption</span><span class="op">,</span> <span class="op">...</span><span class="fu">clampCaptionOffsets</span>(item<span class="op">.</span><span class="at">caption</span><span class="op">,</span> item<span class="op">.</span><span class="at">durationFrames</span>) }</span></code></pre></div>
+<p>2 つを重ねると、後ろの関数が返した <code>inOffsetFrames</code> と
+<code>outOffsetFrames</code> だけが差し替わり、<code>text</code> や
+<code>position</code> は残る。</p>
+<p>コピーは <strong>1
+段だけ</strong>（浅いコピー）。<code>{ ...item }</code> をしても
+<code>item.transitionOut</code> は同じオブジェクトを指す。だから
+<code>next.transitionOut = { ...item.transitionOut, ... }</code>
+と、変える段ごとにコピーしている。</p>
+<p>配列にも使える。<code>[...items, newItem]</code>
+は末尾に足した新しい配列（<code>items + [new_item]</code>）。</p>
+<h2 id="map-と-filter-リスト内包の代わり"><code>map</code> と
+<code>filter</code>: リスト内包の代わり</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">return</span> items<span class="op">.</span><span class="fu">map</span>((item<span class="op">,</span> i) <span class="kw">=&gt;</span> {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> next <span class="op">=</span> { <span class="op">...</span>item }</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> next</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>items.map(fn)</code> は
+<code>[fn(x) for x in items]</code>。添字が要るときは第 2
+引数で受ける。</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">itemsAt</span>(compiled<span class="op">:</span> CompiledItem[]<span class="op">,</span> frame<span class="op">:</span> <span class="dt">number</span>)<span class="op">:</span> CompiledItem[] {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> compiled<span class="op">.</span><span class="fu">filter</span>((c) <span class="kw">=&gt;</span> frame <span class="op">&gt;=</span> c<span class="op">.</span><span class="at">visibleStart</span> <span class="op">&amp;&amp;</span> frame <span class="op">&lt;</span> c<span class="op">.</span><span class="at">visibleEnd</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>filter(fn)</code> は
+<code>[x for x in xs if fn(x)]</code>。</p>
+<table>
+<thead>
+<tr>
+<th>Python</th>
+<th>TypeScript</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[f(x) for x in xs]</code></td>
+<td><code>xs.map((x) =&gt; f(x))</code></td>
+</tr>
+<tr>
+<td><code>[x for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>[f(x) for x in xs if p(x)]</code></td>
+<td><code>xs.filter((x) =&gt; p(x)).map((x) =&gt; f(x))</code></td>
+</tr>
+<tr>
+<td><code>any(p(x) for x in xs)</code></td>
+<td><code>xs.some((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>all(p(x) for x in xs)</code></td>
+<td><code>xs.every((x) =&gt; p(x))</code></td>
+</tr>
+<tr>
+<td><code>next((x for x in xs if p(x)), None)</code></td>
+<td><code>xs.find((x) =&gt; p(x))</code>（無ければ
+<code>undefined</code>）</td>
+</tr>
+<tr>
+<td><code>xs.index(v)</code></td>
+<td><code>xs.indexOf(v)</code>（無ければ <code>-1</code>）</td>
+</tr>
+<tr>
+<td><code>xs[1:3]</code></td>
+<td><code>xs.slice(1, 3)</code></td>
+</tr>
+<tr>
+<td><code>len(xs)</code></td>
+<td><code>xs.length</code></td>
+</tr>
+<tr>
+<td><code>for x in xs:</code></td>
+<td><code>for (const x of xs) {</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="for-文を使うとき"><code>for</code> 文を使うとき</h2>
+<p><code>compileTimeline</code> は <code>map</code> ではなく
+<code>for</code> で書いてある。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cursor <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> leadIn <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> items<span class="op">.</span><span class="at">length</span><span class="op">;</span> i<span class="op">++</span>) {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> item <span class="op">=</span> items[i]</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> following <span class="op">=</span> items[i <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  cursor <span class="op">=</span> coreEnd</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  leadIn <span class="op">=</span> <span class="op">...</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>前の要素の結果（<code>cursor</code>、<code>leadIn</code>）を次に持ち越すので、各要素が独立な
+<code>map</code> では書きにくい。こういうときは素直に <code>for</code>
+と <code>let</code> を使う。「賢く書かない」が CLAUDE.md の方針。</p>
+<p><code>items[i + 1]</code> は末尾で <code>undefined</code>
+になる（Python なら
+<code>IndexError</code>）。<code>if (item.transitionOut &amp;&amp; ... &amp;&amp; following)</code>
+と、<code>following</code> が無いことを条件に入れている。</p>
+<h2 id="-無いかもしれないものを安全に読む"><code>?.</code>:
+無いかもしれないものを安全に読む</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> overlaps <span class="op">=</span> transitionOut<span class="op">?.</span><span class="at">type</span> <span class="op">===</span> <span class="st">&#39;crossfade&#39;</span></span></code></pre></div>
+<p><code>transitionOut</code> が <code>null</code> なら
+<code>transitionOut?.type</code> は <code>undefined</code>
+になり、エラーにならない。Python
+には無い書き方（<code>getattr(x, &#39;type&#39;, None)</code> に近い）。</p>
+<h2 id="set"><code>Set</code></h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> seen <span class="op">=</span> <span class="kw">new</span> <span class="bu">Set</span><span class="op">&lt;</span><span class="dt">string</span><span class="op">&gt;</span>()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (seen<span class="op">.</span><span class="fu">has</span>(item<span class="op">.</span><span class="at">itemId</span>)) errors<span class="op">.</span><span class="fu">push</span>(<span class="op">...</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>seen<span class="op">.</span><span class="fu">add</span>(item<span class="op">.</span><span class="at">itemId</span>)</span></code></pre></div>
+<p>Python の <code>set()</code>。<code>in</code> は
+<code>.has()</code>、<code>add</code> は
+<code>.add()</code>。<code>&lt;string&gt;</code> は要素の型。</p>
+<h2 id="ジェネリクスは最小限">ジェネリクスは「最小限」</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">clampAfterResize</span><span class="op">&lt;</span>T <span class="kw">extends</span> TimelineItem<span class="op">&gt;</span>(items<span class="op">:</span> T[])<span class="op">:</span> T[] {</span></code></pre></div>
+<p><code>T</code> は「<code>TimelineItem</code>
+の形を持つ何かの型」。Python の
+<code>TypeVar(&#39;T&#39;, bound=TimelineItem)</code>。</p>
+<p>なぜ要るか。引数を <code>TimelineItem[]</code> と書くと、戻り値も
+<code>TimelineItem[]</code> になり、<code>MediaItem</code> が持っていた
+<code>fileName</code> や <code>kind</code>
+の型情報が消える。<code>T</code>
+を使うと「入れた型のまま返す」と言える。コメントにもその理由が書いてある。</p>
+<p>CLAUDE.md は「ジェネリクスの多用を避ける」としている。このように
+<strong>理由がコメントにある 1 か所</strong> に限る。6 章の
+<code>TabBar&lt;T extends string&gt;</code> も同じ考え。</p>
+<h2 id="テストで小さいオブジェクトを渡す">テストで小さいオブジェクトを渡す</h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> [</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  {</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    itemId<span class="op">:</span> <span class="st">&#39;a&#39;</span><span class="op">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    durationFrames<span class="op">:</span> <span class="dv">40</span><span class="op">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    transitionOut<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;crossfade&#39;</span> <span class="im">as</span> <span class="kw">const</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">30</span> }<span class="op">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  { itemId<span class="op">:</span> <span class="st">&#39;b&#39;</span><span class="op">,</span> durationFrames<span class="op">:</span> <span class="dv">260</span> }<span class="op">,</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>]</span></code></pre></div>
+<p><code>&#39;crossfade&#39; as const</code> は、<code>type</code> の型を
+<code>string</code> ではなく <code>&#39;crossfade&#39;</code>
+に固定するため。無いと <code>Transition[&#39;type&#39;]</code>
+に合わずエラーになる。2 章の <code>as const</code> と同じ。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-4-1-読んで予想する">演習 4-1 読んで予想する</h3>
+<p>150 フレームの素材 a に 30 フレームの crossfade、次に 150 フレームの
+b。<code>compileTimeline</code> の結果の <code>compiled[0]</code> と
+<code>compiled[1].visibleStart</code>
+を紙に書く。<code>compile.test.ts</code> に <code>toEqual</code>
+のテストとして足して確かめる。</p>
+<h3 id="演習-4-2-itemsat">演習 4-2 <code>itemsAt</code></h3>
+<p>4-1 の <code>compiled</code> で、<code>itemsAt(compiled, 140)</code>
+と <code>itemsAt(compiled, 100)</code> が返す <code>itemId</code>
+の並びを予想し、テストに足す。</p>
+<h3 id="演習-4-3-tdd-で-1-つ足す">演習 4-3 TDD で 1 つ足す</h3>
+<p>「タイムライン全体の長さ（最後に見えているフレームの次）」を返す
+<code>timelineEnd(compiled)</code> を <code>compile.ts</code>
+に足す。<code>reduce</code> と <code>Math.max</code> で書く。4-1
+の例では 300。空なら 0。</p>
+<h3 id="演習-4-4-壊してみる">演習 4-4 壊してみる</h3>
+<p><code>clampAfterResize</code> の
+<code>const next = { ...item }</code> を <code>const next = item</code>
+に変えて
+<code>npm test</code>。「元の配列と要素は変更しない」のテストが落ちることを確かめ、戻す。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>4-1: <code>compiled[0]</code> は
+<code>{ itemId: &#39;a&#39;, coreStart: 0, coreEnd: 150, visibleStart: 0, visibleEnd: 165, transitionOut: { type: &#39;crossfade&#39;, start: 135, end: 165 } }</code>。30
+を前に <code>floor(30/2) = 15</code>、後ろに
+<code>ceil(30/2) = 15</code> 割る。crossfade なので a は 165 まで見え、b
+は 135 から見え始める。<code>compiled[1].visibleStart</code> は
+<code>135</code>。</li>
+<li>4-2: <code>[&#39;a&#39;, &#39;b&#39;]</code> と <code>[&#39;a&#39;]</code>。</li>
+<li>4-3:
+<div class="sourceCode" id="cb11"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">/** タイムライン全体の長さ（最後に見えているフレームの次）。空なら 0 */</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">timelineEnd</span>(compiled<span class="op">:</span> CompiledItem[])<span class="op">:</span> <span class="dt">number</span> {</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> compiled<span class="op">.</span><span class="fu">reduce</span>((end<span class="op">,</span> c) <span class="kw">=&gt;</span> <span class="bu">Math</span><span class="op">.</span><span class="fu">max</span>(end<span class="op">,</span> c<span class="op">.</span><span class="at">visibleEnd</span>)<span class="op">,</span> <span class="dv">0</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div></li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>変えずに新しい値を返す。<code>{ ...x, field: v }</code>、<code>[...xs, y]</code>、<code>map</code>、<code>filter</code>。</li>
+<li>コピーは浅い。変える段ごとに <code>...</code> する。</li>
+<li>持ち越しがあるループは <code>for</code> と <code>let</code>
+で素直に書く。</li>
+<li>ジェネリクスは「入れた型のまま返す」ための 1 か所に限る。</li>
+</ul>
+</main>
+</body>
+</html>

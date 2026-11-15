@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 2 章 型を読む</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="01-tools.html">← 第 1 章 道具をそろえる</a><a href="03-functions-and-tests.html">第 3 章 関数とテスト →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-2-章-型を読む" id="toc-第-2-章-型を読む">第 2 章
+型を読む</a>
+<ul>
+<li><a href="#型エイリアスは-dataclass-に近い" id="toc-型エイリアスは-dataclass-に近い">型エイリアスは dataclass
+に近い</a></li>
+<li><a href="#リテラル型と-union" id="toc-リテラル型と-union">リテラル型と union</a></li>
+<li><a href="#-は無くてもよい" id="toc--は無くてもよい"><code>?</code>
+は「無くてもよい」</a></li>
+<li><a href="#-で型を合体する" id="toc--で型を合体する"><code>&amp;</code> で型を合体する</a></li>
+<li><a href="#kind-で見分ける-unionこのアプリで一番大事な型" id="toc-kind-で見分ける-unionこのアプリで一番大事な型"><code>kind</code>
+で見分ける union（このアプリで一番大事な型）</a></li>
+<li><a href="#構造的な型-形が合えば通る" id="toc-構造的な型-形が合えば通る">構造的な型:
+「形が合えば通る」</a></li>
+<li><a href="#unknown-と-as-外から来た値" id="toc-unknown-と-as-外から来た値"><code>unknown</code> と
+<code>as</code>: 外から来た値</a></li>
+<li><a href="#as-const" id="toc-as-const"><code>as const</code></a></li>
+<li><a href="#import-type" id="toc-import-type"><code>import type</code></a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-2-章-型を読む">第 2 章 型を読む</h1>
+<blockquote>
+<p>題材:
+<code>src/model/types.ts</code>、<code>src/model/validate.ts</code>
+目標: <code>types.ts</code> の型を Python の <code>dataclass</code> と
+<code>Literal</code> に置き換えて説明できる。<code>validatePreset</code>
+がなぜ <code>unknown</code> を受けるか言える。</p>
+</blockquote>
+<h2 id="型エイリアスは-dataclass-に近い">型エイリアスは dataclass
+に近い</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> GroupPreset <span class="op">=</span> {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  id<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  aspect<span class="op">:</span> <span class="st">&#39;16:9&#39;</span> <span class="op">|</span> <span class="st">&#39;9:16&#39;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  width<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  height<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  fps<span class="op">:</span> <span class="dv">30</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  maxFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python で書くなら:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> GroupPreset:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">id</span>: <span class="bu">str</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    name: <span class="bu">str</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    aspect: Literal[<span class="st">&#39;16:9&#39;</span>, <span class="st">&#39;9:16&#39;</span>]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    width: <span class="bu">float</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    height: <span class="bu">float</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    fps: Literal[<span class="dv">30</span>]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    max_frames: <span class="bu">float</span></span></code></pre></div>
+<p>違いが 3 つある。</p>
+<ol type="1">
+<li><strong>クラスではない。</strong> <code>type</code>
+は「この形のオブジェクト」という名前を付けるだけで、コンストラクタもメソッドも無い。作るときは
+<code>{ id: &#39;default&#39;, name: &#39;Vlog&#39;, ... }</code>
+と書く（<code>src/model/defaults.ts</code>）。</li>
+<li><strong><code>number</code> は float。</strong>
+<code>width: number</code> に <code>1080.5</code>
+も入る。整数であることは型では言えないので、<code>Number.isInteger</code>
+で実行時に確かめる（<code>validate.ts</code>）。</li>
+<li><strong>フィールド名は camelCase。</strong>
+<code>maxFrames</code>。Python の snake_case とは違う。</li>
+</ol>
+<h2 id="リテラル型と-union">リテラル型と union</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>aspect<span class="op">:</span> <span class="st">&#39;16:9&#39;</span> <span class="op">|</span> <span class="st">&#39;9:16&#39;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>fps<span class="op">:</span> <span class="dv">30</span></span></code></pre></div>
+<p><code>|</code> は「どちらか」。Python の
+<code>Literal[&#39;16:9&#39;, &#39;9:16&#39;]</code> と同じ。<code>fps: 30</code> は「30
+という値しか入らない」型。v1 では fps を固定している（ADR
+009）ので、型で縛っている。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> Transition <span class="op">=</span> {</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  type<span class="op">:</span> <span class="st">&#39;cut&#39;</span> <span class="op">|</span> <span class="st">&#39;crossfade&#39;</span> <span class="op">|</span> <span class="st">&#39;fadeWhite&#39;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  durationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Python なら <code>Enum</code> を作るところだが、TypeScript
+では文字列リテラルの union
+で済ませることが多い。値がそのまま文字列なので、JSON
+に保存しても読み戻しても変わらない。</p>
+<h2 id="-は無くてもよい"><code>?</code> は「無くてもよい」</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> TimelineItem <span class="op">=</span> {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  itemId<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  durationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  transitionOut<span class="op">?:</span> Transition</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  caption<span class="op">?:</span> CaptionTiming</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>transitionOut?</code> は「無いかもしれない」。無いときの値は
+<code>undefined</code>。Python の
+<code>Optional[Transition] = None</code> に近いが、2 点違う。</p>
+<ul>
+<li>無いときは <code>None</code> ではなく <code>undefined</code>。</li>
+<li>フィールド自体が
+<strong>存在しなくてもよい</strong>。<code>{ itemId: &#39;a&#39;, durationFrames: 150 }</code>
+はこの型を満たす。</li>
+</ul>
+<p>使う側は <code>if (item.transitionOut)</code>
+で確かめてから触る。<code>item.transitionOut.type</code>
+と無確認で書くと型エラーになる（<code>&#39;item.transitionOut&#39; is possibly &#39;undefined&#39;</code>）。</p>
+<h2 id="-で型を合体する"><code>&amp;</code> で型を合体する</h2>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> Caption <span class="op">=</span> CaptionTiming <span class="op">&amp;</span> {</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  text<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  presetId<span class="op">:</span> <span class="st">&#39;band&#39;</span> <span class="op">|</span> <span class="st">&#39;outline&#39;</span> <span class="op">|</span> <span class="st">&#39;box&#39;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="op">...</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>&amp;</code> は「両方のフィールドを持つ」。Python
+の継承（<code>class Caption(CaptionTiming)</code>）に近いが、親子関係は無く、単にフィールドが足し合わさる。</p>
+<h2 id="kind-で見分ける-unionこのアプリで一番大事な型"><code>kind</code>
+で見分ける union（このアプリで一番大事な型）</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> PhotoItem <span class="op">=</span> ItemBase <span class="op">&amp;</span> { kind<span class="op">:</span> <span class="st">&#39;photo&#39;</span><span class="op">;</span> kenBurns<span class="op">:</span> KenBurns }</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> VideoItem <span class="op">=</span> ItemBase <span class="op">&amp;</span> {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  kind<span class="op">:</span> <span class="st">&#39;video&#39;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  sourceDurationFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  trimStartFrames<span class="op">:</span> <span class="dt">number</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> MediaItem <span class="op">=</span> PhotoItem <span class="op">|</span> VideoItem</span></code></pre></div>
+<p><code>MediaItem</code> は写真か動画のどちらか。どちらかは
+<code>kind</code> を見れば分かる。TypeScript は <code>if</code> で
+<code>kind</code> を調べると、その中では型を絞り込む。</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// src/timeline/trim.ts</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (item<span class="op">.</span><span class="at">kind</span> <span class="op">!==</span> <span class="st">&#39;video&#39;</span>) <span class="cf">return</span> item</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">// ここから下では item は VideoItem。trimStartFrames に触れる</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> trimStartFrames <span class="op">=</span> <span class="fu">clampTrimStart</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  item<span class="op">.</span><span class="at">trimStartFrames</span><span class="op">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  item<span class="op">.</span><span class="at">sourceDurationFrames</span><span class="op">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  visibleLength<span class="op">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>Python 3.10 の <code>match item: case VideoItem(): ...</code>
+に相当する。<code>isinstance</code>
+の代わりにフィールドの値で見分ける、と覚える。</p>
+<h2 id="構造的な型-形が合えば通る">構造的な型: 「形が合えば通る」</h2>
+<p><code>types.ts</code> のコメントにこうある。</p>
+<blockquote>
+<p>MediaItem はこの型（TimelineItem）を含むので、そのまま渡せる。</p>
+</blockquote>
+<p><code>compileTimeline(items: TimelineItem[])</code> に
+<code>MediaItem[]</code> を渡せるのは、<code>MediaItem</code> が
+<code>TimelineItem</code>
+の全フィールドを持っているから。継承の宣言は要らない。Python の
+<code>Protocol</code>（静的なダックタイピング）と同じ考え方。</p>
+<p>この性質を使って、<code>src/timeline/</code> の関数は
+<strong>必要な最小限のフィールドだけを持つ型</strong>
+を受ける。テストでは <code>{ itemId: &#39;a&#39;, durationFrames: 40 }</code>
+のような小さいオブジェクトを渡せばよく、写真の寸法やファイル名を書く必要がない（<code>clamp.test.ts</code>
+を見る）。</p>
+<h2 id="unknown-と-as-外から来た値"><code>unknown</code> と
+<code>as</code>: 外から来た値</h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">validatePreset</span>(value<span class="op">:</span> <span class="dt">unknown</span>)<span class="op">:</span> ValidationResult {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="kw">typeof</span> value <span class="op">!==</span> <span class="st">&#39;object&#39;</span> <span class="op">||</span> value <span class="op">===</span> <span class="kw">null</span>) {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { ok<span class="op">:</span> <span class="kw">false</span><span class="op">,</span> errors<span class="op">:</span> [<span class="st">&#39;プリセットの形式が不正です。&#39;</span>] }</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> p <span class="op">=</span> value <span class="im">as</span> <span class="bu">Record</span><span class="op">&lt;</span><span class="dt">string</span><span class="op">,</span> <span class="dt">unknown</span><span class="op">&gt;</span></span></code></pre></div>
+<ul>
+<li><code>unknown</code> は「何が来るか分からない」。Python の
+<code>Any</code>
+と違い、<strong>確かめるまで何もできない</strong>。<code>value.id</code>
+と書くと型エラー。</li>
+<li><code>typeof value !== &#39;object&#39;</code>
+で絞り込んでから、<code>as Record&lt;string, unknown&gt;</code>
+で「文字列キーの辞書として扱う」と宣言する。<code>Record&lt;K, V&gt;</code>
+は Python の <code>dict[K, V]</code>。</li>
+<li>各フィールドを <code>typeof p.id !== &#39;string&#39;</code> のように 1
+つずつ確かめ、最後にそろった値で <code>GroupPreset</code>
+を組み立てる。</li>
+</ul>
+<p><code>as</code>
+は「私が責任を持つのでこの型として扱って」という宣言で、実行時には何もしない。確かめた直後にだけ使う。確かめずに
+<code>as</code> で黙らせるのは、Python で <code># type: ignore</code>
+を貼るのと同じ。</p>
+<p>戻り値の型も union になっている。</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> ValidationResult <span class="op">=</span> { ok<span class="op">:</span> <span class="kw">true</span><span class="op">;</span> preset<span class="op">:</span> GroupPreset } <span class="op">|</span> { ok<span class="op">:</span> <span class="kw">false</span><span class="op">;</span> errors<span class="op">:</span> <span class="dt">string</span>[] }</span></code></pre></div>
+<p><code>ok</code> が <code>true</code> なら <code>preset</code>
+がある、<code>false</code> なら <code>errors</code> がある。呼ぶ側は
+<code>if (result.ok)</code>
+で分岐すれば、それぞれの中で正しいフィールドだけが見える。例外を投げずに結果を型で返す書き方で、Python
+の <code>Result</code> 型を自作するのに似ている。</p>
+<h2 id="as-const"><code>as const</code></h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> SIZE_BY_ASPECT <span class="op">=</span> {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;16:9&#39;</span><span class="op">:</span> { width<span class="op">:</span> <span class="dv">1920</span><span class="op">,</span> height<span class="op">:</span> <span class="dv">1080</span> }<span class="op">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;9:16&#39;</span><span class="op">:</span> { width<span class="op">:</span> <span class="dv">1080</span><span class="op">,</span> height<span class="op">:</span> <span class="dv">1920</span> }<span class="op">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>} <span class="im">as</span> <span class="kw">const</span></span></code></pre></div>
+<p><code>as const</code> を付けると、<code>width</code> の型が
+<code>number</code> ではなく <code>1920</code>
+という値そのものになり、キーも <code>&#39;16:9&#39; | &#39;9:16&#39;</code>
+に固定される。これで <code>SIZE_BY_ASPECT[aspect]</code> が「aspect
+はこの 2 つのどちらか」と確かめたあとだけ通る。</p>
+<h2 id="import-type"><code>import type</code></h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="im">type</span> { GroupPreset } <span class="im">from</span> <span class="st">&#39;./types&#39;</span></span></code></pre></div>
+<p>型だけを読み込むときは
+<code>import type</code>。型は実行時に消えるので、このファイルからの依存も消える。値（関数や定数）を読み込むときは普通の
+<code>import</code>。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-2-1-python-に書き直す">演習 2-1 Python に書き直す</h3>
+<p><code>types.ts</code> の <code>KenBurns</code> と
+<code>Caption</code> を Python の dataclass
+で書く。<code>overrides?: { textColor?: string; ... }</code>
+をどう表すか考える（入れ子の dataclass
+か、<code>TypedDict(total=False)</code> か）。</p>
+<h3 id="演習-2-2-絞り込みを壊す">演習 2-2 絞り込みを壊す</h3>
+<p><code>src/timeline/trim.ts</code> の <code>clampTrims</code>
+で、<code>if (item.kind !== &#39;video&#39;) return item</code>
+の行をコメントアウトして
+<code>npm run typecheck</code>。何行目で何と言われるか読む。元に戻す。</p>
+<h3 id="演習-2-3-検証を-1-つ足す">演習 2-3 検証を 1 つ足す</h3>
+<p><code>validatePreset</code> は <code>name</code>
+が空かどうかしか見ていない。「<code>name</code> が 20
+文字を超えたらエラー」を足す。先に
+<code>src/model/validate.test.ts</code> にテストを書く。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">it</span>(<span class="st">&#39;プリセット名が 20 文字を超えたらエラー&#39;</span><span class="op">,</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> result <span class="op">=</span> <span class="fu">validatePreset</span>({ <span class="op">...</span>DEFAULT_PRESET<span class="op">,</span> name<span class="op">:</span> <span class="st">&#39;あ&#39;</span><span class="op">.</span><span class="fu">repeat</span>(<span class="dv">21</span>) })</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">expect</span>(result<span class="op">.</span><span class="at">ok</span>)<span class="op">.</span><span class="fu">toBe</span>(<span class="kw">false</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="op">!</span>result<span class="op">.</span><span class="at">ok</span>) <span class="fu">expect</span>(result<span class="op">.</span><span class="at">errors</span>)<span class="op">.</span><span class="fu">toContain</span>(<span class="st">&#39;プリセット名は 20 文字までです。&#39;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div>
+<p><code>DEFAULT_PRESET</code> はこのテストファイルの冒頭ですでに import
+されている。赤くなるのを見てから、<code>validate.ts</code> に 1
+行足して緑にする。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>2-2:
+<code>error TS2339: Property &#39;trimStartFrames&#39; does not exist on type &#39;MediaItem&#39;.</code>
+が 2 か所と、<code>sourceDurationFrames</code> について同じエラーが 1
+か所、合わせて 3 つ出る。<code>MediaItem</code>
+のまま（絞り込まずに）動画だけのフィールドに触ったため。</li>
+<li>2-3: <code>validate.ts</code> の名前の検査の次に
+<code>else if (p.name.length &gt; 20) errors.push(&#39;プリセット名は 20 文字までです。&#39;)</code>
+を足す。<code>typeof p.name !== &#39;string&#39;</code>
+の確認が先にあるので、<code>else if</code> の中では <code>p.name</code>
+は <code>string</code> として扱える。テストの
+<code>if (!result.ok)</code> は、<code>errors</code> が
+<code>ok: false</code> のときにしか無いための絞り込み。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li><code>type</code> は形の名前。クラスではない。</li>
+<li>「どちらか」は <code>|</code>、「両方」は
+<code>&amp;</code>、「無くてもよい」は <code>?</code>。</li>
+<li><code>kind</code> のようなフィールドで union
+を見分けると、型が絞り込まれる。</li>
+<li>外から来た値は <code>unknown</code>
+で受け、確かめてから使う。<code>as</code> は確かめた直後にだけ。</li>
+</ul>
+</main>
+</body>
+</html>

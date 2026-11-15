@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc 3.10.2" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>第 6 章 React の部品を読む</title>
+  <style>
+
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">
+:root {
+--fg: #1c1917;
+--muted: #57534e;
+--bg: #fafaf9;
+--panel: #f5f5f4;
+--line: #d6d3d1;
+--accent: #1d4ed8;
+}
+html {
+-webkit-text-size-adjust: 100%;
+}
+body {
+margin: 0;
+padding: 0 1rem;
+background: var(--bg);
+color: var(--fg);
+font-family:
+system-ui,
+-apple-system,
+'Hiragino Sans',
+'Noto Sans JP',
+sans-serif;
+font-size: 16px;
+line-height: 1.8;
+}
+
+body {
+max-width: none;
+}
+main {
+max-width: 44rem;
+margin: 0 auto;
+}
+h1 {
+font-size: 1.6rem;
+line-height: 1.4;
+margin: 2.5rem auto 1rem;
+padding-bottom: 0.4rem;
+border-bottom: 2px solid var(--line);
+}
+h2 {
+font-size: 1.25rem;
+line-height: 1.5;
+margin: 2.5rem auto 0.75rem;
+padding: 0.3rem 0.75rem;
+background: #57534e;
+color: #fff;
+border-radius: 0.25rem;
+}
+
+h2 code {
+background: #ffffff33;
+color: #fff;
+}
+h3 {
+font-size: 1.05rem;
+margin: 1.75rem auto 0.5rem;
+color: var(--accent);
+}
+p,
+ul,
+ol {
+margin: 0.6rem auto;
+}
+li {
+margin: 0.25rem 0;
+}
+a {
+color: var(--accent);
+}
+blockquote {
+margin: 1rem auto;
+padding: 0.5rem 1rem;
+border-left: 4px solid var(--line);
+background: var(--panel);
+color: var(--muted);
+}
+blockquote p {
+margin: 0.25rem 0;
+}
+code {
+font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+font-size: 0.9em;
+background: #e7e5e4;
+padding: 0.1em 0.35em;
+border-radius: 0.25rem;
+}
+
+:not(pre) > code {
+overflow-wrap: anywhere;
+}
+
+div.sourceCode {
+margin: 0.75rem 0;
+}
+pre {
+margin: 0.75rem 0;
+padding: 0.75rem 1rem;
+overflow-x: auto;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+line-height: 1.55;
+}
+pre code {
+background: none;
+padding: 0;
+font-size: 0.85rem;
+}
+table {
+border-collapse: collapse;
+width: 100%;
+margin: 1rem auto;
+font-size: 0.9rem;
+display: block;
+overflow-x: auto;
+}
+th,
+td {
+border: 1px solid var(--line);
+padding: 0.35rem 0.6rem;
+text-align: left;
+vertical-align: top;
+}
+th {
+background: var(--panel);
+}
+tbody tr:nth-child(even) {
+background: #f5f5f480;
+}
+nav#TOC {
+margin: 1rem auto 2rem;
+padding: 0.75rem 1rem;
+background: var(--panel);
+border: 1px solid var(--line);
+border-radius: 0.375rem;
+font-size: 0.95rem;
+}
+nav#TOC ul {
+margin: 0;
+padding-left: 1.25rem;
+}
+
+.study-nav {
+margin: 1rem 0 0;
+font-size: 0.9rem;
+color: var(--muted);
+}
+.study-nav a + a::before {
+content: ' ・ ';
+color: var(--muted);
+}
+@media print {
+body {
+background: #fff;
+font-size: 11pt;
+}
+h2 {
+background: none;
+color: var(--fg);
+border-bottom: 2px solid var(--fg);
+border-radius: 0;
+padding-left: 0;
+}
+pre {
+white-space: pre-wrap;
+}
+.study-nav {
+display: none;
+}
+}
+</style>
+</head>
+<body>
+<p class="study-nav"><a href="index.html">プラン</a><a href="05-async.html">← 第 5 章 非同期</a><a href="07-tailwind.html">第 7 章 Tailwind →</a></p>
+<main>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#第-6-章-react-の部品を読む" id="toc-第-6-章-react-の部品を読む">第 6 章 React の部品を読む</a>
+<ul>
+<li><a href="#部品--画面の一部を返す関数" id="toc-部品--画面の一部を返す関数">部品 = 画面の一部を返す関数</a></li>
+<li><a href="#props-は引数型を付ける" id="toc-props-は引数型を付ける">props は引数、型を付ける</a></li>
+<li><a href="#children-中身を受け取る" id="toc-children-中身を受け取る"><code>children</code>:
+中身を受け取る</a></li>
+<li><a href="#条件で出す出さない" id="toc-条件で出す出さない">条件で出す・出さない</a></li>
+<li><a href="#一覧は-map-で描く" id="toc-一覧は-map-で描く">一覧は
+<code>map</code> で描く</a></li>
+<li><a href="#イベント" id="toc-イベント">イベント</a></li>
+<li><a href="#状態-usestate" id="toc-状態-usestate">状態:
+<code>useState</code></a></li>
+<li><a href="#store-から読む-useappstore" id="toc-store-から読む-useappstore">store から読む:
+<code>useAppStore</code></a></li>
+<li><a href="#props-を素通しする-rest" id="toc-props-を素通しする-rest">props を素通しする:
+<code>...rest</code></a></li>
+<li><a href="#tabbart-extends-string" id="toc-tabbart-extends-string"><code>TabBar&lt;T extends string&gt;</code></a></li>
+<li><a href="#やってみる" id="toc-やってみる">やってみる</a></li>
+<li><a href="#答え合わせ" id="toc-答え合わせ">答え合わせ</a></li>
+<li><a href="#この章のまとめ" id="toc-この章のまとめ">この章のまとめ</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="第-6-章-react-の部品を読む">第 6 章 React の部品を読む</h1>
+<blockquote>
+<p>題材:
+<code>src/components/ui/SmallButton.tsx</code>、<code>Section.tsx</code>、<code>FrameSlider.tsx</code>、<code>TabBar.tsx</code>、<code>TotalDuration.tsx</code>、<code>App.tsx</code>
+目標: 「関数が画面を返す」「props
+は引数」「状態が変わると関数がもう一度呼ばれる」の 3 点で部品を読める。
+この章では <code>className=&quot;...&quot;</code> の中身は
+<strong>読み飛ばす</strong>。7 章で見る。</p>
+</blockquote>
+<h2 id="部品--画面の一部を返す関数">部品 = 画面の一部を返す関数</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">SmallButton</span>({ label<span class="op">,</span> variant <span class="op">=</span> <span class="st">&#39;primary&#39;</span><span class="op">,</span> title<span class="op">,</span> disabled<span class="op">,</span> onClick }<span class="op">:</span> Props) {</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> look <span class="op">=</span> variant <span class="op">===</span> <span class="st">&#39;primary&#39;</span> <span class="op">?</span> <span class="st">&#39;...&#39;</span> <span class="op">:</span> <span class="st">&#39;...&#39;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>button <span class="kw">type</span><span class="op">=</span><span class="st">&quot;button&quot;</span> className<span class="op">=</span>{<span class="vs">`...`</span>} aria<span class="op">-</span>label<span class="op">=</span>{title} title<span class="op">=</span>{title} disabled<span class="op">=</span>{disabled} onClick<span class="op">=</span>{<span class="op">...</span>}<span class="op">&gt;</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>      {label}</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<ul>
+<li>関数の名前は大文字で始める（<code>SmallButton</code>）。小文字は
+HTML の要素（<code>button</code>）。</li>
+<li>戻り値の <code>&lt;button&gt;...&lt;/button&gt;</code> は
+<strong>JSX</strong>。HTML
+に似た見た目で、実際には「要素を作る関数呼び出し」に変換される。拡張子が
+<code>.tsx</code> なのはそのため。</li>
+<li>JSX の中で <code>{ }</code> を書くと TypeScript
+の式に戻る。<code>{label}</code> は変数の値、<code>onClick={...}</code>
+は関数を渡している。</li>
+</ul>
+<p>Python に無理に対応づけるなら、Jinja のテンプレートを「引数を受けて
+HTML を返す関数」として書いたもの。</p>
+<h2 id="props-は引数型を付ける">props は引数、型を付ける</h2>
+<div class="sourceCode" id="cb2"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  label<span class="op">:</span> <span class="dt">string</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  variant<span class="op">?:</span> <span class="st">&#39;primary&#39;</span> <span class="op">|</span> <span class="st">&#39;secondary&#39;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  title<span class="op">?:</span> <span class="dt">string</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  disabled<span class="op">?:</span> <span class="dt">boolean</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  onClick<span class="op">:</span> () <span class="kw">=&gt;</span> <span class="dt">void</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>使う側は
+<code>&lt;SmallButton label=&quot;▲&quot; onClick={() =&gt; moveItem(...)} /&gt;</code>
+と、HTML の属性のように渡す。関数側は
+<code>{ label, variant = &#39;primary&#39;, ... }: Props</code>
+と分割代入で受け、既定値を <code>=</code> で書く。Python の
+<code>def small_button(*, label, variant=&#39;primary&#39;, ...)</code>
+と同じ。</p>
+<p><code>onClick: () =&gt; void</code>
+は「引数なし、戻り値なしの関数」。部品はボタンが押されたことだけ伝え、何をするかは呼ぶ側が決める。</p>
+<h2 id="children-中身を受け取る"><code>children</code>:
+中身を受け取る</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> { title<span class="op">:</span> ReactNode<span class="op">;</span> icon<span class="op">?:</span> IconName<span class="op">;</span> children<span class="op">:</span> ReactNode }</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">Section</span>({ title<span class="op">,</span> icon<span class="op">,</span> children }<span class="op">:</span> Props) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>section className<span class="op">=</span><span class="st">&quot;mb-12&quot;</span><span class="op">&gt;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="op">&lt;</span>h2 <span class="op">...&gt;</span>{icon <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>Icon name<span class="op">=</span>{icon} <span class="op">.../&gt;</span>}<span class="op">&lt;</span>span<span class="op">&gt;</span>{title}<span class="op">&lt;/</span>span<span class="op">&gt;&lt;/</span>h2<span class="op">&gt;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="op">&lt;</span>div className<span class="op">=</span><span class="st">&quot;space-y-2&quot;</span><span class="op">&gt;</span>{children}<span class="op">&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>section<span class="op">&gt;</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>Section title<span class="op">=</span><span class="st">&quot;素材&quot;</span> icon<span class="op">=</span><span class="st">&quot;film&quot;</span><span class="op">&gt;</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="op">&lt;</span>MediaList <span class="op">/&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>Section<span class="op">&gt;</span></span></code></pre></div>
+<p>開きタグと閉じタグの間に書いたものが <code>children</code>
+として渡る。<code>ReactNode</code> は「JSX
+として置けるもの何でも」（文字列、要素、配列、<code>null</code>）。</p>
+<h2 id="条件で出す出さない">条件で出す・出さない</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  icon <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>Icon name<span class="op">=</span>{icon} <span class="op">/&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  selected <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>div<span class="op">&gt;...&lt;/</span>div<span class="op">&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  cutNote <span class="op">&amp;&amp;</span> <span class="op">&lt;</span>span className<span class="op">=</span><span class="st">&quot;text-red-700&quot;</span><span class="op">&gt;</span> {cutNote}<span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>A &amp;&amp; B</code> は A が偽なら A（<code>undefined</code>
+や <code>&#39;&#39;</code>）、真なら B。JSX は
+<code>undefined</code>、<code>null</code>、<code>false</code>、<code>&#39;&#39;</code>
+を <strong>何も描かない</strong> ので、「A のときだけ B
+を出す」になる。Python の <code>B if A else None</code> に当たる。</p>
+<p>3 択以上なら <code>? :</code> を重ねる（<code>MediaList.tsx</code> の
+<code>cutNote</code>）。</p>
+<p><code>App.tsx</code>
+のタブは別の方法で、要素を消さずに隠している。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>div className<span class="op">=</span>{tab <span class="op">===</span> <span class="st">&#39;editor&#39;</span> <span class="op">?</span> <span class="st">&#39;&#39;</span> <span class="op">:</span> <span class="st">&#39;hidden&#39;</span>}<span class="op">&gt;</span></span></code></pre></div>
+<p>理由はコメントにある。「取り込んだ画像や <code>&lt;video&gt;</code>
+を作り直さないため」。条件で消すと中身の状態も消える。</p>
+<h2 id="一覧は-map-で描く">一覧は <code>map</code> で描く</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>{tabs<span class="op">.</span><span class="fu">map</span>((tab) <span class="kw">=&gt;</span> {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> active <span class="op">=</span> tab<span class="op">.</span><span class="at">id</span> <span class="op">===</span> value</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> (</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;</span>button key<span class="op">=</span>{tab<span class="op">.</span><span class="at">id</span>} <span class="op">...</span> onClick<span class="op">=</span>{() <span class="kw">=&gt;</span> <span class="fu">onChange</span>(tab<span class="op">.</span><span class="at">id</span>)}<span class="op">&gt;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>      {tab<span class="op">.</span><span class="at">label</span>}</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">&lt;/</span>button<span class="op">&gt;</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>})}</span></code></pre></div>
+<p>配列を JSX の配列に変換して置く。<code>key</code>
+は各要素を見分けるための印で、<strong>一覧には必ず付ける</strong>（無いと警告が出て、並べ替えで表示が崩れることがある）。ID
+のように変わらない値を使う。添字は並べ替えで変わるので避ける。</p>
+<h2 id="イベント">イベント</h2>
+<div class="sourceCode" id="cb8"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>onClick<span class="op">=</span>{(e) <span class="kw">=&gt;</span> {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  e<span class="op">.</span><span class="fu">stopPropagation</span>()</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">onClick</span>()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>}}</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>onChange<span class="op">=</span>{(e) <span class="kw">=&gt;</span> <span class="fu">onChange</span>(<span class="bu">Number</span>(e<span class="op">.</span><span class="at">target</span><span class="op">.</span><span class="at">value</span>))}</span></code></pre></div>
+<p><code>onClick</code>、<code>onChange</code>
+に関数を渡す。<code>e</code> はイベント。<code>e.target.value</code>
+は入力欄の値で <strong>文字列</strong> なので、<code>Number()</code>
+で数に直している（スライダーの値も文字列で来る）。</p>
+<p><code>e.stopPropagation()</code>
+は「親の要素にクリックを伝えない」。<code>SmallButton</code>
+は一覧の行の中にあるので、親の行がクリックを受け取らないようにしている。</p>
+<h2 id="状態-usestate">状態: <code>useState</code></h2>
+<div class="sourceCode" id="cb9"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> [tab<span class="op">,</span> setTab] <span class="op">=</span> <span class="fu">useState</span><span class="op">&lt;</span>Tab<span class="op">&gt;</span>(<span class="st">&#39;guide&#39;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> [splash<span class="op">,</span> setSplash] <span class="op">=</span> <span class="fu">useState</span>(<span class="kw">true</span>)</span></code></pre></div>
+<p><code>useState(初期値)</code> は <code>[今の値, 変える関数]</code>
+の組を返す。<code>setTab(&#39;editor&#39;)</code>
+を呼ぶと、<strong>この関数（App）がもう一度呼ばれて</strong>、新しい
+<code>tab</code> で JSX が作り直される。これが React
+の全部と言ってよい。</p>
+<ul>
+<li>値を直接書き換えても（<code>tab = &#39;editor&#39;</code>）画面は変わらない。必ず
+<code>set</code> 関数を使う。</li>
+<li><code>&lt;Tab&gt;</code> は型の指定。<code>&#39;guide&#39;</code>
+から推論すると <code>string</code> になってしまうので、<code>Tab</code>
+だと明示している。</li>
+</ul>
+<h2 id="store-から読む-useappstore">store から読む:
+<code>useAppStore</code></h2>
+<div class="sourceCode" id="cb10"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> items <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">items</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> preset <span class="op">=</span> <span class="fu">useAppStore</span>((s) <span class="kw">=&gt;</span> s<span class="op">.</span><span class="at">project</span><span class="op">.</span><span class="at">preset</span>)</span></code></pre></div>
+<p><code>TotalDuration.tsx</code>
+はアプリ全体の状態（store）から値を取り出している。<code>(s) =&gt; s.project.items</code>
+は「状態のうちこの部分だけ見る」という関数（セレクタ）。その部分が変わったときだけ、この部品が描き直される。詳しくは
+8 章。</p>
+<p><code>TotalDuration</code> は、取り出した値を 3
+章の純粋関数（<code>sumFrames</code>、<code>overflowFrames</code>）に渡して、結果を文で出すだけ。計算は部品の外にある。これがこのアプリの基本形。</p>
+<h2 id="props-を素通しする-rest">props を素通しする:
+<code>...rest</code></h2>
+<div class="sourceCode" id="cb11"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Props <span class="op">=</span> ButtonHTMLAttributes<span class="op">&lt;</span><span class="bu">HTMLButtonElement</span><span class="op">&gt;</span> <span class="op">&amp;</span> { variant<span class="op">?:</span> <span class="op">...;</span> size<span class="op">?:</span> <span class="op">...</span> }</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">Button</span>({ variant <span class="op">=</span> <span class="st">&#39;primary&#39;</span><span class="op">,</span> size <span class="op">=</span> <span class="st">&#39;normal&#39;</span><span class="op">,</span> className <span class="op">=</span> <span class="st">&#39;&#39;</span><span class="op">,</span> <span class="op">...</span>rest }<span class="op">:</span> Props) {</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="op">&lt;</span>button className<span class="op">=</span>{<span class="vs">`... </span><span class="sc">${</span>className<span class="sc">}</span><span class="vs">`</span>} {<span class="op">...</span>rest} <span class="op">/&gt;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p><code>Button.tsx</code> は、自分で使う 3
+つだけ取り出し、残り（<code>onClick</code>、<code>disabled</code>、<code>aria-expanded</code>
+など）を <code>...rest</code> でまとめて <code>&lt;button&gt;</code>
+に渡す。Python の <code>**kwargs</code>
+を下に流すのと同じ。<code>ButtonHTMLAttributes&lt;HTMLButtonElement&gt;</code>
+は「<code>&lt;button&gt;</code> が受け付ける全属性」の型で、React
+が用意している。</p>
+<h2 id="tabbart-extends-string"><code>TabBar&lt;T extends string&gt;</code></h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode typescript"><code class="sourceCode typescript"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">function</span> <span class="fu">TabBar</span><span class="op">&lt;</span>T <span class="kw">extends</span> <span class="dt">string</span><span class="op">&gt;</span>({ tabs<span class="op">,</span> value<span class="op">,</span> onChange }<span class="op">:</span> Props<span class="op">&lt;</span>T<span class="op">&gt;</span>)</span></code></pre></div>
+<p>タブの ID は <code>App</code> では
+<code>&#39;guide&#39; | &#39;tips&#39; | &#39;editor&#39; | &#39;join&#39;</code>。<code>T</code>
+のおかげで <code>onChange</code> に渡る ID
+もその型になり、<code>switchTab(next: Tab)</code> が受け取れる。4
+章と同じ「入れた型のまま返す」ための最小限のジェネリクス。</p>
+<h2 id="やってみる">やってみる</h2>
+<h3 id="演習-6-1-読んで答える">演習 6-1 読んで答える</h3>
+<p><code>FrameSlider.tsx</code> で、◀ ボタンが押せなくなる条件を 2
+つ挙げる。</p>
+<h3 id="演習-6-2-1-行足す">演習 6-2 1 行足す</h3>
+<p><code>TotalDuration.tsx</code>
+で、上限内のときの文に素材の数を足す。「合計 12.0 秒（3 個、上限 15.0
+秒）。…」のように。<code>items.length</code>
+を使う。開発サーバーで写真を 3 枚入れて確かめる。</p>
+<h3 id="演習-6-3-条件描画">演習 6-3 条件描画</h3>
+<p>6-2 で、素材が 1 個のときは「（1
+個、」ではなく個数を出さないようにする。<code>? :</code> で書く。</p>
+<h3 id="演習-6-4-key-を外す">演習 6-4 key を外す</h3>
+<p><code>TabBar.tsx</code> の <code>key={tab.id}</code>
+を消して開発サーバーを開き、ブラウザの開発者ツールのコンソールに何が出るか読む。戻す。</p>
+<h2 id="答え合わせ">答え合わせ</h2>
+<ul>
+<li>6-1: <code>disabled</code>（親が無効にしている。書き出し中）または
+<code>value &lt;= min</code>（もう下限）。</li>
+<li>6-2: <code>const count = items.length</code>
+を足し、<code>合計 {sec(total)} 秒（{count} 個、上限 {sec(preset.maxFrames)} 秒）。</code>
+のように <code>{count}</code> を文に入れる。</li>
+<li>6-3: <code>{count &gt; 1 ? </code>${count} 個、<code> : &#39;&#39;}</code>
+のように、文字列を返す三項演算子を <code>{ }</code> に入れる。</li>
+<li>6-4:
+<code>Each child in a list should have a unique &quot;key&quot; prop.</code>
+の警告が出る。</li>
+</ul>
+<h2 id="この章のまとめ">この章のまとめ</h2>
+<ul>
+<li>部品は props を受けて JSX を返す関数。大文字で始める。</li>
+<li><code>{cond &amp;&amp; &lt;X /&gt;}</code>
+で条件描画、<code>xs.map(...)</code> と <code>key</code> で一覧。</li>
+<li>値は <code>useState</code> の set 関数か store の action
+で変える。変わると関数がもう一度呼ばれる。</li>
+<li>計算は部品の外（<code>src/timeline/</code>
+など）に置き、部品は値を文や要素にするだけ。</li>
+</ul>
+</main>
+</body>
+</html>
