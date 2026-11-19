@@ -27,13 +27,17 @@ export async function importOnePhoto(file: File, preset: GroupPreset): Promise<N
   }
 }
 
-/** 動画を開いてポスターを作る。ポスターに失敗したら動画も解放する（store にはまだ渡していない） */
+/**
+ * 動画を開いてポスターを作る。ポスターに失敗したら動画も解放する（store にはまだ渡していない）。
+ * `maxDurationSec` は編集タブだけが渡す（30 秒より長い動画を拒否する）
+ */
 export async function importOneVideo(
   file: File,
   preset: GroupPreset,
   notes: string[],
+  maxDurationSec?: number,
 ): Promise<NewVideo> {
-  const video = await importVideo(file)
+  const video = await importVideo(file, maxDurationSec)
   const width = Math.round(preset.width * POSTER_SCALE)
   const height = Math.round(preset.height * POSTER_SCALE)
   let poster: ImageBitmap
