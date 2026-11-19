@@ -58,7 +58,9 @@ export function Splash({ onDone }: { onDone: () => void }) {
         // 画像が無い・壊れているときは待たずに消える（白い画面を 2 秒見せない）
         onError={() => setFading(true)}
       />
-      <span className="shrink-0 py-4 text-xs text-stone-600">タップで始める</span>
+      <span className="shrink-0 pt-4 text-xs text-stone-600">タップで始める</span>
+      {/* 版の番号（ADR 025）。どの版が入っているか、当日に聞けば分かるように */}
+      <span className="shrink-0 pt-1 pb-3 text-[10px] text-stone-400">v{__APP_VERSION__}</span>
     </button>
   )
 }
