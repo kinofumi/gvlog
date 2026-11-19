@@ -35,7 +35,8 @@ export type AppState = {
     exporting: boolean
   }
 
-  /** まとめて追加（初期の尺は 5 秒、動画は元の長さまで）。入らなかった素材の画像と動画は解放する */
+  /** まとめて追加（初期の尺は 5 秒、動画は元の長さまで）。入らなかった素材の画像と動画は解放する。
+   *  取り込みは 1 点ずつになった（ADR 024）が、API は複数件のまま（複数選択に戻すときのため） */
   addItems(entries: NewEntry[]): void
   removeItem(itemId: string): void
   moveItem(itemId: string, toIndex: number): void

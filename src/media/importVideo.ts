@@ -1,5 +1,5 @@
 import { BlobSource, Input, MP4, QTFF, type InputVideoTrack } from 'mediabunny'
-import { VIDEO_MAX_BYTES, VIDEO_MAX_HEIGHT, VIDEO_MAX_WIDTH } from './limits'
+import { isVideoTooLong, VIDEO_MAX_BYTES, VIDEO_MAX_HEIGHT, VIDEO_MAX_WIDTH } from './limits'
 import { MediaError } from './errors'
 
 /** 動画を読み込んで分かったこと。UI の表示と書き出しの両方で使う */
@@ -26,11 +26,16 @@ export type ImportedVideo = {
 /**
  * 動画ファイルを開き、メタデータとデコード可否を調べる。
  * デコードはまだしない（書き出し時に必要な区間だけ順にデコードする）。
+ * `maxDurationSec` を渡すと、それより長い動画は拒否する（編集タブは 30 秒、つなげるタブは上限なし）。
  */
-export async function importVideo(file: File): Promise<ImportedVideo> {
+export async function importVideo(file: File, maxDurationSec?: number): Promise<ImportedVideo> {
   if (file.size > VIDEO_MAX_BYTES) {
-    throw new MediaError('動画が大きすぎます（200MB まで）。短く切ってから選んでください。')
+    throw new MediaError(
+      `動画が大きすぎます（${VIDEO_MAX_BYTES / 1024 / 1024}MB まで）。短く切ってから選んでください。`,
+    )
   }
+  // 長さは、まるごと読む前にファイルのまま調べる（長い動画のために大きな読み込みを待たせない）
+  if (maxDurationSec !== undefined) await rejectIfTooLong(file, maxDurationSec)
 
   // ファイルは取り込み時にまるごとメモリへ読む（ADR 012）。
   // Android では選択した File がアプリ切り替えや時間経過で読めなくなり、書き出しの途中で
@@ -98,6 +103,33 @@ async function probe(file: File, blob: Blob, input: Input): Promise<ImportedVide
     transfer,
     isHdr: transfer === 'hlg' || transfer === 'pq',
     canDecode,
+  }
+}
+
+/**
+ * 動画の長さだけをファイルから直接読んで、上限を超えていれば MediaError を投げる（ADR 024）。
+ * メタデータ（moov）しか読まないので、まるごと読むより速い。
+ * 読めない形式や映像トラックが無い場合はここでは何も言わず、あとの probe が案内する。
+ */
+async function rejectIfTooLong(file: File, maxDurationSec: number): Promise<void> {
+  const input = new Input({ formats: [MP4, QTFF], source: new BlobSource(file) })
+  try {
+    const track = await input.getPrimaryVideoTrack()
+    if (!track) return
+    const [durationSec, firstTimestampSec] = await Promise.all([
+      track.computeDuration(),
+      track.getFirstTimestamp(),
+    ])
+    // durationSec は末尾の時刻なので、先頭の時刻（0 でないことがある）を引いて実際の長さにする
+    if (isVideoTooLong(durationSec - firstTimestampSec, maxDurationSec)) {
+      throw new MediaError(
+        `動画が長すぎます（${maxDurationSec} 秒まで）。短く切ってから選んでください。`,
+      )
+    }
+  } catch (error) {
+    if (error instanceof MediaError) throw error
+  } finally {
+    input.dispose()
   }
 }
 
