@@ -43,7 +43,6 @@ export function JoinPanel({
   const setImporting = useAppStore((s) => s.setImporting)
   const [clips, setClips] = useState<NewVideo[]>([])
   const [coverText, setCoverText] = useState(defaultCoverText)
-  const [progress, setProgress] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const bgm = useBgm()
@@ -69,28 +68,22 @@ export function JoinPanel({
   // 上限（10 分）を超えた分は出力に入らない（ADR 015 と同じ切り捨て）
   const overflowSec = overflowFrames(durations, maxFrames) / fps
 
+  // 動画は 1 本ずつ選ぶ（編集タブと同じ。ADR 024）。長さの上限は無い（各自が書き出した MP4 を集める場所なので）
   async function onPick(files: FileList | null) {
-    if (!files || files.length === 0) return
+    const file = files?.[0]
+    if (!file) return
     const notes: string[] = []
     setMessages([])
     setImporting(true)
-    const added: NewVideo[] = []
     try {
-      const targets = Array.from(files)
-      for (const [i, file] of targets.entries()) {
-        setProgress(`${i + 1} / ${targets.length} 本目を読み込み中…`)
-        try {
-          if (!isVideoFile(file)) throw new MediaError(`${file.name} は動画ではありません。`)
-          added.push(await importOneVideo(file, JOIN_PRESET, notes))
-        } catch (error) {
-          notes.push(
-            error instanceof MediaError ? error.message : `${file.name} を読み込めませんでした。`,
-          )
-        }
-      }
-      setClips((prev) => [...prev, ...added])
+      if (!isVideoFile(file)) throw new MediaError(`${file.name} は動画ではありません。`)
+      const clip = await importOneVideo(file, JOIN_PRESET, notes)
+      setClips((prev) => [...prev, clip])
+    } catch (error) {
+      notes.push(
+        error instanceof MediaError ? error.message : `${file.name} を読み込めませんでした。`,
+      )
     } finally {
-      setProgress('')
       setMessages(notes)
       setImporting(false)
     }
@@ -116,7 +109,7 @@ export function JoinPanel({
     <div>
       <Section title="みんなの動画を集める" icon="folder">
         <p className="text-sm text-stone-600">
-          それぞれが生成した MP4 を選びます。順番を並べ替えて「つなげて生成」を押すと、
+          それぞれが生成した MP4 を 1 本ずつ選びます。順番を並べ替えて「つなげて生成」を押すと、
           {(JOIN_FADE_FRAMES / fps).toFixed(1)} 秒の白フェードでつないだ 1
           本の動画になります。表紙の文字を入れると先頭に {JOIN_COVER_FRAMES / fps}{' '}
           秒の表紙が付き、最後は白くフェードアウトして終わります。
@@ -126,16 +119,14 @@ export function JoinPanel({
           className="hidden"
           type="file"
           accept="video/*"
-          multiple
           onChange={(e) => {
             void onPick(e.target.files)
             e.target.value = ''
           }}
         />
         <Button disabled={importing || exporting} onClick={() => inputRef.current?.click()}>
-          {importing ? '読み込み中…' : '動画を選ぶ'}
+          {importing ? '読み込み中…' : '動画を 1 つ選ぶ'}
         </Button>
-        {progress && <p className="text-sm text-stone-600">{progress}</p>}
         {messages.map((m, i) => (
           <p key={i} className="text-sm text-red-700">
             {m}

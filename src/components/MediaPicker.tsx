@@ -26,7 +26,6 @@ export function MediaPicker() {
   const exporting = useAppStore((s) => s.ui.exporting)
   const setImporting = useAppStore((s) => s.setImporting)
   const [messages, setMessages] = useState<string[]>([])
-  const [progress, setProgress] = useState('')
   const [timing, setTiming] = useState<string[]>([])
   // ファイル選択の input は見せず、ボタンから開く（素の input はスマホで小さく、目立たない）
   const inputRef = useRef<HTMLInputElement>(null)
@@ -38,7 +37,6 @@ export function MediaPicker() {
     setMessages([])
     setTiming([])
     setImporting(true)
-    setProgress('読み込み中…')
     const startedAt = performance.now()
     try {
       const entry = isVideoFile(file)
@@ -55,7 +53,6 @@ export function MediaPicker() {
         error instanceof MediaError ? error.message : `${file.name} を読み込めませんでした。`,
       )
     } finally {
-      setProgress('')
       setMessages(notes)
       setImporting(false)
     }
@@ -105,7 +102,6 @@ export function MediaPicker() {
           カメラ設定の「フォーマット」を「互換性優先」にすると速くなります。
         </p>
       )}
-      {progress && <p className="text-sm text-stone-600">{progress}</p>}
       {messages.map((m, i) => (
         <p key={i} className="text-sm text-red-700">
           {m}
